@@ -13,21 +13,31 @@
             margin: 0; padding: 0; color: #333; 
         }
         
-        .content-wrapper { max-width: 1200px; width: 96%; margin: 0 auto; }
+        .content-wrapper {
+            max-width: 1200px; 
+            width: 96%;        
+            margin: 0 auto;    
+        }
 
-        /* 상단 고정 헤더 */
+        /* 2. 상단 컨트롤 박스 */
         .control-box-bg { 
-            background: white; position: sticky; top: 0; z-index: 1000; 
+            background: white; 
+            position: sticky; top: 0; z-index: 1000; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
             padding: 15px 0; 
         }
 
-        .button-row { display: flex; gap: 10px; width: 100%; margin-bottom: 15px; }
+        /* 3. 버튼 3개 한 줄 정렬 */
+        .button-row {
+            display: flex; gap: 10px; width: 100%;
+            margin-bottom: 15px; 
+        }
         .button-row button {
             flex: 1; padding: 12px 0; border: none; border-radius: 12px; 
             font-size: 0.95em; font-weight: bold; color: white; cursor: pointer;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: transform 0.1s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s, opacity 0.2s;
             display: flex; align-items: center; justify-content: center; gap: 5px;
         }
         .button-row button:active { transform: scale(0.96); }
@@ -36,8 +46,14 @@
         #btn-refresh { background: linear-gradient(135deg, #00b894, #00cec9); }
         #btn-login { background: linear-gradient(135deg, #0984e3, #74b9ff); } 
 
-        h1 { margin: 15px 0; font-size: 1.6em; color: #1e272e; text-align: center; font-weight: 800; letter-spacing: -0.5px; }
+        /* 제목 스타일 */
+        h1 { 
+            margin: 15px 0; 
+            font-size: 1.6em; color: #1e272e; 
+            text-align: center; font-weight: 800; letter-spacing: -0.5px;
+        }
         
+        /* 4. 검색창 디자인 */
         .input-group { display: flex; gap: 8px; }
         input[type="text"] { 
             flex: 1; padding: 12px 15px; border: 1px solid #dfe6e9; 
@@ -55,10 +71,10 @@
         /* 상태 메시지 및 로딩 애니메이션 */
         #status { text-align: center; margin-top: 30px; color: #636e72; font-size: 1em; font-weight: 500; min-height: 30px; line-height: 1.5; }
         
-        /* 🔄 로딩 아이콘 회전 애니메이션 */
-        .loading-icon { 
+        /* 🔄 회전 애니메이션 */
+        .spin-icon { 
             display: inline-block; 
-            animation: spin 1s linear infinite; 
+            animation: spin 1.5s linear infinite; 
             font-size: 1.2em; 
             margin-right: 8px;
         }
@@ -127,7 +143,7 @@
     </div>
 
     <div id="status">
-        <span class="loading-icon">⏳</span> 데이터를 불러오고 있습니다...
+        <span class="spin-icon">⏳</span> 데이터를 불러오고 있습니다...
     </div>
     
     <div id="bid-list" class="content-wrapper"></div>
@@ -143,13 +159,13 @@
 
     <script>
         // ============================================================
-        // 🔑 [1] Gemini API 키
+        // 🔑 [1] Gemini API 키 (입력 완료)
         const GEMINI_API_KEY = 'AIzaSyDaRFQQE-I3lwCnIiKcRWIUYxQLHrrfO1M';
         
-        // 🔑 [2] 캘린더 ID
-        const BID_CALENDAR_ID = 'd51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04@group.calendar.google.com'; 
+        // 🔑 [2] 캘린더 ID (입력 완료)
+        const BID_CALENDAR_ID = 'primary'; 
 
-        // 🚨 [3] Apps Script 주소
+        // 🚨 [3] Apps Script 주소 (입력 완료)
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec'; 
         // ============================================================
 
@@ -168,10 +184,10 @@
             iframe.src = calSrc;
         }
 
-        // ---------- 공통: Gemini 호출 함수 (안전장치 추가) ----------
+        // ---------- 공통: Gemini 호출 함수 ----------
         async function callGemini(prompt) {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15초 타임아웃
+            const timeoutId = setTimeout(() => controller.abort(), 15000); 
 
             try {
                 const response = await fetch(
@@ -195,25 +211,20 @@
             }
         }
 
-        // 🔥 AI 답변에서 순수 텍스트(JSON 등)만 안전하게 추출하는 함수
+        // 🔥 AI 답변에서 순수 텍스트(JSON 등)만 안전하게 추출
         function extractGeminiText(data) {
             const parts = data?.candidates?.[0]?.content?.parts || [];
             let text = parts.map(p => p.text || '').join('\n');
-            
-            // 마크다운 제거
             text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-            
-            // 중괄호 {} 로 감싸진 부분만 추출 (앞뒤 잡담 제거)
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (jsonMatch) text = jsonMatch[0];
-            
             return text;
         }
 
         // ---------- 1. 데이터 로드 ----------
         async function loadData() {
             const status = document.getElementById('status');
-            status.innerHTML = `<span class="loading-icon">⏳</span> 입찰 공고를 불러오는 중입니다...`;
+            status.innerHTML = `<span class="spin-icon">⏳</span> 입찰 공고를 불러오는 중입니다...`;
             try {
                 const res = await fetch(SCRIPT_URL);
                 if (!res.ok) throw new Error("서버 연결 실패 (주소 확인 필요)");
@@ -227,17 +238,45 @@
             }
         }
 
+        // 🔥 [수정됨] 검색 결과가 없을 때 외부 검색 버튼 표시
         function renderList(data) {
             const list = document.getElementById('bid-list');
             list.innerHTML = "";
+            const query = document.getElementById('search-input').value;
+
             if(data.length === 0) {
-                list.innerHTML = `
-                    <div style='text-align:center; padding:50px; color:#888;'>
-                        <p style='font-size:3em; margin-bottom:10px;'>📭</p>
-                        <p>검색 조건에 맞는 공고가 없습니다.</p>
-                    </div>`;
+                // 검색 결과가 없을 때 표시할 UI
+                let html = `
+                    <div style='text-align:center; padding:50px 20px; color:#636e72;'>
+                        <p style='font-size:3em; margin-bottom:10px;'>🤔</p>
+                        <p style="font-weight:bold; font-size:1.1em;">내부 DB에는 결과가 없습니다.</p>
+                `;
+
+                // 검색어가 있으면 외부 검색 버튼 표시
+                if (query) {
+                     html += `
+                        <p style="font-size:0.9em; margin-bottom:20px;">웹 전체에서 검색해 보시겠습니까?</p>
+                        <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+                            <button onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(query + ' 입찰 공고')}')" 
+                                    style="padding:10px 20px; background:#4285F4; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:5px;">
+                                🌐 구글 검색
+                            </button>
+                            <button onclick="window.open('https://search.naver.com/search.naver?query=${encodeURIComponent(query + ' 입찰 공고')}')" 
+                                    style="padding:10px 20px; background:#03C75A; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:5px;">
+                                ✅ 네이버 검색
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    html += `<p>검색 조건을 변경해 보세요.</p>`;
+                }
+                
+                html += `</div>`;
+                list.innerHTML = html;
                 return;
             }
+
+            // 리스트가 있을 때 렌더링
             data.forEach((item, index) => {
                 const today = new Date();
                 const end = new Date(item.deadline);
@@ -268,7 +307,7 @@
                 list.appendChild(div);
             });
 
-            // 이벤트 위임 대신 직접 바인딩 (안전성 확보)
+            // 이벤트 바인딩
             document.querySelectorAll('.btn-ai').forEach(btn => {
                 btn.onclick = () => {
                     const i = parseInt(btn.dataset.index, 10);
@@ -290,17 +329,19 @@
                 item.title.toLowerCase().includes(q) ||
                 item.agency.toLowerCase().includes(q)
             );
+            
+            // 🔥 결과가 있든 없든 renderList를 호출해서 외부 검색 버튼을 보여줌
             renderList(filtered);
+            
             const status = document.getElementById('status');
             status.innerHTML = filtered.length > 0 
                 ? `🔍 "<b>${keyword}</b>" 검색 결과: ${filtered.length}건`
-                : `🔍 "<b>${keyword}</b>" 검색 결과가 없습니다.`;
+                : `🔍 "<b>${keyword}</b>" 내부 DB 검색 결과 없음`;
         }
 
-        // ---------- AI 검색 (안전장치 적용) ----------
+        // ---------- AI 검색 ----------
         async function searchWithAI(query) {
             if (!query) { renderList(allData); return; }
-            
             const status = document.getElementById('status');
             
             // 1. 단순 키워드 먼저 시도
@@ -311,8 +352,7 @@
                  return;
             }
 
-            // 2. AI 분석 시작 (애니메이션)
-            status.innerHTML = `<span class="loading-icon">🧠</span> AI가 검색 조건을 분석하고 있습니다...`;
+            status.innerHTML = `<span class="spin-icon">🧠</span> AI가 검색 조건을 분석하고 있습니다...`;
 
             const today = new Date().toISOString().split('T')[0];
             const prompt = `
@@ -324,8 +364,8 @@
 
             try {
                 const data = await callGemini(prompt);
-                const text = extractGeminiText(data); // 안전하게 텍스트 추출
-                const result = JSON.parse(text);      // JSON 변환 시도
+                const text = extractGeminiText(data);
+                const result = JSON.parse(text);
 
                 const filtered = allData.filter(item => {
                     let dateMatch = true, keywordMatch = true;
@@ -343,11 +383,10 @@
                 renderList(filtered);
                 status.innerHTML = filtered.length > 0 
                     ? `🤖 AI 검색 결과: <b>${filtered.length}</b>건` 
-                    : `🤖 AI 분석 완료: <b>조건에 맞는 공고가 없습니다.</b>`;
+                    : `🤖 AI 분석 완료: <b>내부 DB에 조건에 맞는 공고가 없습니다.</b>`;
 
             } catch (e) {
                 console.error("AI Error:", e);
-                // AI 실패 시 일반 검색으로 자동 전환 (무한 로딩 방지)
                 simpleSearch(query);
             }
         }
@@ -358,7 +397,7 @@
             if (box.style.display === 'block') { box.style.display = 'none'; return; }
 
             box.style.display = 'block';
-            box.innerHTML = `<span class="loading-icon">🧠</span> 분석 중...`;
+            box.innerHTML = `<span class="spin-icon">🧠</span> 분석 중...`;
 
             const prompt = `나는 '빗물저류조' 기업 직원이야. 이 공고 분석해줘. [공고] ${title} / ${agency} / ${deadline}. 1.요약 2.적합도 3.팁 (HTML 태그 없이)`;
 
