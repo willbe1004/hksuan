@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>한국수안 입찰비서</title>
     <style>
-        /* 1. 기본 폰트 및 배경 설정 */
+        /* 1. 기본 설정 (박스 크기 계산 방식 통일) */
+        * { box-sizing: border-box; }
+        
         body { 
             font-family: 'Pretendard', 'Malgun Gothic', sans-serif; 
             background-color: #f2f4f6; 
@@ -14,24 +16,32 @@
             color: #333; 
         }
         
-        /* 2. 상단 컨트롤 박스 (화면 최상단 고정) */
-        .control-box { 
+        /* ✅ [핵심] 모든 콘텐츠의 가로폭을 똑같이 맞춰주는 공통 스타일 */
+        .content-wrapper {
+            max-width: 800px; /* PC에서 너무 넓어지지 않게 제한 */
+            width: 100%;
+            margin: 0 auto;   /* 중앙 정렬 */
+            padding: 0 20px;  /* 양옆 여백 (숨통 트이기) */
+        }
+
+        /* 2. 상단 컨트롤 박스 (배경은 꽉 차게, 내용은 중앙 정렬) */
+        .control-box-bg { 
             background: white; 
-            padding: 15px 20px; 
             position: sticky; 
             top: 0; 
             z-index: 1000; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             border-bottom-left-radius: 20px;
             border-bottom-right-radius: 20px;
+            padding: 15px 0; /* 위아래 여백만 줌 (좌우는 content-wrapper가 담당) */
         }
 
-        /* 3. 버튼 3개 한 줄 정렬 (최상단 위치) */
+        /* 3. 버튼 3개 한 줄 정렬 */
         .button-row {
             display: flex;       
-            gap: 8px;            
+            gap: 10px;            
             width: 100%;         
-            margin-bottom: 15px; /* 제목과의 간격 */
+            margin-bottom: 15px;
         }
 
         .button-row button {
@@ -59,7 +69,7 @@
         #btn-refresh { background: linear-gradient(135deg, #00b894, #00cec9); }
         #btn-login { background: linear-gradient(135deg, #0984e3, #74b9ff); } 
 
-        /* 제목 스타일 (버튼 아래로 이동) */
+        /* 제목 스타일 */
         h1 { 
             margin: 0 0 15px 0; 
             font-size: 1.5em; 
@@ -99,27 +109,22 @@
         .loading-icon { display: inline-block; animation: spin 1.2s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* 5. 리스트 영역 (화면 꽉 차게 수정) */
+        /* 5. 리스트 영역 */
         #bid-list { 
-            padding: 20px; 
-            width: 96%;          /* 화면의 96% 사용 */
-            max-width: 1200px;   /* 너무 퍼지지 않게 최대폭 제한 */
-            margin: 0 auto;      /* 가운데 정렬 */
-            box-sizing: border-box; 
+            margin-top: 20px;
+            /* padding, max-width 등은 content-wrapper가 처리함 */
         }
         
         /* 카드 스타일 */
         .card { 
             background: white; 
-            padding: 20px; 
+            padding: 25px; 
             margin-bottom: 15px; 
             border-radius: 16px; 
             border-left: 6px solid #ddd; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
             transition: transform 0.2s;
-            /* 카드 내부 꽉 차게 */
-            width: 100%; 
-            box-sizing: border-box;
+            width: 100%;
         }
         .card:hover { transform: translateY(-3px); }
         .card.urgent { border-left-color: #ff7675; }
@@ -141,44 +146,42 @@
         
         /* 캘린더 영역 */
         .calendar-area { 
-            padding: 20px; 
+            margin-top: 20px; 
             display:none; 
-            width: 96%; 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            box-sizing: border-box;
         }
         iframe { width: 100%; height: 600px; border:none; border-radius:16px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
-    <div class="control-box">
-        
-        <div class="button-row">
-            <button id="btn-voice">🎤 음성</button>
-            <button id="btn-refresh">🔄 새로고침</button>
-            <button id="btn-login">📅 로그인</button>
+    <div class="control-box-bg">
+        <div class="content-wrapper">
+            
+            <div class="button-row">
+                <button id="btn-voice">🎤 음성</button>
+                <button id="btn-refresh">🔄 새로고침</button>
+                <button id="btn-login">📅 로그인</button>
+            </div>
+            <br>
+            <h1>💧 한국수안 입찰비서</h1>
+
+            <div class="voice-text" id="voice-result"></div>
+
+            <div class="input-group">
+                <input type="text" id="search-input" placeholder="검색어 (예: LH, 부천, 저류조)">
+                <button id="btn-search">검색</button>
+            </div>
+            <div id="user-info"></div>
         </div>
-
-        <h1>💧 한국수안 입찰비서</h1>
-
-        <div class="voice-text" id="voice-result"></div>
-
-        <div class="input-group">
-            <input type="text" id="search-input" placeholder="검색어 (예: LH, 부천, 저류조)">
-            <button id="btn-search">검색</button>
-        </div>
-        <div id="user-info"></div>
     </div>
 
     <div id="status">
         <span class="loading-icon">⏳</span> 데이터를 불러오고 있습니다...
     </div>
     
-    <div id="bid-list"></div>
+    <div id="bid-list" class="content-wrapper"></div>
 
-    <div class="calendar-area" id="cal-area">
+    <div class="calendar-area content-wrapper" id="cal-area">
         <h3 style="text-align:center; color:#2c3e50;">📅 내 일정 확인</h3>
         <iframe src="https://calendar.google.com/calendar/embed?src=cce03f167bf28bafd3795833209784265eadca0ed8138cae7d9024470ad36c66%40group.calendar.google.com&ctz=Asia%2FSeoul"></iframe>
     </div>
