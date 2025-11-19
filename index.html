@@ -78,7 +78,7 @@
             font-size: 1.2em; 
             margin-right: 5px;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         /* 5. 리스트 영역 */
         #bid-list { margin-top: 20px; }
@@ -127,7 +127,7 @@
             
             <div class="button-row">
                 <button id="btn-voice">🎤 음성</button>
-                <button id="btn-refresh">🔄 공고검색</button>
+                <button id="btn-refresh">🔄 새로고침</button>
                 <button id="btn-login">📅 로그인</button>
             </div>
 
@@ -154,24 +154,24 @@
         <iframe id="cal-frame" src=""></iframe>
     </div>
 
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://accounts.google.com/gsi/client"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="[https://apis.google.com/js/api.js](https://apis.google.com/js/api.js)"></script>
+    <script src="[https://accounts.google.com/gsi/client](https://accounts.google.com/gsi/client)"></script>
+    <script src="[https://cdn.jsdelivr.net/npm/marked/marked.min.js](https://cdn.jsdelivr.net/npm/marked/marked.min.js)"></script>
 
     <script>
         // ============================================================
-        // 🔑 [1] Gemini API 키 (발급받으신 키를 여기에 붙여넣으세요!)
+        // 🔑 [1] Gemini API 키 (제공해주신 키 적용됨)
         const GEMINI_API_KEY = 'AIzaSyDaRFQQE-I3lwCnIiKcRWIUYxQLHrrfO1M';
         
-        // 🔑 [2] 캘린더 ID (새로 만든 캘린더 ID)
+        // 🔑 [2] 캘린더 ID
         const BID_CALENDAR_ID = 'primary'; 
 
         // 🚨 Apps Script 주소
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec'; 
+        const SCRIPT_URL = '[https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec](https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec)'; 
         // ============================================================
 
         const CLIENT_ID = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com'; 
-        const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+        const SCOPES = '[https://www.googleapis.com/auth/calendar.events](https://www.googleapis.com/auth/calendar.events)';
         const STORAGE_KEY = 'hksuan_google_token_v2'; 
         
         let allData = [];
@@ -183,7 +183,7 @@
             const iframe = document.getElementById('cal-frame');
             let calSrc = `https://calendar.google.com/calendar/embed?src=${BID_CALENDAR_ID}&ctz=Asia%2FSeoul&hl=ko`;
             if (BID_CALENDAR_ID === 'primary') {
-                calSrc = "https://calendar.google.com/calendar/embed?src=primary&ctz=Asia%2FSeoul&hl=ko";
+                calSrc = "[https://calendar.google.com/calendar/embed?src=primary&ctz=Asia%2FSeoul&hl=ko](https://calendar.google.com/calendar/embed?src=primary&ctz=Asia%2FSeoul&hl=ko)";
             }
             iframe.src = calSrc;
         }
@@ -208,7 +208,12 @@
             const list = document.getElementById('bid-list');
             list.innerHTML = "";
             if(data.length === 0) {
-                list.innerHTML = "<p style='text-align:center; padding:30px; color:#999;'>검색 결과가 없습니다.</p>";
+                // (수정) 검색 결과 없음 표시 스타일 개선
+                list.innerHTML = `
+                    <div style='text-align:center; padding:50px; color:#888;'>
+                        <p style='font-size:3em; margin-bottom:10px;'>📭</p>
+                        <p>검색 조건에 맞는 공고가 없습니다.</p>
+                    </div>`;
                 return;
             }
             data.forEach((item, index) => {
@@ -242,13 +247,13 @@
             });
         }
 
-        // 🔥 [수정됨] AI 자연어 검색 (멈춤 현상 해결 및 애니메이션 추가)
+        // 🔥 [수정 완료] AI 자연어 검색 (멈춤 해결 & 애니메이션 적용)
         async function searchWithAI(query) {
             if (!query) { renderList(allData); return; }
             
             const status = document.getElementById('status');
             
-            // 1. 단순 키워드 매칭 선시도
+            // 1. 단순 키워드 먼저 확인 (빠른 반응)
             const basicFilter = allData.filter(item => item.title.includes(query) || item.agency.includes(query));
             if (basicFilter.length > 0 && !query.match(/(내일|모레|주|달|월|마감|언제)/)) {
                  renderList(basicFilter);
@@ -256,7 +261,7 @@
                  return;
             }
 
-            // 2. AI 분석 시작 (애니메이션 작동)
+            // 2. AI 분석 시작 (🧠 뇌 아이콘 회전)
             status.innerHTML = `<span class="loading-icon">🧠</span> AI가 검색 조건을 분석하고 있습니다...`;
 
             const today = new Date().toISOString().split('T')[0];
@@ -279,9 +284,8 @@
                 const data = await response.json();
                 let text = data.candidates[0].content.parts[0].text;
                 
-                // 🚑 [긴급 처방] 마크다운 제거 및 순수 JSON 추출
+                // 🚑 [핵심 수정] 마크다운(```json) 제거 필터
                 text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                // 혹시라도 앞뒤에 잡다한 텍스트가 있다면 중괄호{} 안쪽만 추출
                 const jsonMatch = text.match(/\{[\s\S]*\}/);
                 if (jsonMatch) text = jsonMatch[0];
 
@@ -299,7 +303,6 @@
                     }
 
                     if (result.keyword) {
-                        // 키워드가 있으면 제목이나 발주처에 포함되어야 함
                         keywordMatch = item.title.includes(result.keyword) || item.agency.includes(result.keyword);
                     }
 
@@ -308,21 +311,21 @@
 
                 renderList(filtered);
                 
-                // 결과 메시지
+                // 결과 메시지 업데이트
                 if (filtered.length > 0) {
-                    status.innerHTML = `🤖 AI 분석 결과: <b>${filtered.length}</b>건 ("${query}")`;
+                    status.innerHTML = `🤖 AI 검색 결과: <b>${filtered.length}</b>건 ("${query}")`;
                 } else {
-                    status.innerHTML = `🤖 분석 완료: 조건에 맞는 공고가 없습니다. ("${query}")`;
+                    status.innerHTML = `🤖 AI 분석 완료: <b>조건에 맞는 공고가 없습니다.</b> ("${query}")`;
                 }
 
             } catch (e) {
                 console.error("AI Error:", e);
-                // 실패하면 일반 검색으로 전환
+                // AI 실패 시 일반 검색으로 전환
                 doSearch(query); 
             }
         }
 
-        // 🔥 [수정됨] AI 개별 공고 분석 (3줄 요약)
+        // 🔥 [수정 완료] AI 개별 공고 분석 (3줄 요약)
         async function analyzeBidWithAI(title, agency, deadline, index) {
             const box = document.getElementById(`ai-result-${index}`);
             
@@ -331,7 +334,7 @@
             }
 
             box.style.display = 'block';
-            // 회전 애니메이션 아이콘 추가
+            // 분석 중일 때도 뇌 아이콘 회전
             box.innerHTML = `<span class="loading-icon">🧠</span> AI가 공고 내용을 분석 중입니다...`;
 
             const prompt = `
@@ -354,8 +357,10 @@
                 });
                 
                 const data = await response.json();
-                const analysis = data.candidates[0].content.parts[0].text;
-                box.innerHTML = marked.parse(analysis); // 결과 표시
+                let analysis = data.candidates[0].content.parts[0].text;
+                
+                // 결과 보여주기 (마크다운 변환)
+                box.innerHTML = marked.parse(analysis);
 
             } catch (e) {
                 box.innerHTML = "❌ 분석 실패: " + e.message;
@@ -368,11 +373,16 @@
              } else {
                  const filtered = allData.filter(item => item.title.includes(keyword) || item.agency.includes(keyword));
                  renderList(filtered);
-                 document.getElementById('status').innerHTML = `🔍 "<b>${keyword}</b>" 검색 결과: ${filtered.length}건`;
+                 // 결과 없음 처리
+                 if (filtered.length === 0) {
+                     document.getElementById('status').innerHTML = `🔍 "<b>${keyword}</b>" 검색 결과가 없습니다.`;
+                 } else {
+                     document.getElementById('status').innerHTML = `🔍 "<b>${keyword}</b>" 검색 결과: ${filtered.length}건`;
+                 }
              }
         }
 
-        // 구글 로그인 및 캘린더 로직 (기존 동일)
+        // 구글 로그인 및 캘린더 로직
         function initGoogle() {
             gapi.load('client', async () => {
                 await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"] });
@@ -465,5 +475,3 @@
     </script>
 </body>
 </html>
-
-
