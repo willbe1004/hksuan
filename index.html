@@ -14,10 +14,11 @@
             color: #333; 
         }
         
-        /* 2. 상단 컨트롤 박스 (화면 상단 고정) */
+        /* 2. 상단 컨트롤 박스 (화면 최상단 고정) */
         .control-box { 
             background: white; 
             padding: 15px 20px; 
+            /* 🔥 핵심: 스크롤을 내려도 화면 맨 위에 착 붙어있게 만듭니다 */
             position: sticky; 
             top: 0; 
             z-index: 1000; 
@@ -26,6 +27,7 @@
             border-bottom-right-radius: 20px;
         }
 
+        /* 제목 스타일 */
         h1 { 
             margin: 0 0 15px 0; 
             font-size: 1.4em; 
@@ -66,8 +68,6 @@
         /* 버튼 색상 */
         #btn-voice { background: linear-gradient(135deg, #ff7675, #d63031); } 
         #btn-refresh { background: linear-gradient(135deg, #00b894, #00cec9); }
-        
-        /* 로그인 버튼 (상태에 따라 색상 변경됨) */
         #btn-login { background: linear-gradient(135deg, #0984e3, #74b9ff); } 
         
         /* 4. 검색창 디자인 */
@@ -167,17 +167,17 @@
     <script src="https://accounts.google.com/gsi/client"></script>
 
     <script>
-        // 🚨 Apps Script 주소 (건드리지 마세요)
+        // 🚨 Apps Script 주소 (고객님의 배포 주소)
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec'; 
 
         // 구글 로그인 설정
         const CLIENT_ID = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com'; 
         const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
-        const STORAGE_KEY = 'hksuan_google_token'; // 로컬 저장소 키 이름
+        const STORAGE_KEY = 'hksuan_google_token_v2'; 
         
         let allData = [];
         let tokenClient;
-        let isLogin = false; // 로그인 상태 추적
+        let isLogin = false;
 
         // 1. 데이터 로드 함수
         async function loadData() {
@@ -238,37 +238,33 @@
             document.getElementById('status').innerHTML = `🔍 "<b>${keyword}</b>" 검색 결과: ${filtered.length}건`;
         }
 
-        // 2. 구글 로그인 초기화 및 지속성 로직
+        // 2. 구글 로그인 초기화 (새로고침 유지 기능 포함)
         function initGoogle() {
             gapi.load('client', async () => {
                 await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"] });
                 
                 tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CLIENT_ID, scope: SCOPES,
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
                     callback: (resp) => {
-                        if (resp.error) throw resp;
-                        // 로그인 성공 시 토큰 저장
-                        const token = gapi.client.getToken();
-                        if (token) {
-                            localStorage.setItem(STORAGE_KEY, JSON.stringify(token));
-                            updateLoginState(true);
-                        }
+                        if (resp.error) return;
+                        gapi.client.setToken(resp);
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(resp));
+                        updateLoginState(true);
                     }
                 });
 
-                // ✅ [핵심] 페이지 로드 시 저장된 토큰이 있는지 확인
+                // 저장된 토큰 있으면 복구
                 const savedToken = localStorage.getItem(STORAGE_KEY);
                 if (savedToken) {
                     try {
                         gapi.client.setToken(JSON.parse(savedToken));
                         updateLoginState(true);
                     } catch (e) {
-                        console.log("토큰 만료됨");
                         handleLogout();
                     }
                 }
 
-                // 버튼 클릭 이벤트 (로그인 <-> 로그아웃)
                 document.getElementById('btn-login').onclick = () => {
                     if (isLogin) {
                         if(confirm("로그아웃 하시겠습니까?")) handleLogout();
@@ -288,12 +284,12 @@
 
             if (loggedIn) {
                 btn.innerText = "🚪 로그아웃";
-                btn.style.background = "linear-gradient(135deg, #636e72, #2d3436)"; // 회색
+                btn.style.background = "linear-gradient(135deg, #636e72, #2d3436)";
                 calArea.style.display = 'block';
-                userInfo.innerText = "✅ 구글 계정 연동 중";
+                userInfo.innerText = "✅ 구글 계정 연동됨";
             } else {
                 btn.innerText = "📅 로그인";
-                btn.style.background = "linear-gradient(135deg, #0984e3, #74b9ff)"; // 파란색
+                btn.style.background = "linear-gradient(135deg, #0984e3, #74b9ff)";
                 calArea.style.display = 'none';
                 userInfo.innerText = "";
             }
@@ -303,18 +299,16 @@
             const token = gapi.client.getToken();
             if (token !== null) {
                 google.accounts.oauth2.revoke(token.access_token);
-                gapi.client.setToken(null);
-                localStorage.removeItem(STORAGE_KEY); // 저장된 토큰 삭제
-                updateLoginState(false);
-                alert("로그아웃 되었습니다.");
             }
+            gapi.client.setToken(null);
+            localStorage.removeItem(STORAGE_KEY);
+            updateLoginState(false);
         }
 
-        // 3. 캘린더 담기 기능
+        // 3. 캘린더 담기
         async function addToCal(title, deadline) {
-            // 토큰 만료 체크
             if (!gapi.client.getToken()) { 
-                alert("로그인이 풀렸습니다. 다시 로그인해주세요."); 
+                alert("로그인이 필요합니다."); 
                 handleLogout();
                 return; 
             }
@@ -323,7 +317,7 @@
 
             const end = new Date(deadline);
             const start = new Date(end);
-            start.setHours(end.getHours() - 1);
+            start.setHours(end.getHours() - 1); 
 
             const event = {
                 'summary': `[입찰] ${title}`,
@@ -342,17 +336,17 @@
 
             try {
                 await gapi.client.calendar.events.insert({ 'calendarId': 'primary', 'resource': event });
-                alert("✅ 일정 등록 완료!");
+                alert("✅ 일정 등록 완료! (마감 1일전, 1시간전 알림)");
                 document.querySelector('iframe').src += ''; 
             } catch (e) {
-                alert("등록 실패. 로그인을 다시 시도해주세요.\n" + e.message);
-                handleLogout();
+                alert("등록 실패: " + e.result.error.message);
+                if (e.result.error.code === 401) handleLogout();
             }
         }
 
-        // 음성인식 및 버튼 연결
+        // 음성인식
         document.getElementById('btn-voice').onclick = () => {
-            if (!('webkitSpeechRecognition' in window)) { alert("크롬 브라우저만 지원합니다."); return; }
+            if (!('webkitSpeechRecognition' in window)) { alert("크롬 브라우저를 사용해주세요."); return; }
             const rec = new webkitSpeechRecognition();
             rec.lang = 'ko-KR'; rec.start();
             document.getElementById('voice-result').innerText = "듣고 있습니다... 👂";
