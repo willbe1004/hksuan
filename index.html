@@ -120,7 +120,8 @@
             <div class="button-row">
                 <button id="btn-voice">🎤 음성</button>
                 <button id="btn-refresh">🔄 공고검색</button>
-                <button id="btn-add">📝 직접등록</button> <button id="btn-login">📅 로그인</button>
+                <button id="btn-add">📝 직접등록</button> 
+                <button id="btn-login">📅 로그인</button>
             </div>
 
             <h1>💧 한국수안 AI 입찰관리</h1>
@@ -155,8 +156,8 @@
             </p>
             <textarea id="paste-area" placeholder="[예시]&#13;&#10;공고명: 서울시 빗물저류조 설치공사&#13;&#10;마감일: 2025년 12월 1일 18:00&#13;&#10;발주처: 서울특별시청&#13;&#10;..."></textarea>
             <div class="modal-btns">
-                <button onclick="closeModal()" style="background:#b2bec3; color:white;">취소</button>
-                <button onclick="processSmartAdd()" style="background:#6c5ce7; color:white; font-weight:bold;">✨ AI 분석 및 저장</button>
+                <button onclick="closeModal()" style="background:#b2bec3; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">취소</button>
+                <button onclick="processSmartAdd()" style="background:#6c5ce7; color:white; font-weight:bold; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">✨ AI 분석 및 저장</button>
             </div>
         </div>
     </div>
@@ -173,7 +174,7 @@
         // 🔑 [2] 캘린더 ID
         const BID_CALENDAR_ID = 'd51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04@group.calendar.google.com'; 
 
-        // 🚨 [3] Apps Script 주소 (제공해주신 주소 반영)
+        // 🚨 [3] Apps Script 주소
         const SCRIPT_URL = 'https://script.google.com/macros/library/d/1ybSbtP-AUQNnUibCEM17YkAc5kjsqa2FYGMUpCFKB-FoDyUqrtN-8Y17/3'; 
         // ============================================================
 
@@ -231,14 +232,22 @@
             const status = document.getElementById('status');
             status.innerHTML = `<span class="spin-icon">⏳</span> 입찰 공고를 불러오는 중입니다...`;
             try {
+                // (주의) Apps Script 라이브러리 주소는 GET 요청이 안 될 수 있음.
+                // 만약 여기서 에러가 나면 '배포된 웹 앱 URL (exec로 끝나는 것)'을 사용해야 함.
                 const res = await fetch(SCRIPT_URL);
-                if (!res.ok) throw new Error("서버 연결 실패 (주소 확인 필요)");
-                const json = await res.json();
+                
+                // 응답이 HTML 에러 페이지인지 확인
+                const text = await res.text();
+                if (text.includes("<!DOCTYPE html>") || text.includes("Google Drive")) {
+                     throw new Error("잘못된 스크립트 주소입니다. '웹 앱 URL(exec)'을 사용해주세요.");
+                }
+
+                const json = JSON.parse(text);
                 allData = json;
                 renderList(allData);
                 status.innerHTML = `✅ 총 <b>${allData.length}</b>건의 공고를 찾았습니다.`;
             } catch (e) {
-                status.innerHTML = `<span style="color:red">❌ 오류 발생: ${e.message}</span><br><span style="font-size:0.8em; color:#666;">(Apps Script 배포 버전을 확인해주세요)</span>`;
+                status.innerHTML = `<span style="color:red">❌ 오류 발생: ${e.message}</span><br><span style="font-size:0.8em; color:#666;">(Apps Script 주소를 다시 확인해주세요)</span>`;
                 console.error(e);
             }
         }
@@ -274,9 +283,6 @@
                 const aiText = extractGeminiText(aiData);
                 const result = JSON.parse(aiText);
 
-                // Apps Script에 저장 요청
-                // (주의: SCRIPT_URL이 'library' 주소로 되어 있는데, 'macros/s/.../exec' 형태여야 GET 요청이 됨.
-                // 일단 기존 구조대로 시도하되, 안되면 URL 수정 필요)
                 const saveUrl = `${SCRIPT_URL}?action=add` + 
                     `&title=${encodeURIComponent(result.title)}` +
                     `&no=${encodeURIComponent(result.no)}` +
@@ -285,12 +291,12 @@
                     `&agency=${encodeURIComponent(result.agency)}` +
                     `&link=${encodeURIComponent(result.link)}`;
 
-                // no-cors 모드로 전송 (구글 스크립트 특성상 응답을 못 받을 수도 있어서)
+                // no-cors 모드로 전송 (Apps Script 특성상)
                 await fetch(saveUrl, { mode: 'no-cors' }); 
                 
-                alert(`✅ 저장 요청 완료!\n[${result.title}]\n(반영까지 몇 초 걸릴 수 있습니다)`);
+                alert(`✅ 저장 요청 완료!\n[${result.title}]\n(잠시 후 목록이 갱신됩니다)`);
                 closeModal();
-                setTimeout(loadData, 2000); // 2초 뒤 리스트 갱신
+                setTimeout(loadData, 2000); 
 
             } catch (e) {
                 alert("저장 실패: " + e.message);
@@ -303,7 +309,6 @@
         function renderList(data) {
             const list = document.getElementById('bid-list');
             list.innerHTML = "";
-            
             const query = document.getElementById('search-input').value;
 
             if(data.length === 0) {
@@ -362,6 +367,7 @@
                 list.appendChild(div);
             });
 
+            // 이벤트 바인딩
             document.querySelectorAll('.btn-ai').forEach(btn => {
                 btn.onclick = () => {
                     const i = parseInt(btn.dataset.index, 10);
@@ -431,7 +437,7 @@
                 renderList(filtered);
                 status.innerHTML = filtered.length > 0 
                     ? `🤖 AI 검색 결과: <b>${filtered.length}</b>건` 
-                    : `🤖 AI 분석 완료: <b>조건에 맞는 공고가 없습니다.</b>`;
+                    : `🤖 AI 분석 완료: <b>내부 DB에 조건에 맞는 공고가 없습니다.</b>`;
 
             } catch (e) {
                 console.error("AI Error:", e);
