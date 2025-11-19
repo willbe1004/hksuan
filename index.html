@@ -5,126 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>한국수안 입찰비서</title>
     <style>
-        /* 1. 기본 설정 (박스 크기 계산 방식 통일) */
+        /* 1. 기본 설정 */
         * { box-sizing: border-box; }
-        
         body { 
             font-family: 'Pretendard', 'Malgun Gothic', sans-serif; 
             background-color: #f2f4f6; 
-            margin: 0; 
-            padding: 0; 
-            color: #333; 
+            margin: 0; padding: 0; color: #333; 
         }
         
-        /* ✅ [핵심] 모든 콘텐츠의 가로폭을 똑같이 맞춰주는 공통 스타일 */
+        /* ✅ [핵심 수정] PC에서도 시원하게 넓어지도록 너비 제한을 대폭 늘림 */
         .content-wrapper {
-            max-width: 800px; /* PC에서 너무 넓어지지 않게 제한 */
-            width: 100%;
-            margin: 0 auto;   /* 중앙 정렬 */
-            padding: 0 20px;  /* 양옆 여백 (숨통 트이기) */
+            max-width: 1200px; /* PC에서 1200px까지 넓어짐 (기존 800px) */
+            width: 96%;        /* 양옆에 2%씩만 여백을 둠 (꽉 찬 느낌) */
+            margin: 0 auto;    /* 중앙 정렬 */
         }
 
-        /* 2. 상단 컨트롤 박스 (배경은 꽉 차게, 내용은 중앙 정렬) */
+        /* 2. 상단 컨트롤 박스 (배경) */
         .control-box-bg { 
             background: white; 
-            position: sticky; 
-            top: 0; 
-            z-index: 1000; 
+            position: sticky; top: 0; z-index: 1000; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            padding: 15px 0; /* 위아래 여백만 줌 (좌우는 content-wrapper가 담당) */
+            border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+            padding: 15px 0; 
         }
 
         /* 3. 버튼 3개 한 줄 정렬 */
         .button-row {
-            display: flex;       
-            gap: 10px;            
-            width: 100%;         
-            margin-bottom: 15px;
+            display: flex; gap: 10px; width: 100%;
+            margin-bottom: 15px; /* 제목과의 간격 */
         }
-
         .button-row button {
-            flex: 1;             
-            padding: 12px 0;     
-            border: none; 
-            border-radius: 12px; 
-            font-size: 0.95em; 
-            font-weight: bold; 
-            color: white; 
-            cursor: pointer;
+            flex: 1; padding: 12px 0; border: none; border-radius: 12px; 
+            font-size: 0.95em; font-weight: bold; color: white; cursor: pointer;
             box-shadow: 0 3px 6px rgba(0,0,0,0.1);
             transition: transform 0.1s, opacity 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
         }
-        
         .button-row button:active { transform: scale(0.96); }
-        .button-row button:hover { opacity: 0.9; }
-
-        /* 버튼 색상 */
+        
         #btn-voice { background: linear-gradient(135deg, #ff7675, #d63031); } 
         #btn-refresh { background: linear-gradient(135deg, #00b894, #00cec9); }
         #btn-login { background: linear-gradient(135deg, #0984e3, #74b9ff); } 
 
-        /* 제목 스타일 */
+        /* ✅ 제목 스타일 (위아래 간격 조정으로 정중앙 배치 느낌) */
         h1 { 
-            margin: 0 0 15px 0; 
-            font-size: 1.5em; 
-            color: #1e272e; 
-            text-align: center; 
-            font-weight: 800;
-            letter-spacing: -0.5px;
+            margin: 15px 0; /* 위아래 여백을 동일하게 줌 */
+            font-size: 1.6em; color: #1e272e; 
+            text-align: center; font-weight: 800; letter-spacing: -0.5px;
         }
         
         /* 4. 검색창 디자인 */
         .input-group { display: flex; gap: 8px; }
         input[type="text"] { 
-            flex: 1; 
-            padding: 12px 15px; 
-            border: 1px solid #dfe6e9; 
-            border-radius: 10px; 
-            font-size: 16px; 
-            background: #f8f9fa;
-            outline: none;
+            flex: 1; padding: 12px 15px; border: 1px solid #dfe6e9; 
+            border-radius: 10px; font-size: 16px; background: #f8f9fa; outline: none;
         }
         input[type="text"]:focus { border-color: #0984e3; background: white; }
-        
         #btn-search {
-            width: 80px;
-            background: #636e72;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
+            width: 80px; background: #636e72; color: white; border: none;
+            border-radius: 10px; font-weight: bold; cursor: pointer;
         }
 
         .voice-text { color: #e17055; font-weight: bold; min-height: 20px; margin: 5px 0; font-size: 0.9em; text-align: center;}
         #user-info { text-align: right; font-size: 0.8em; color: #b2bec3; margin-top: 5px; height: 15px;}
-        
         #status { text-align: center; margin-top: 30px; color: #636e72; font-size: 1em; font-weight: 500; }
+        
+        /* 로딩 애니메이션 */
         .loading-icon { display: inline-block; animation: spin 1.2s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         /* 5. 리스트 영역 */
-        #bid-list { 
-            margin-top: 20px;
-            /* padding, max-width 등은 content-wrapper가 처리함 */
-        }
+        #bid-list { margin-top: 20px; }
         
-        /* 카드 스타일 */
+        /* 카드 스타일 (가로 꽉 차게) */
         .card { 
-            background: white; 
-            padding: 25px; 
-            margin-bottom: 15px; 
-            border-radius: 16px; 
-            border-left: 6px solid #ddd; 
+            background: white; padding: 25px; margin-bottom: 15px; 
+            border-radius: 16px; border-left: 6px solid #ddd; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
-            transition: transform 0.2s;
-            width: 100%;
+            transition: transform 0.2s; width: 100%;
         }
         .card:hover { transform: translateY(-3px); }
         .card.urgent { border-left-color: #ff7675; }
@@ -132,10 +90,8 @@
         
         .card-header { display: flex; justify-content: space-between; font-size: 0.9em; color: #888; margin-bottom: 10px; font-weight: 600;}
         .card-title { font-size: 1.3em; font-weight: bold; color: #2d3436; text-decoration: none; display: block; margin-bottom: 12px; line-height: 1.4; }
-        
         .d-day { background: #ffeaa7; color: #d35400; padding: 3px 10px; border-radius: 20px; font-size: 0.85em; }
         .card-info { font-size: 1em; color: #636e72; line-height: 1.6; }
-        
         .card-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f1f1f1; }
         .card-footer button, .card-footer a { 
             padding: 10px 20px; border-radius: 8px; border:none; 
@@ -144,11 +100,7 @@
         .btn-link { background: #dfe6e9; color: #2d3436; }
         .btn-cal { background: #e3f2fd; color: #0984e3; }
         
-        /* 캘린더 영역 */
-        .calendar-area { 
-            margin-top: 20px; 
-            display:none; 
-        }
+        .calendar-area { margin-top: 20px; display:none; }
         iframe { width: 100%; height: 600px; border:none; border-radius:16px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
     </style>
 </head>
@@ -162,7 +114,7 @@
                 <button id="btn-refresh">🔄 새로고침</button>
                 <button id="btn-login">📅 로그인</button>
             </div>
-            <br>
+
             <h1>💧 한국수안 입찰비서</h1>
 
             <div class="voice-text" id="voice-result"></div>
@@ -180,7 +132,6 @@
     </div>
     
     <div id="bid-list" class="content-wrapper"></div>
-
     <div class="calendar-area content-wrapper" id="cal-area">
         <h3 style="text-align:center; color:#2c3e50;">📅 내 일정 확인</h3>
         <iframe src="https://calendar.google.com/calendar/embed?src=cce03f167bf28bafd3795833209784265eadca0ed8138cae7d9024470ad36c66%40group.calendar.google.com&ctz=Asia%2FSeoul"></iframe>
@@ -190,7 +141,7 @@
     <script src="https://accounts.google.com/gsi/client"></script>
 
     <script>
-        // 🚨 Apps Script 주소
+        // 🚨 Apps Script 주소 (기존 주소 사용)
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec'; 
 
         // 구글 로그인 설정
@@ -202,7 +153,6 @@
         let tokenClient;
         let isLogin = false;
 
-        // 1. 데이터 로드 함수
         async function loadData() {
             const status = document.getElementById('status');
             status.innerHTML = `<span class="loading-icon">⏳</span> 입찰 공고를 불러오는 중입니다...`;
@@ -261,14 +211,11 @@
             document.getElementById('status').innerHTML = `🔍 "<b>${keyword}</b>" 검색 결과: ${filtered.length}건`;
         }
 
-        // 2. 구글 로그인 초기화
         function initGoogle() {
             gapi.load('client', async () => {
                 await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"] });
-                
                 tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CLIENT_ID,
-                    scope: SCOPES,
+                    client_id: CLIENT_ID, scope: SCOPES,
                     callback: (resp) => {
                         if (resp.error) return;
                         gapi.client.setToken(resp);
@@ -276,23 +223,13 @@
                         updateLoginState(true);
                     }
                 });
-
                 const savedToken = localStorage.getItem(STORAGE_KEY);
                 if (savedToken) {
-                    try {
-                        gapi.client.setToken(JSON.parse(savedToken));
-                        updateLoginState(true);
-                    } catch (e) {
-                        handleLogout();
-                    }
+                    try { gapi.client.setToken(JSON.parse(savedToken)); updateLoginState(true); } catch (e) { handleLogout(); }
                 }
-
                 document.getElementById('btn-login').onclick = () => {
-                    if (isLogin) {
-                        if(confirm("로그아웃 하시겠습니까?")) handleLogout();
-                    } else {
-                        tokenClient.requestAccessToken({prompt: ''});
-                    }
+                    if (isLogin) { if(confirm("로그아웃 하시겠습니까?")) handleLogout(); } 
+                    else { tokenClient.requestAccessToken({prompt: ''}); }
                 };
             });
         }
@@ -301,9 +238,7 @@
             const btn = document.getElementById('btn-login');
             const calArea = document.getElementById('cal-area');
             const userInfo = document.getElementById('user-info');
-            
             isLogin = loggedIn;
-
             if (loggedIn) {
                 btn.innerText = "🚪 로그아웃";
                 btn.style.background = "linear-gradient(135deg, #636e72, #2d3436)";
@@ -319,43 +254,23 @@
 
         function handleLogout() {
             const token = gapi.client.getToken();
-            if (token !== null) {
-                google.accounts.oauth2.revoke(token.access_token);
-            }
+            if (token !== null) google.accounts.oauth2.revoke(token.access_token);
             gapi.client.setToken(null);
             localStorage.removeItem(STORAGE_KEY);
             updateLoginState(false);
         }
 
-        // 3. 캘린더 담기
         async function addToCal(title, deadline) {
-            if (!gapi.client.getToken()) { 
-                alert("로그인이 필요합니다."); 
-                handleLogout();
-                return; 
-            }
-            
+            if (!gapi.client.getToken()) { alert("로그인이 필요합니다."); handleLogout(); return; }
             if (!confirm(`[${title}] 일정을 캘린더에 등록하시겠습니까?`)) return;
-
             const end = new Date(deadline);
             const start = new Date(end);
             start.setHours(end.getHours() - 1); 
-
             const event = {
-                'summary': `[입찰] ${title}`,
-                'description': '한국수안 입찰비서 자동등록',
-                'start': { 'dateTime': start.toISOString() },
-                'end': { 'dateTime': end.toISOString() },
-                'colorId': '11', 
-                'reminders': {
-                    'useDefault': false,
-                    'overrides': [
-                        {'method': 'popup', 'minutes': 60},
-                        {'method': 'popup', 'minutes': 24 * 60}
-                    ]
-                }
+                'summary': `[입찰] ${title}`, 'description': '한국수안 입찰비서 자동등록',
+                'start': { 'dateTime': start.toISOString() }, 'end': { 'dateTime': end.toISOString() },
+                'colorId': '11', 'reminders': { 'useDefault': false, 'overrides': [ {'method': 'popup', 'minutes': 60}, {'method': 'popup', 'minutes': 24 * 60} ] }
             };
-
             try {
                 await gapi.client.calendar.events.insert({ 'calendarId': 'primary', 'resource': event });
                 alert("✅ 일정 등록 완료! (마감 1일전, 1시간전 알림)");
@@ -366,7 +281,6 @@
             }
         }
 
-        // 음성인식
         document.getElementById('btn-voice').onclick = () => {
             if (!('webkitSpeechRecognition' in window)) { alert("크롬 브라우저를 사용해주세요."); return; }
             const rec = new webkitSpeechRecognition();
@@ -382,7 +296,6 @@
         document.getElementById('btn-search').onclick = () => doSearch(document.getElementById('search-input').value);
         document.getElementById('btn-refresh').onclick = loadData;
 
-        // 실행
         loadData();
         initGoogle();
     </script>
