@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한국수안 입찰비서</title>
+    <style>
+        /* 디자인 꾸미기 */
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f7f6; padding: 20px; max-width: 700px; margin: 0 auto; color: #333; }
+        h1 { text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        
+        .control-box { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        button { padding: 10px 15px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { opacity: 0.8; }
+        
+        #btn-voice { background: #e74c3c; color: white; } /* 빨강 */
+        #btn-refresh { background: #2ecc71; color: white; } /* 초록 */
+        #btn-login { background: #3498db; color: white; } /* 파랑 */
+        
+        .input-group { margin-top: 10px; display: flex; gap: 5px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        
+        /* 공고 카드 디자인 */
+        .card { background: white; padding: 15px; margin-top: 15px; border-radius: 8px; border-left: 5px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card.urgent { border-left-color: #e74c3c; } /* 긴급 */
+        .card.normal { border-left-color: #3498db; } /* 일반 */
+        
+        .card-header { display: flex; justify-content: space-between; font-size: 0.9em; color: #777; margin-bottom: 5px; }
+        .card-title { font-size: 1.1em; font-weight: bold; color: #333; cursor: pointer; text-decoration: none; display: block; margin-bottom: 5px;}
+        .card-title:hover { color: #2980b9; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
+        
+        .d-day { font-weight: bold; color: #e74c3c; }
+        .voice-text { color: #e67e22; font-weight: bold; min-height: 20px; margin: 10px 0; }
+        
+        /* 로딩 메시지 */
+        #status { text-align: center; margin-top: 10px; color: #666; }
+
+        /* 🔥 추가된 부분: 아이콘 회전 애니메이션 */
+        .loading-icon {
+            display: inline-block; /* 텍스트와 같은 줄에 있게 */
+            animation: spin 1.5s linear infinite; /* 1.5초 동안 선형으로 무한 회전 */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 캘린더 숨김 */
+        .calendar-area { margin-top: 20px; display: none; }
+        iframe { width: 100%; height: 400px; border: none; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>💧 한국수안 입찰비서</h1>
+
+    <div class="control-box">
+        <div id="user-info" style="font-size:0.8em; margin-bottom:5px; color:#888;"></div>
+        <div>
+            <button id="btn-voice">🎤 음성 검색</button>
+            <button id="btn-refresh">🔄 새로고침</button>
+            <button id="btn-login">📅 구글 로그인</button>
+        </div>
+        <div class="voice-text" id="voice-result"></div>
+        <div class="input-group">
+            <input type="text" id="search-input" placeholder="예: 부천시 공고, 마감일 언제야?">
+            <button id="btn-search" style="background:#34495e; color:white;">검색</button>
+        </div>
+    </div>
+
+    <div id="status">
+        <span class="loading-icon">⏳</span> 입찰 공고를 불러오는 중...
+    </div>
+    <div id="bid-list"></div>
+
+    <div class="calendar-area" id="cal-area">
+        <h3>📅 일정 확인</h3>
+        <iframe src="https://calendar.google.com/calendar/embed?src=cce03f167bf28bafd3795833209784265eadca0ed8138cae7d9024470ad36c66%40group.calendar.google.com&ctz=Asia%2FSeoul"></iframe>
+    </div>
+
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec'; 
+
+        const CLIENT_ID = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com'; 
+        const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+        
+        let allData = [];
+        let tokenClient;
+
+        // 1. 데이터 가져오기
+        async function loadData() {
+            const status = document.getElementById('status');
+            const list = document.getElementById('bid-list');
+            
+            // 🔥 수정된 부분: 아이콘에 loading-icon 클래스를 추가/제거
+            status.innerHTML = `<span class="loading-icon">⏳</span> 입찰 공고를 불러오는 중입니다...`;
+            status.querySelector('.loading-icon').classList.add('loading-icon'); // 애니메이션 시작
+
+            try {
+                const res = await fetch(SCRIPT_URL);
+                const json = await res.json();
+                allData = json;
+                renderList(allData);
+                status.innerHTML = `✅ 총 ${allData.length}건의 공고를 찾았습니다.`;
+            } catch (e) {
+                status.innerHTML = "❌ 데이터를 가져오지 못했습니다.<br>스크립트 주소를 확인하거나, 엑셀에 '배포'가 잘 되었는지 확인하세요.";
+                console.error(e);
+            } finally {
+                // 🔥 수정된 부분: 로딩이 끝나면 애니메이션 클래스 제거
+                const loadingIcon = status.querySelector('.loading-icon');
+                if (loadingIcon) {
+                    loadingIcon.classList.remove('loading-icon'); // 애니메이션 정지
+                }
+            }
+        }
+
+        // 2. 화면에 뿌리기
+        function renderList(data) {
+            const list = document.getElementById('bid-list');
+            list.innerHTML = "";
+            
+            if(data.length === 0) {
+                list.innerHTML = "<p style='text-align:center'>검색 결과가 없습니다.</p>";
+                return;
+            }
+
+            data.forEach(item => {
+                const today = new Date();
+                const end = new Date(item.deadline);
+                const diff = Math.ceil((end - today) / (1000*60*60*24));
+                let dDay = diff < 0 ? "마감됨" : `D-${diff}`;
+                if (diff === 0) dDay = "오늘마감";
+                
+                const cardClass = diff <= 3 ? "urgent" : "normal";
+
+                const div = document.createElement('div');
+                div.className = `card ${cardClass}`;
+                div.innerHTML = `
+                    <div class="card-header">
+                        <span>🏢 ${item.agency}</span>
+                        <span class="d-day">${dDay}</span>
+                    </div>
+                    <a href="${item.link}" target="_blank" class="card-title">${item.title}</a>
+                    <div style="font-size:0.9em; color:#555;">
+                        마감: ${item.deadline} <br>
+                        상태: ${item.status}
+                    </div>
+                    <div class="card-footer">
+                        <button onclick="window.open('${item.link}')" style="background:#eee; color:#333; font-size:0.8em;">📄 공고문</button>
+                        <button onclick="addToCal('${item.title}', '${item.deadline}')" style="background:#e8f0fe; color:#1a73e8; font-size:0.8em;">📅 캘린더 담기</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // 3. 검색 기능
+        function doSearch(keyword) {
+            if(!keyword) { renderList(allData); return; }
+            const filtered = allData.filter(item => item.title.includes(keyword) || item.agency.includes(keyword));
+            renderList(filtered);
+            document.getElementById('status').innerText = `🔍 "${keyword}" 검색 결과: ${filtered.length}건`;
+        }
+
+        // 4. 음성 인식
+        document.getElementById('btn-voice').onclick = () => {
+            if (!('webkitSpeechRecognition' in window)) { alert("크롬 브라우저에서만 됩니다!"); return; }
+            const rec = new webkitSpeechRecognition();
+            rec.lang = 'ko-KR';
+            rec.start();
+            document.getElementById('voice-result').innerText = "듣고 있습니다... 👂";
+            
+            rec.onresult = (e) => {
+                const txt = e.results[0][0].transcript;
+                document.getElementById('voice-result').innerText = `🗣️ "${txt}"`;
+                document.getElementById('search-input').value = txt;
+                doSearch(txt);
+            };
+        };
+
+        document.getElementById('btn-search').onclick = () => doSearch(document.getElementById('search-input').value);
+        document.getElementById('btn-refresh').onclick = loadData;
+
+        // 5. 구글 캘린더 연동 (로그인 & 일정추가)
+        function initGoogle() {
+            gapi.load('client', async () => {
+                await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"] });
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID, scope: SCOPES, callback: ''
+                });
+                document.getElementById('btn-login').onclick = () => {
+                    tokenClient.callback = (resp) => {
+                        if (resp.error) throw resp;
+                        document.getElementById('btn-login').innerText = "✅ 로그인됨";
+                        document.getElementById('cal-area').style.display = 'block';
+                    };
+                    tokenClient.requestAccessToken({prompt: 'consent'});
+                };
+            });
+        }
+
+        async function addToCal(title, deadline) {
+            if (!gapi.client.getToken()) { alert("상단의 [구글 로그인] 버튼을 먼저 눌러주세요!"); return; }
+            if (!confirm(`[${title}] 일정을 캘린더에 넣을까요?`)) return;
+
+            const end = new Date(deadline);
+            const start = new Date(end);
+            start.setHours(end.getHours() - 1); // 1시간 전부터
+
+            const event = {
+                'summary': `[입찰] ${title}`,
+                'description': '한국수안 입찰비서 자동등록',
+                'start': { 'dateTime': start.toISOString() },
+                'end': { 'dateTime': end.toISOString() },
+                'colorId': '11' // 빨강
+            };
+
+            try {
+                await gapi.client.calendar.events.insert({ 'calendarId': 'primary', 'resource': event });
+                alert("✅ 일정 등록 완료!");
+                document.querySelector('iframe').src += ''; // 달력 새로고침
+            } catch (e) {
+                alert("실패: " + e.message);
+            }
+        }
+
+        // 시작!
+        loadData();
+        initGoogle();
+    </script>
+</body>
+</html>
