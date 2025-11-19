@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>한국수안 입찰비서</title>
+    <title>한국수안 AI 입찰관리</title>
     <style>
         /* 1. 기본 설정 */
         * { box-sizing: border-box; }
@@ -13,14 +13,13 @@
             margin: 0; padding: 0; color: #333; 
         }
         
-        /* ✅ [핵심 수정] PC에서도 시원하게 넓어지도록 너비 제한을 대폭 늘림 */
         .content-wrapper {
-            max-width: 1200px; /* PC에서 1200px까지 넓어짐 (기존 800px) */
-            width: 96%;        /* 양옆에 2%씩만 여백을 둠 (꽉 찬 느낌) */
-            margin: 0 auto;    /* 중앙 정렬 */
+            max-width: 1200px; 
+            width: 96%;        
+            margin: 0 auto;    
         }
 
-        /* 2. 상단 컨트롤 박스 (배경) */
+        /* 2. 상단 컨트롤 박스 */
         .control-box-bg { 
             background: white; 
             position: sticky; top: 0; z-index: 1000; 
@@ -32,7 +31,7 @@
         /* 3. 버튼 3개 한 줄 정렬 */
         .button-row {
             display: flex; gap: 10px; width: 100%;
-            margin-bottom: 15px; /* 제목과의 간격 */
+            margin-bottom: 15px; 
         }
         .button-row button {
             flex: 1; padding: 12px 0; border: none; border-radius: 12px; 
@@ -47,9 +46,9 @@
         #btn-refresh { background: linear-gradient(135deg, #00b894, #00cec9); }
         #btn-login { background: linear-gradient(135deg, #0984e3, #74b9ff); } 
 
-        /* ✅ 제목 스타일 (위아래 간격 조정으로 정중앙 배치 느낌) */
+        /* 제목 스타일 */
         h1 { 
-            margin: 15px 0; /* 위아래 여백을 동일하게 줌 */
+            margin: 15px 0; 
             font-size: 1.6em; color: #1e272e; 
             text-align: center; font-weight: 800; letter-spacing: -0.5px;
         }
@@ -77,7 +76,7 @@
         /* 5. 리스트 영역 */
         #bid-list { margin-top: 20px; }
         
-        /* 카드 스타일 (가로 꽉 차게) */
+        /* 카드 스타일 */
         .card { 
             background: white; padding: 25px; margin-bottom: 15px; 
             border-radius: 16px; border-left: 6px solid #ddd; 
@@ -100,6 +99,7 @@
         .btn-link { background: #dfe6e9; color: #2d3436; }
         .btn-cal { background: #e3f2fd; color: #0984e3; }
         
+        /* 캘린더 영역 */
         .calendar-area { margin-top: 20px; display:none; }
         iframe { width: 100%; height: 600px; border:none; border-radius:16px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
     </style>
@@ -115,7 +115,7 @@
                 <button id="btn-login">📅 로그인</button>
             </div>
 
-            <h1>💧 한국수안 입찰비서</h1>
+            <h1>💧 한국수안 AI 입찰관리</h1>
 
             <div class="voice-text" id="voice-result"></div>
 
@@ -132,16 +132,23 @@
     </div>
     
     <div id="bid-list" class="content-wrapper"></div>
+    
     <div class="calendar-area content-wrapper" id="cal-area">
-        <h3 style="text-align:center; color:#2c3e50;">📅 내 일정 확인</h3>
-        <iframe src="https://calendar.google.com/calendar/embed?src=cce03f167bf28bafd3795833209784265eadca0ed8138cae7d9024470ad36c66%40group.calendar.google.com&ctz=Asia%2FSeoul"></iframe>
+        <h3 style="text-align:center; color:#2c3e50;">📅 입찰 일정표</h3>
+        <iframe id="cal-frame" src=""></iframe>
     </div>
 
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
 
     <script>
-        // 🚨 Apps Script 주소 (기존 주소 사용)
+        // ============================================================
+        // 🔴 [수정 필요] 아래 따옴표 안에 '새로 만든 캘린더 ID'를 붙여넣으세요.
+        // 예: const BID_CALENDAR_ID = 'c_a1b2c3d4...group.calendar.google.com';
+        const BID_CALENDAR_ID = 'd51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04@group.calendar.google.com'; 
+        // ============================================================
+
+        // 🚨 Apps Script 주소
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec'; 
 
         // 구글 로그인 설정
@@ -153,6 +160,21 @@
         let tokenClient;
         let isLogin = false;
 
+        // 0. 캘린더 Iframe 설정 (자동 실행)
+        function setupCalendarView() {
+            const iframe = document.getElementById('cal-frame');
+            // 입찰 캘린더 ID가 'primary'(기본)가 아니면 해당 ID를 보여주도록 주소 설정
+            let calSrc = `https://calendar.google.com/calendar/embed?src=${BID_CALENDAR_ID}&ctz=Asia%2FSeoul&hl=ko`;
+            
+            // 만약 ID를 아직 안 바꿨으면 기본 캘린더 보여줌
+            if (BID_CALENDAR_ID === 'primary') {
+                // 구글 캘린더 기본 임베드 URL (개인 캘린더)
+                calSrc = "https://calendar.google.com/calendar/embed?src=primary&ctz=Asia%2FSeoul&hl=ko";
+            }
+            iframe.src = calSrc;
+        }
+
+        // 1. 데이터 로드 함수
         async function loadData() {
             const status = document.getElementById('status');
             status.innerHTML = `<span class="loading-icon">⏳</span> 입찰 공고를 불러오는 중입니다...`;
@@ -211,9 +233,11 @@
             document.getElementById('status').innerHTML = `🔍 "<b>${keyword}</b>" 검색 결과: ${filtered.length}건`;
         }
 
+        // 2. 구글 로그인 초기화
         function initGoogle() {
             gapi.load('client', async () => {
                 await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"] });
+                
                 tokenClient = google.accounts.oauth2.initTokenClient({
                     client_id: CLIENT_ID, scope: SCOPES,
                     callback: (resp) => {
@@ -223,6 +247,7 @@
                         updateLoginState(true);
                     }
                 });
+
                 const savedToken = localStorage.getItem(STORAGE_KEY);
                 if (savedToken) {
                     try { gapi.client.setToken(JSON.parse(savedToken)); updateLoginState(true); } catch (e) { handleLogout(); }
@@ -244,6 +269,8 @@
                 btn.style.background = "linear-gradient(135deg, #636e72, #2d3436)";
                 calArea.style.display = 'block';
                 userInfo.innerText = "✅ 구글 계정 연동됨";
+                // 로그인 되면 캘린더 다시 로드 (혹시 비공개 캘린더일 경우를 대비)
+                document.getElementById('cal-frame').src += ''; 
             } else {
                 btn.innerText = "📅 로그인";
                 btn.style.background = "linear-gradient(135deg, #0984e3, #74b9ff)";
@@ -260,23 +287,30 @@
             updateLoginState(false);
         }
 
+        // 3. 캘린더 담기 (수정됨: 지정된 캘린더 ID로 저장)
         async function addToCal(title, deadline) {
             if (!gapi.client.getToken()) { alert("로그인이 필요합니다."); handleLogout(); return; }
             if (!confirm(`[${title}] 일정을 캘린더에 등록하시겠습니까?`)) return;
+            
             const end = new Date(deadline);
             const start = new Date(end);
             start.setHours(end.getHours() - 1); 
+            
             const event = {
                 'summary': `[입찰] ${title}`, 'description': '한국수안 입찰비서 자동등록',
                 'start': { 'dateTime': start.toISOString() }, 'end': { 'dateTime': end.toISOString() },
-                'colorId': '11', 'reminders': { 'useDefault': false, 'overrides': [ {'method': 'popup', 'minutes': 60}, {'method': 'popup', 'minutes': 24 * 60} ] }
+                'colorId': '11', 
+                'reminders': { 'useDefault': false, 'overrides': [ {'method': 'popup', 'minutes': 60}, {'method': 'popup', 'minutes': 24 * 60} ] }
             };
+            
             try {
-                await gapi.client.calendar.events.insert({ 'calendarId': 'primary', 'resource': event });
+                // 🔥 여기서 BID_CALENDAR_ID를 사용합니다!
+                await gapi.client.calendar.events.insert({ 'calendarId': BID_CALENDAR_ID, 'resource': event });
                 alert("✅ 일정 등록 완료! (마감 1일전, 1시간전 알림)");
-                document.querySelector('iframe').src += ''; 
+                // 캘린더 iframe 새로고침해서 등록된 것 바로 보여주기
+                document.getElementById('cal-frame').src += ''; 
             } catch (e) {
-                alert("등록 실패: " + e.result.error.message);
+                alert("등록 실패: " + e.result.error.message + "\n(캘린더 권한을 확인해주세요)");
                 if (e.result.error.code === 401) handleLogout();
             }
         }
@@ -296,6 +330,7 @@
         document.getElementById('btn-search').onclick = () => doSearch(document.getElementById('search-input').value);
         document.getElementById('btn-refresh').onclick = loadData;
 
+        setupCalendarView(); // 캘린더 뷰 설정
         loadData();
         initGoogle();
     </script>
