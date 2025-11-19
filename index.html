@@ -7,56 +7,40 @@
     <style>
         /* 1. 기본 설정 */
         * { box-sizing: border-box; }
-        body {
-            font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
-            background-color: #f2f4f6;
-            margin: 0; padding: 0; color: #333;
+        body { 
+            font-family: 'Pretendard', 'Malgun Gothic', sans-serif; 
+            background-color: #f2f4f6; 
+            margin: 0; padding: 0; color: #333; 
         }
+        
+        .content-wrapper { max-width: 1200px; width: 96%; margin: 0 auto; }
 
-        .content-wrapper {
-            max-width: 1200px;
-            width: 96%;
-            margin: 0 auto;
-        }
-
-        /* 2. 상단 컨트롤 박스 */
-        .control-box-bg {
-            background: white;
-            position: sticky; top: 0; z-index: 1000;
+        /* 상단 고정 헤더 */
+        .control-box-bg { 
+            background: white; position: sticky; top: 0; z-index: 1000; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
-            padding: 15px 0;
+            padding: 15px 0; 
         }
 
-        /* 3. 버튼 3개 한 줄 정렬 */
-        .button-row {
-            display: flex; gap: 10px; width: 100%;
-            margin-bottom: 15px;
-        }
+        .button-row { display: flex; gap: 10px; width: 100%; margin-bottom: 15px; }
         .button-row button {
-            flex: 1; padding: 12px 0; border: none; border-radius: 12px;
+            flex: 1; padding: 12px 0; border: none; border-radius: 12px; 
             font-size: 0.95em; font-weight: bold; color: white; cursor: pointer;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-            transition: transform 0.1s, opacity 0.2s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: transform 0.1s;
             display: flex; align-items: center; justify-content: center; gap: 5px;
         }
         .button-row button:active { transform: scale(0.96); }
-
-        #btn-voice   { background: linear-gradient(135deg, #ff7675, #d63031); }
+        
+        #btn-voice { background: linear-gradient(135deg, #ff7675, #d63031); } 
         #btn-refresh { background: linear-gradient(135deg, #00b894, #00cec9); }
-        #btn-login   { background: linear-gradient(135deg, #0984e3, #74b9ff); }
+        #btn-login { background: linear-gradient(135deg, #0984e3, #74b9ff); } 
 
-        /* 제목 스타일 */
-        h1 {
-            margin: 15px 0;
-            font-size: 1.6em; color: #1e272e;
-            text-align: center; font-weight: 800; letter-spacing: -0.5px;
-        }
-
-        /* 4. 검색창 디자인 */
+        h1 { margin: 15px 0; font-size: 1.6em; color: #1e272e; text-align: center; font-weight: 800; letter-spacing: -0.5px; }
+        
         .input-group { display: flex; gap: 8px; }
-        input[type="text"] {
-            flex: 1; padding: 12px 15px; border: 1px solid #dfe6e9;
+        input[type="text"] { 
+            flex: 1; padding: 12px 15px; border: 1px solid #dfe6e9; 
             border-radius: 10px; font-size: 16px; background: #f8f9fa; outline: none;
         }
         input[type="text"]:focus { border-color: #0984e3; background: white; }
@@ -65,73 +49,59 @@
             border-radius: 10px; font-weight: bold; cursor: pointer;
         }
 
-        .voice-text { color: #e17055; font-weight: bold; min-height: 20px; margin: 5px 0; font-size: 0.9em; text-align: center; }
-        #user-info  { text-align: right; font-size: 0.8em; color: #b2bec3; margin-top: 5px; height: 15px; }
-
+        .voice-text { color: #e17055; font-weight: bold; min-height: 20px; margin: 5px 0; font-size: 0.9em; text-align: center;}
+        #user-info { text-align: right; font-size: 0.8em; color: #b2bec3; margin-top: 5px; height: 15px;}
+        
         /* 상태 메시지 및 로딩 애니메이션 */
-        #status {
-            text-align: center; margin-top: 30px; color: #636e72;
-            font-size: 1em; font-weight: 500; min-height: 30px; line-height: 1.5;
-        }
-
-        /* 🔄 회전 애니메이션 */
-        .spin-icon {
-            display: inline-block;
-            animation: spin 1.5s linear infinite;
-            font-size: 1.2em;
+        #status { text-align: center; margin-top: 30px; color: #636e72; font-size: 1em; font-weight: 500; min-height: 30px; line-height: 1.5; }
+        
+        /* 🔄 로딩 아이콘 회전 애니메이션 */
+        .loading-icon { 
+            display: inline-block; 
+            animation: spin 1s linear infinite; 
+            font-size: 1.2em; 
             margin-right: 8px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
+        
         /* 5. 리스트 영역 */
         #bid-list { margin-top: 20px; }
-
+        
         /* 카드 스타일 */
-        .card {
-            background: white; padding: 25px; margin-bottom: 15px;
-            border-radius: 16px; border-left: 6px solid #ddd;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        .card { 
+            background: white; padding: 25px; margin-bottom: 15px; 
+            border-radius: 16px; border-left: 6px solid #ddd; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
             transition: transform 0.2s; width: 100%;
         }
         .card:hover { transform: translateY(-3px); }
         .card.urgent { border-left-color: #ff7675; }
         .card.normal { border-left-color: #0984e3; }
-
-        .card-header {
-            display: flex; justify-content: space-between;
-            font-size: 0.9em; color: #888; margin-bottom: 10px; font-weight: 600;
-        }
-        .card-title {
-            font-size: 1.3em; font-weight: bold; color: #2d3436;
-            text-decoration: none; display: block; margin-bottom: 12px; line-height: 1.4;
-        }
+        
+        .card-header { display: flex; justify-content: space-between; font-size: 0.9em; color: #888; margin-bottom: 10px; font-weight: 600;}
+        .card-title { font-size: 1.3em; font-weight: bold; color: #2d3436; text-decoration: none; display: block; margin-bottom: 12px; line-height: 1.4; }
         .d-day { background: #ffeaa7; color: #d35400; padding: 3px 10px; border-radius: 20px; font-size: 0.85em; }
         .card-info { font-size: 1em; color: #636e72; line-height: 1.6; }
-
+        
         /* AI 분석 박스 */
         .ai-analysis-box {
-            display: none; background-color: #f3e5f5; padding: 15px;
+            display: none; background-color: #f3e5f5; padding: 15px; 
             margin-top: 15px; border-radius: 10px; font-size: 0.95em; color: #4a148c;
             border: 1px solid #e1bee7; line-height: 1.6;
         }
 
-        .card-footer {
-            display: flex; justify-content: flex-end; gap: 8px;
-            margin-top: 15px; padding-top: 15px; border-top: 1px solid #f1f1f1;
-        }
-        .card-footer button, .card-footer a {
-            padding: 10px 20px; border-radius: 8px; border:none;
+        .card-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f1f1f1; }
+        .card-footer button, .card-footer a { 
+            padding: 10px 20px; border-radius: 8px; border:none; 
             font-size:0.9em; cursor:pointer; font-weight:bold; text-decoration: none; display: inline-block;
         }
         .btn-link { background: #dfe6e9; color: #2d3436; }
-        .btn-cal  { background: #e3f2fd; color: #0984e3; }
-        .btn-ai   { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; }
-
+        .btn-cal { background: #e3f2fd; color: #0984e3; }
+        .btn-ai { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; } 
+        
+        /* 캘린더 영역 */
         .calendar-area { margin-top: 20px; display:none; }
-        iframe {
-            width: 100%; height: 600px; border:none;
-            border-radius:16px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-        }
+        iframe { width: 100%; height: 600px; border:none; border-radius:16px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -149,7 +119,7 @@
             <div class="voice-text" id="voice-result"></div>
 
             <div class="input-group">
-                <input type="text" id="search-input" placeholder="예: 저류조, 서울시, K-water 등 키워드로 검색">
+                <input type="text" id="search-input" placeholder="예: 다음 주 마감되는 저류조 공고 찾아줘">
                 <button id="btn-search">검색</button>
             </div>
             <div id="user-info"></div>
@@ -157,49 +127,48 @@
     </div>
 
     <div id="status">
-        <span class="spin-icon">⏳</span> 데이터를 불러오고 있습니다...
+        <span class="loading-icon">⏳</span> 데이터를 불러오고 있습니다...
     </div>
-
+    
     <div id="bid-list" class="content-wrapper"></div>
-
+    
     <div class="calendar-area content-wrapper" id="cal-area">
         <h3 style="text-align:center; color:#2c3e50;">📅 입찰 일정표</h3>
         <iframe id="cal-frame" src=""></iframe>
     </div>
 
-    <!-- 구글 API / Gemini / Marked -->
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
         // ============================================================
-        // 🔴 Apps Script 웹 앱 URL
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
-
-        // 🔴 Gemini API 키 (개별 공고 AI 분석 용도만 사용)
+        // 🔑 [1] Gemini API 키
         const GEMINI_API_KEY = 'AIzaSyDaRFQQE-I3lwCnIiKcRWIUYxQLHrrfO1M';
+        
+        // 🔑 [2] 캘린더 ID
+        const BID_CALENDAR_ID = 'd51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04@group.calendar.google.com'; 
 
-        // 🔑 캘린더 ID
-        const BID_CALENDAR_ID = 'primary';
+        // 🚨 [3] Apps Script 주소
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec'; 
         // ============================================================
 
-        const CLIENT_ID   = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com';
-        const SCOPES      = 'https://www.googleapis.com/auth/calendar.events';
-        const STORAGE_KEY = 'hksuan_google_token_v2';
-
+        const CLIENT_ID = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com'; 
+        const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+        const STORAGE_KEY = 'hksuan_google_token_v2'; 
+        
         let allData = [];
         let tokenClient;
         let isLogin = false;
 
-        /* ---------- 캘린더 뷰 설정 ---------- */
         function setupCalendarView() {
             const iframe = document.getElementById('cal-frame');
-            const calSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(BID_CALENDAR_ID)}&ctz=Asia%2FSeoul&hl=ko`;
+            let calSrc = `https://calendar.google.com/calendar/embed?src=${BID_CALENDAR_ID}&ctz=Asia%2FSeoul&hl=ko`;
+            if (BID_CALENDAR_ID === 'primary') calSrc = "https://calendar.google.com/calendar/embed?src=primary&ctz=Asia%2FSeoul&hl=ko";
             iframe.src = calSrc;
         }
 
-        /* ---------- Gemini 공통 호출 (AI 분석용) ---------- */
+        // ---------- 공통: Gemini 호출 함수 (안전장치 추가) ----------
         async function callGemini(prompt) {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 15000); // 15초 타임아웃
@@ -214,6 +183,7 @@
                         signal: controller.signal
                     }
                 );
+
                 const data = await response.json();
                 if (!response.ok) {
                     const msg = data.error?.message || `HTTP ${response.status}`;
@@ -225,30 +195,42 @@
             }
         }
 
-        /* ---------- 1. 데이터 로드 ---------- */
+        // 🔥 AI 답변에서 순수 텍스트(JSON 등)만 안전하게 추출하는 함수
+        function extractGeminiText(data) {
+            const parts = data?.candidates?.[0]?.content?.parts || [];
+            let text = parts.map(p => p.text || '').join('\n');
+            
+            // 마크다운 제거
+            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            
+            // 중괄호 {} 로 감싸진 부분만 추출 (앞뒤 잡담 제거)
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (jsonMatch) text = jsonMatch[0];
+            
+            return text;
+        }
+
+        // ---------- 1. 데이터 로드 ----------
         async function loadData() {
             const status = document.getElementById('status');
-            status.innerHTML = `<span class="spin-icon">⏳</span> 입찰 공고를 불러오는 중입니다...`;
+            status.innerHTML = `<span class="loading-icon">⏳</span> 입찰 공고를 불러오는 중입니다...`;
             try {
                 const res = await fetch(SCRIPT_URL);
-                if (!res.ok) throw new Error("서버 연결 실패 (Apps Script URL 확인 필요)");
+                if (!res.ok) throw new Error("서버 연결 실패 (주소 확인 필요)");
                 const json = await res.json();
                 allData = json;
                 renderList(allData);
                 status.innerHTML = `✅ 총 <b>${allData.length}</b>건의 공고를 찾았습니다.`;
             } catch (e) {
-                status.innerHTML =
-                    `<span style="color:red">❌ 오류 발생: ${e.message}</span><br>` +
-                    `<span style="font-size:0.8em; color:#666;">(Apps Script URL과 CORS 설정을 확인해주세요)</span>`;
+                status.innerHTML = `<span style="color:red">❌ 오류 발생: ${e.message}</span><br><span style="font-size:0.8em; color:#666;">(Apps Script URL을 다시 확인해주세요)</span>`;
                 console.error(e);
             }
         }
 
-        /* ---------- 리스트 렌더링 ---------- */
         function renderList(data) {
             const list = document.getElementById('bid-list');
             list.innerHTML = "";
-            if (data.length === 0) {
+            if(data.length === 0) {
                 list.innerHTML = `
                     <div style='text-align:center; padding:50px; color:#888;'>
                         <p style='font-size:3em; margin-bottom:10px;'>📭</p>
@@ -256,12 +238,11 @@
                     </div>`;
                 return;
             }
-
             data.forEach((item, index) => {
                 const today = new Date();
-                const end   = new Date(item.deadline);
-                const diff  = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-                let dDay    = diff < 0 ? "마감됨" : `D-${diff}`;
+                const end = new Date(item.deadline);
+                const diff = Math.ceil((end - today) / (1000*60*60*24));
+                let dDay = diff < 0 ? "마감됨" : `D-${diff}`;
                 if (diff === 0) dDay = "오늘마감";
                 const cardClass = diff <= 3 ? "urgent" : "normal";
 
@@ -279,7 +260,7 @@
                     </div>
                     <div id="ai-result-${index}" class="ai-analysis-box"></div>
                     <div class="card-footer">
-                        <button class="btn-ai"  data-index="${index}">🤖 AI 분석</button>
+                        <button class="btn-ai" data-index="${index}">🤖 AI 분석</button>
                         <a href="${item.link}" target="_blank" class="btn-link">📄 공고문</a>
                         <button class="btn-cal" data-index="${index}">📅 캘린더</button>
                     </div>
@@ -287,85 +268,119 @@
                 list.appendChild(div);
             });
 
-            // 버튼 이벤트 연결 (inline onclick 사용 안 함)
+            // 이벤트 위임 대신 직접 바인딩 (안전성 확보)
             document.querySelectorAll('.btn-ai').forEach(btn => {
                 btn.onclick = () => {
                     const i = parseInt(btn.dataset.index, 10);
-                    const item = allData[i];
-                    analyzeBidWithAI(item.title, item.agency, item.deadline, i);
+                    analyzeBidWithAI(allData[i].title, allData[i].agency, allData[i].deadline, i);
                 };
             });
             document.querySelectorAll('.btn-cal').forEach(btn => {
                 btn.onclick = () => {
                     const i = parseInt(btn.dataset.index, 10);
-                    const item = allData[i];
-                    addToCal(item.title, item.deadline);
+                    addToCal(allData[i].title, allData[i].deadline);
                 };
             });
         }
 
-        /* ---------- 2. 일반 검색 (API 없이 동작) ---------- */
+        // ---------- 기본 검색 함수 ----------
         function simpleSearch(keyword) {
             const q = keyword.toLowerCase();
-            const filtered = allData.filter(item =>
+            const filtered = allData.filter(item => 
                 item.title.toLowerCase().includes(q) ||
                 item.agency.toLowerCase().includes(q)
             );
             renderList(filtered);
             const status = document.getElementById('status');
-            if (filtered.length === 0) {
-                status.innerHTML = `🔍 "<b>${keyword}</b>" 검색 결과가 없습니다.`;
-            } else {
-                status.innerHTML = `🔍 "<b>${keyword}</b>" 검색 결과: ${filtered.length}건`;
-            }
+            status.innerHTML = filtered.length > 0 
+                ? `🔍 "<b>${keyword}</b>" 검색 결과: ${filtered.length}건`
+                : `🔍 "<b>${keyword}</b>" 검색 결과가 없습니다.`;
         }
 
-        /* ---------- 검색 진입 함수 (항상 simpleSearch만 사용) ---------- */
-        function doSearch(keyword) {
-            if (!keyword) {
-                renderList(allData);
-                document.getElementById('status').innerHTML = `전체 <b>${allData.length}</b>건`;
-                return;
-            }
-            simpleSearch(keyword);   // ✅ AI 호출 없이 항상 일반 검색만 사용
-        }
-
-        /* ---------- 3. 개별 공고 AI 분석 ---------- */
-        async function analyzeBidWithAI(title, agency, deadline, index) {
-            const box = document.getElementById(`ai-result-${index}`);
-            if (box.style.display === 'block') {
-                box.style.display = 'none';
-                return;
+        // ---------- AI 검색 (안전장치 적용) ----------
+        async function searchWithAI(query) {
+            if (!query) { renderList(allData); return; }
+            
+            const status = document.getElementById('status');
+            
+            // 1. 단순 키워드 먼저 시도
+            const basicFilter = allData.filter(item => item.title.includes(query) || item.agency.includes(query));
+            if (basicFilter.length > 0 && !query.match(/(내일|모레|주|달|월|마감|언제)/)) {
+                 renderList(basicFilter);
+                 status.innerHTML = `🔍 "<b>${query}</b>" 검색 결과: ${basicFilter.length}건`;
+                 return;
             }
 
-            box.style.display = 'block';
-            box.innerHTML = `<span class="spin-icon">🧠</span> 분석 중...`;
+            // 2. AI 분석 시작 (애니메이션)
+            status.innerHTML = `<span class="loading-icon">🧠</span> AI가 검색 조건을 분석하고 있습니다...`;
 
-            const prompt =
-                `나는 '빗물저류조' 기업 직원이야. ` +
-                `이 공고를 한국수안 관점에서 검토해줘.\n\n` +
-                `[공고정보]\n제목: ${title}\n발주처: ${agency}\n마감일: ${deadline}\n\n` +
-                `1) 공사/물품 성격 요약\n2) 한국수안(저류조·관급자재)과의 적합도\n3) 입찰 준비 시 체크포인트를 핵심 bullet로 써줘.`;
+            const today = new Date().toISOString().split('T')[0];
+            const prompt = `
+                Today is ${today}. Analyze user input: "${query}"
+                Extract keywords and date ranges.
+                Response format: JSON object ONLY. No markdown, no explanations.
+                Example: {"keyword": "string", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD"}
+            `;
 
             try {
                 const data = await callGemini(prompt);
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '분석 결과가 없습니다.';
-                box.innerHTML = marked.parse(text);
+                const text = extractGeminiText(data); // 안전하게 텍스트 추출
+                const result = JSON.parse(text);      // JSON 변환 시도
+
+                const filtered = allData.filter(item => {
+                    let dateMatch = true, keywordMatch = true;
+                    if (result.startDate && result.endDate) {
+                        const itemDate = item.deadline.split(' ')[0]; 
+                        dateMatch = itemDate >= result.startDate && itemDate <= result.endDate;
+                    }
+                    if (result.keyword) {
+                        const k = result.keyword.toLowerCase();
+                        keywordMatch = item.title.toLowerCase().includes(k) || item.agency.toLowerCase().includes(k);
+                    }
+                    return dateMatch && keywordMatch;
+                });
+
+                renderList(filtered);
+                status.innerHTML = filtered.length > 0 
+                    ? `🤖 AI 검색 결과: <b>${filtered.length}</b>건` 
+                    : `🤖 AI 분석 완료: <b>조건에 맞는 공고가 없습니다.</b>`;
+
             } catch (e) {
-                console.error(e);
-                box.innerHTML = "❌ 분석 실패: " + (e.message || '알 수 없는 오류 (Gemini API 확인 필요)');
+                console.error("AI Error:", e);
+                // AI 실패 시 일반 검색으로 자동 전환 (무한 로딩 방지)
+                simpleSearch(query);
             }
         }
 
-        /* ---------- 4. 구글 캘린더 연동 ---------- */
+        // ---------- AI 개별 공고 분석 ----------
+        async function analyzeBidWithAI(title, agency, deadline, index) {
+            const box = document.getElementById(`ai-result-${index}`);
+            if (box.style.display === 'block') { box.style.display = 'none'; return; }
+
+            box.style.display = 'block';
+            box.innerHTML = `<span class="loading-icon">🧠</span> 분석 중...`;
+
+            const prompt = `나는 '빗물저류조' 기업 직원이야. 이 공고 분석해줘. [공고] ${title} / ${agency} / ${deadline}. 1.요약 2.적합도 3.팁 (HTML 태그 없이)`;
+
+            try {
+                const data = await callGemini(prompt);
+                const text = data.candidates[0].content.parts[0].text;
+                box.innerHTML = marked.parse(text);
+            } catch (e) {
+                box.innerHTML = "❌ 분석 실패: " + (e.message || '알 수 없는 오류');
+            }
+        }
+
+        function doSearch(keyword) {
+             if (keyword.match(/(내일|모레|주|달|월|마감|언제)/)) { searchWithAI(keyword); } 
+             else { simpleSearch(keyword); }
+        }
+
         function initGoogle() {
             gapi.load('client', async () => {
-                await gapi.client.init({
-                    discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"]
-                });
+                await gapi.client.init({ discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"] });
                 tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CLIENT_ID,
-                    scope: SCOPES,
+                    client_id: CLIENT_ID, scope: SCOPES,
                     callback: (resp) => {
                         if (resp.error) return;
                         gapi.client.setToken(resp);
@@ -373,38 +388,28 @@
                         updateLoginState(true);
                     }
                 });
-
                 const savedToken = localStorage.getItem(STORAGE_KEY);
                 if (savedToken) {
-                    try {
-                        gapi.client.setToken(JSON.parse(savedToken));
-                        updateLoginState(true);
-                    } catch (e) {
-                        handleLogout();
-                    }
+                    try { gapi.client.setToken(JSON.parse(savedToken)); updateLoginState(true); } catch (e) { handleLogout(); }
                 }
-
                 document.getElementById('btn-login').onclick = () => {
-                    if (isLogin) {
-                        if (confirm("로그아웃 하시겠습니까?")) handleLogout();
-                    } else {
-                        tokenClient.requestAccessToken({ prompt: '' });
-                    }
+                    if (isLogin) { if(confirm("로그아웃 하시겠습니까?")) handleLogout(); } 
+                    else { tokenClient.requestAccessToken({prompt: ''}); }
                 };
             });
         }
 
         function updateLoginState(loggedIn) {
-            const btn     = document.getElementById('btn-login');
+            const btn = document.getElementById('btn-login');
             const calArea = document.getElementById('cal-area');
-            const userInfo= document.getElementById('user-info');
+            const userInfo = document.getElementById('user-info');
             isLogin = loggedIn;
             if (loggedIn) {
                 btn.innerText = "🚪 로그아웃";
                 btn.style.background = "linear-gradient(135deg, #636e72, #2d3436)";
                 calArea.style.display = 'block';
                 userInfo.innerText = "✅ 구글 계정 연동됨";
-                document.getElementById('cal-frame').src += ''; // 새로고침
+                document.getElementById('cal-frame').src += ''; 
             } else {
                 btn.innerText = "📅 로그인";
                 btn.style.background = "linear-gradient(135deg, #0984e3, #74b9ff)";
@@ -415,62 +420,37 @@
 
         function handleLogout() {
             const token = gapi.client.getToken();
-            if (token !== null) {
-                google.accounts.oauth2.revoke(token.access_token);
-            }
+            if (token !== null) google.accounts.oauth2.revoke(token.access_token);
             gapi.client.setToken(null);
             localStorage.removeItem(STORAGE_KEY);
             updateLoginState(false);
         }
 
         async function addToCal(title, deadline) {
-            if (!gapi.client.getToken()) {
-                alert("로그인이 필요합니다.");
-                handleLogout();
-                return;
-            }
+            if (!gapi.client.getToken()) { alert("로그인이 필요합니다."); handleLogout(); return; }
             if (!confirm(`[${title}] 일정을 캘린더에 등록하시겠습니까?`)) return;
-
-            const end   = new Date(deadline);
+            const end = new Date(deadline);
             const start = new Date(end);
-            start.setHours(end.getHours() - 1);  // 1시간 전부터
-
+            start.setHours(end.getHours() - 1); 
             const event = {
-                summary: `[입찰] ${title}`,
-                description: '한국수안 입찰비서 자동등록',
-                start: { dateTime: start.toISOString() },
-                end:   { dateTime: end.toISOString() },
-                colorId: '11',
-                reminders: {
-                    useDefault: false,
-                    overrides: [
-                        { method: 'popup', minutes: 60 },
-                        { method: 'popup', minutes: 24 * 60 }
-                    ]
-                }
+                'summary': `[입찰] ${title}`, 'description': '한국수안 입찰비서 자동등록',
+                'start': { 'dateTime': start.toISOString() }, 'end': { 'dateTime': end.toISOString() },
+                'colorId': '11', 'reminders': { 'useDefault': false, 'overrides': [ {'method': 'popup', 'minutes': 60}, {'method': 'popup', 'minutes': 24 * 60} ] }
             };
             try {
-                await gapi.client.calendar.events.insert({
-                    calendarId: BID_CALENDAR_ID,
-                    resource: event
-                });
+                await gapi.client.calendar.events.insert({ 'calendarId': BID_CALENDAR_ID, 'resource': event });
                 alert("✅ 일정 등록 완료!");
-                document.getElementById('cal-frame').src += '';
+                document.getElementById('cal-frame').src += ''; 
             } catch (e) {
-                alert("등록 실패: " + (e.result?.error?.message || e.message));
-                if (e.result?.error?.code === 401) handleLogout();
+                alert("등록 실패: " + e.result.error.message);
+                if (e.result.error.code === 401) handleLogout();
             }
         }
 
-        /* ---------- 5. UI 이벤트 바인딩 ---------- */
         document.getElementById('btn-voice').onclick = () => {
-            if (!('webkitSpeechRecognition' in window)) {
-                alert("크롬 브라우저를 사용해주세요.");
-                return;
-            }
+            if (!('webkitSpeechRecognition' in window)) { alert("크롬 브라우저를 사용해주세요."); return; }
             const rec = new webkitSpeechRecognition();
-            rec.lang = 'ko-KR';
-            rec.start();
+            rec.lang = 'ko-KR'; rec.start();
             document.getElementById('voice-result').innerText = "듣고 있습니다... 👂";
             rec.onresult = (e) => {
                 const txt = e.results[0][0].transcript;
@@ -479,11 +459,9 @@
                 doSearch(txt);
             };
         };
-
-        document.getElementById('btn-search').onclick  = () => doSearch(document.getElementById('search-input').value);
+        document.getElementById('btn-search').onclick = () => doSearch(document.getElementById('search-input').value);
         document.getElementById('btn-refresh').onclick = loadData;
 
-        /* ---------- 초기 실행 ---------- */
         setupCalendarView();
         loadData();
         initGoogle();
