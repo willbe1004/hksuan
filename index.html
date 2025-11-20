@@ -522,7 +522,7 @@
                 box.innerHTML = marked.parse(text);
             } catch (e) {
                 console.error(e);
-                box.innerHTML = '❌ 분석 실패: ' + (e.message || '알 수 없는 오류');
+                box.innerHTML = '❌ AI 부하로 분석 실패: ' + (e.message || '알 수 없는 오류');
             }
         }
 
@@ -675,3 +675,4 @@
     </script>
 </body>
 </html>
+
