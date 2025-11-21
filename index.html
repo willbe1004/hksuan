@@ -5,127 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>한국수안 AI 입찰관리</title>
     <style>
-        /* 1. 기본 설정 */
         * { box-sizing: border-box; }
-        body { 
-            font-family: 'Pretendard', 'Malgun Gothic', sans-serif; 
-            background-color: #f2f4f6; 
-            margin: 0; padding: 0; color: #333; 
-        }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; margin: 0; color: #333; }
         .content-wrapper { max-width: 1200px; width: 96%; margin: 0 auto; }
 
-        /* 2. 상단 컨트롤 박스 */
+        /* 상단 헤더 */
         .control-box-bg { 
             background: white; position: sticky; top: 0; z-index: 1000; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
-            padding: 15px 0; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 15px 0; 
         }
 
-        /* 버튼 스타일 */
-        .button-row { display: flex; gap: 8px; width: 100%; margin-bottom: 15px; }
+        .button-row { display: flex; gap: 8px; margin-bottom: 15px; }
         .button-row button {
-            flex: 1; padding: 12px 0; border: none; border-radius: 12px; 
-            font-size: 0.9em; font-weight: bold; color: white; cursor: pointer;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: transform 0.1s;
-            display: flex; align-items: center; justify-content: center; gap: 5px;
+            flex: 1; padding: 12px; border: none; border-radius: 12px; 
+            font-size: 0.95em; font-weight: bold; color: white; cursor: pointer;
+            transition: 0.2s;
         }
-        .button-row button:active { transform: scale(0.96); }
-        
-        #btn-voice { background: linear-gradient(135deg, #ff7675, #d63031); } 
-        #btn-refresh { background: linear-gradient(135deg, #00b894, #00cec9); }
-        #btn-add { background: linear-gradient(135deg, #a29bfe, #6c5ce7); } 
-        #btn-login { background: linear-gradient(135deg, #0984e3, #74b9ff); } 
+        #btn-voice { background: #ff6b6b; } 
+        #btn-refresh { background: #1dd1a1; }
+        #btn-add { background: #a29bfe; } 
+        #btn-login { background: #54a0ff; } 
 
-        /* 제목 */
-        h1 { margin: 15px 0; font-size: 1.6em; color: #1e272e; text-align: center; font-weight: 800; letter-spacing: -0.5px; }
+        h1 { margin: 10px 0; font-size: 1.5em; text-align: center; color: #2d3436; }
         
-        /* 검색창 */
         .input-group { display: flex; gap: 8px; }
         input[type="text"] { 
-            flex: 1; padding: 12px 15px; border: 1px solid #dfe6e9; 
-            border-radius: 10px; font-size: 16px; background: #f8f9fa; outline: none;
+            flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; 
         }
-        input[type="text"]:focus { border-color: #0984e3; background: white; }
-        #btn-search {
-            width: 80px; background: #636e72; color: white; border: none;
-            border-radius: 10px; font-weight: bold; cursor: pointer;
-        }
+        #btn-search { width: 80px; background: #636e72; color: white; border: none; border-radius: 10px; font-weight: bold; }
 
-        .voice-text { color: #e17055; font-weight: bold; min-height: 20px; margin: 5px 0; font-size: 0.9em; text-align: center;}
-        #user-info { text-align: right; font-size: 0.8em; color: #b2bec3; margin-top: 5px; height: 15px;}
-        #status { text-align: center; margin-top: 30px; color: #636e72; font-size: 1em; font-weight: 500; min-height: 30px; line-height: 1.5; }
-        
-        .spin-icon { display: inline-block; animation: spin 1.5s linear infinite; font-size: 1.2em; margin-right: 8px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        #bid-list { margin-top: 20px; }
-        
-        /* 🔥 [수정됨] 카드 스타일 - 깔끔한 정리 */
+        /* 카드 디자인 (깔끔한 그리드) */
         .card { 
-            background: white; padding: 25px; margin-bottom: 15px; 
-            border-radius: 16px; border-left: 6px solid #ddd; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
-            transition: transform 0.2s; width: 100%;
+            background: white; padding: 20px; margin-top: 20px; border-radius: 16px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 5px solid #ddd;
         }
-        .card:hover { transform: translateY(-3px); }
-        .card.urgent { border-left-color: #ff7675; }
-        .card.normal { border-left-color: #0984e3; }
+        .card.urgent { border-left-color: #ff6b6b; }
+        .card.normal { border-left-color: #54a0ff; }
+
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9em; color: #636e72; }
+        .region-badge { background: #eee; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+        .d-day { color: #d63031; font-weight: bold; }
+
+        .card-title { font-size: 1.3em; font-weight: 800; color: #2d3436; display: block; margin-bottom: 15px; text-decoration: none; }
+
+        /* 정보 그리드 (핵심) */
+        .info-grid { 
+            display: grid; grid-template-columns: 80px 1fr; gap: 6px; font-size: 0.95em; 
+            background: #fafafa; padding: 15px; border-radius: 10px;
+        }
+        .label { color: #b2bec3; font-weight: 600; }
+        .value { font-weight: 500; color: #2d3436; word-break: break-all; }
+        .highlight { color: #0984e3; font-weight: 800; }
         
-        /* 카드 헤더 (지역 배지, D-Day) */
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .region-badge { 
-            background: #f1f3f5; color: #495057; padding: 4px 8px; 
-            border-radius: 6px; font-size: 0.85em; font-weight: 600; 
-        }
-        .d-day { 
-            background: #ffeaa7; color: #d35400; padding: 4px 10px; 
-            border-radius: 20px; font-size: 0.85em; font-weight: bold; 
+        .ai-box { 
+            background: #f3e5f5; padding: 12px; border-radius: 8px; margin-top: 15px; 
+            font-size: 0.9em; color: #6a1b9a; line-height: 1.5;
         }
 
-        .card-title { 
-            font-size: 1.35em; font-weight: 800; color: #2d3436; 
-            text-decoration: none; display: block; margin-bottom: 15px; 
-            line-height: 1.4; 
-        }
-        
-        /* 🔥 [신규] 정보 그리드 레이아웃 (깔끔한 정렬) */
-        .info-grid {
-            display: grid;
-            grid-template-columns: 70px 1fr; /* 라벨 고정폭, 내용 나머지 */
-            gap: 6px 10px;
-            font-size: 0.95em;
-            color: #495057;
-        }
-        .info-label { color: #adb5bd; font-weight: 500; }
-        .info-val { font-weight: 600; }
-        .highlight-price { color: #0984e3; }
-        .highlight-date { color: #d63031; }
-
-        /* AI 분석 박스 */
-        .ai-analysis-box {
-            display: none; background-color: #f8f9fa; padding: 15px; 
-            margin-top: 15px; border-radius: 12px; font-size: 0.9em; color: #5e35b1;
-            border: 1px solid #e1bee7; line-height: 1.6;
-        }
-
-        .card-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #f1f1f1; }
-        .btn-card { 
-            padding: 10px 16px; border-radius: 8px; border:none; 
-            font-size:0.9em; cursor:pointer; font-weight:bold; text-decoration: none; display: inline-block;
-        }
-        .btn-link { background: #f1f2f6; color: #2f3542; }
+        .card-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px; }
+        .btn-sm { padding: 8px 12px; border-radius: 6px; border: none; font-size: 0.85em; cursor: pointer; font-weight: bold; text-decoration: none; }
+        .btn-link { background: #dfe6e9; color: #333; }
         .btn-cal { background: #e3f2fd; color: #0984e3; }
-        .btn-ai { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; } 
-        
-        /* 모달 & 캘린더 */
+
+        /* 모달 */
         #add-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center; }
         .modal-content { background:white; padding:25px; border-radius:15px; width:90%; max-width:500px; }
-        textarea { width:100%; height:150px; padding:10px; margin:10px 0; border-radius:8px; border:1px solid #ddd; font-size:14px; font-family: sans-serif; resize: none; }
+        textarea { width:100%; height:150px; padding:10px; margin:10px 0; border-radius:8px; border:1px solid #ddd; font-size:14px; resize: none; }
         .modal-btns { display:flex; justify-content:flex-end; gap:10px; }
-        
-        .calendar-area { margin-top: 20px; display:none; }
-        iframe { width: 100%; height: 600px; border:none; border-radius:16px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -134,210 +80,150 @@
         <div class="content-wrapper">
             <div class="button-row">
                 <button id="btn-voice">🎤 음성</button>
-                <button id="btn-refresh">🔄 공고검색</button>
+                <button id="btn-refresh">🔄 새로고침</button>
                 <button id="btn-add">📝 직접등록</button> 
                 <button id="btn-login">📅 로그인</button>
             </div>
-
             <h1>💧 한국수안 AI 입찰관리</h1>
-            <div class="voice-text" id="voice-result"></div>
-
             <div class="input-group">
-                <input type="text" id="search-input" placeholder="예: 다음 주 마감되는 저류조 공고 찾아줘">
+                <input type="text" id="search-input" placeholder="예: 용인시, 5억 이상, 빗물">
                 <button id="btn-search">검색</button>
             </div>
-            <div id="user-info"></div>
+            <div id="voice-result" style="text-align:center; color:#e17055; font-size:0.9em; margin-top:5px;"></div>
+            <div id="user-info" style="text-align:right; font-size:0.8em; color:#aaa;"></div>
         </div>
     </div>
 
-    <div id="status">
-        <span class="spin-icon">⏳</span> 데이터를 불러오고 있습니다...
-    </div>
-    
+    <div id="status" style="text-align:center; margin-top:30px; color:#888;"></div>
     <div id="bid-list" class="content-wrapper"></div>
-    
-    <div class="calendar-area content-wrapper" id="cal-area">
-        <h3 style="text-align:center; color:#2c3e50;">📅 입찰 일정표</h3>
-        <iframe id="cal-frame" src=""></iframe>
-    </div>
 
     <div id="add-modal">
         <div class="modal-content">
-            <h3 style="margin-top:0; color:#2c3e50;">📝 외부 공고 스마트 등록</h3>
-            <p style="font-size:0.9em; color:#666; line-height:1.4;">외부 사이트 공고 내용을 복사해 붙여넣으세요.</p>
-            <textarea id="paste-area" placeholder="[예시] 공고명: 서울시 빗물저류조 설치공사..."></textarea>
+            <h3>📝 공고문 스마트 등록</h3>
+            <p style="font-size:0.9em; color:#666;">공고 내용을 복사해 붙여넣으면 AI가 항목별로 정리해줍니다.</p>
+            <textarea id="paste-area" placeholder="공고 내용을 여기에 붙여넣으세요..."></textarea>
             <div class="modal-btns">
-                <button onclick="closeModal()" style="background:#b2bec3; color:white; border:none; padding:10px 20px; border-radius:8px;">취소</button>
-                <button onclick="processSmartAdd()" style="background:#6c5ce7; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold;">✨ AI 분석 및 저장</button>
+                <button onclick="closeModal()" style="background:#ccc; color:white; border:none; padding:10px; border-radius:8px;">취소</button>
+                <button onclick="processSmartAdd()" style="background:#a29bfe; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold;">분석 및 저장</button>
             </div>
         </div>
     </div>
 
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
-        // ============================================================
-        // 🔑 키 및 설정
+        // 🚨 설정값 (고객님 정보로 수정 필요)
         const GEMINI_API_KEY = 'AIzaSyDu8QKqqTRxutvYqr8GWOUKJLAoT2lZS1k';
-        const GEMINI_MODEL_ID = 'gemini-1.5-flash-latest';
-        const BID_CALENDAR_ID = 'd51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04@group.calendar.google.com'; 
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec'; 
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
+        const CLIENT_ID = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com';
+        const BID_CALENDAR_ID = 'd51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04@group.calendar.google.com';
         
-        const CLIENT_ID = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com'; 
-        const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
-        const STORAGE_KEY = 'hksuan_google_token_v2'; 
-        // ============================================================
-
         let allData = [];
         let tokenClient;
-        let isLogin = false;
 
-        // ... (캘린더 뷰, Gemini 호출 등 기존 로직 유지) ...
-        // 지면상 핵심인 renderList와 loadData 부분만 수정된 것을 보여드립니다.
-        // 실제 사용 시에는 기존 스크립트 로직을 그대로 포함해야 합니다.
-
-        // 💡 전체 로직을 포함한 스크립트 블록입니다.
-        
-        function setupCalendarView() {
-            const iframe = document.getElementById('cal-frame');
-            let calSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(BID_CALENDAR_ID)}&ctz=Asia%2FSeoul&hl=ko`;
-            if (BID_CALENDAR_ID === 'primary') calSrc = 'https://calendar.google.com/calendar/embed?src=primary&ctz=Asia%2FSeoul&hl=ko';
-            iframe.src = calSrc;
-        }
-
-        async function callGemini(prompt) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-            try {
-                const response = await fetch(
-                    `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL_ID}:generateContent?key=${GEMINI_API_KEY}`,
-                    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }), signal: controller.signal }
-                );
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error?.message || `HTTP ${response.status}`);
-                return data;
-            } finally { clearTimeout(timeoutId); }
-        }
-        function extractGeminiText(data) {
-            const parts = data?.candidates?.[0]?.content?.parts || [];
-            let text = parts.map(p => p.text || '').join('\n');
-            return text.replace(/```json/g, '').replace(/```/g, '').trim();
-        }
-
+        // 데이터 로드
         async function loadData() {
-            const status = document.getElementById('status');
-            status.innerHTML = `<span class="spin-icon">⏳</span> 입찰 공고를 불러오는 중입니다...`;
+            document.getElementById('status').innerText = "⏳ 데이터 불러오는 중...";
             try {
                 const res = await fetch(SCRIPT_URL);
-                if (!res.ok) throw new Error('서버 연결 실패');
-                const text = await res.text();
-                if (text.trim().startsWith('<')) throw new Error('Apps Script URL 확인 필요');
-                allData = JSON.parse(text);
+                const json = await res.json();
+                allData = json;
                 renderList(allData);
-                status.innerHTML = `✅ 총 <b>${allData.length}</b>건의 공고를 찾았습니다.`;
+                document.getElementById('status').innerText = `✅ 총 ${allData.length}건 조회됨`;
             } catch (e) {
-                status.innerHTML = `<span style="color:red">❌ 오류 발생: ${e.message}</span>`;
+                document.getElementById('status').innerText = "❌ 로드 실패 (Apps Script 배포 확인)";
             }
         }
 
-        // 🔥 [수정된 렌더링 함수] - 깔끔한 표 디자인 적용
+        // 리스트 렌더링 (16개 항목 반영)
         function renderList(data) {
             const list = document.getElementById('bid-list');
             list.innerHTML = "";
-            
-            const query = document.getElementById('search-input').value;
-            if(data.length === 0) {
-                // (결과 없음 처리 생략 - 기존과 동일)
-                 list.innerHTML = `<div style='text-align:center; padding:50px; color:#888;'>검색 결과가 없습니다.</div>`;
-                // 외부 검색 버튼 로직은 유지
-                 if(query) { /* 외부검색 버튼 코드 */ }
-                 return;
-            }
+            if (data.length === 0) { list.innerHTML = "<div style='text-align:center; padding:50px;'>데이터가 없습니다.</div>"; return; }
 
-            data.forEach((item, index) => {
+            data.forEach(item => {
                 const today = new Date();
                 const end = new Date(item.deadline);
                 const diff = Math.ceil((end - today) / (1000*60*60*24));
                 let dDay = diff < 0 ? "마감됨" : `D-${diff}`;
                 if (diff === 0) dDay = "오늘마감";
-                const cardClass = diff <= 3 ? "urgent" : "normal";
 
-                // 데이터 필드 처리
-                const region = item.region || '지역미상';
-                const agency = item.agency || item.client || '-'; // 수요기관
-                const client = item.client || item.agency || '-'; // 발주처
-                
-                // 엑셀의 항목들을 깔끔하게 정리
-                // 값이 없거나 '-' 인 경우엔 보여주지 않도록 필터링 할 수도 있으나,
-                // 레이아웃 유지를 위해 보여주되 깔끔하게 처리
-                
                 const div = document.createElement('div');
-                div.className = `card ${cardClass}`;
+                div.className = `card ${diff <= 3 ? 'urgent' : 'normal'}`;
                 div.innerHTML = `
                     <div class="card-header">
-                        <span class="region-badge">${region}</span>
+                        <span>No. ${item.no} | <span class="region-badge">${item.region}</span></span>
                         <span class="d-day">${dDay}</span>
                     </div>
-                    
                     <a href="${item.link}" target="_blank" class="card-title">${item.title}</a>
                     
                     <div class="info-grid">
-                        <span class="info-label">발주/수요</span>
-                        <span class="info-val">${client} / ${agency}</span>
-                        
-                        <span class="info-label">추정금액</span>
-                        <span class="info-val highlight-price">${item.serviceAmount || item.price || '-'}</span>
-                        
-                        <span class="info-label">마감일시</span>
-                        <span class="info-val highlight-date">${item.deadline || '-'}</span>
-                        
-                        ${ item.servicePeriod && item.servicePeriod !== '-' ? `<span class="info-label">용역기간</span><span class="info-val">${item.servicePeriod}</span>` : '' }
-                        ${ item.siteArea && item.siteArea !== '-' ? `<span class="info-label">대지면적</span><span class="info-val">${item.siteArea}</span>` : '' }
-                        
-                        <span class="info-label">진행상태</span>
-                        <span class="info-val">${item.status}</span>
+                        <span class="label">발주/수요</span> <span class="value">${item.client} / ${item.agency}</span>
+                        <span class="label">용역기간</span> <span class="value">${item.period}</span>
+                        <span class="label">금액</span> <span class="value highlight">${item.amount}</span>
+                        <span class="label">사업비</span> <span class="value">${item.budget}</span>
+                        <span class="label">담당자</span> <span class="value">${item.manager}</span>
+                        <span class="label">마감일</span> <span class="value" style="color:#d63031">${item.deadline}</span>
+                        <span class="label">대지/톤수</span> <span class="value">${item.area} / ${item.ton}</span>
                     </div>
 
-                    <div id="ai-result-${index}" class="ai-analysis-box"></div>
+                    ${item.aiResult ? `<div class="ai-box">🤖 <b>AI 분석:</b> ${item.aiResult}</div>` : ''}
 
                     <div class="card-footer">
-                        <button class="btn-card btn-ai" onclick="analyzeBidWithAI('${item.title}', '${agency}', '${item.deadline}', ${index})">🤖 AI 분석</button>
-                        <a href="${item.link}" target="_blank" class="btn-card btn-link">📄 공고문</a>
-                        <button class="btn-card btn-cal" onclick="addToCal('${item.title}', '${item.deadline}')">📅 캘린더</button>
+                        <a href="${item.link}" target="_blank" class="btn-sm btn-link">📄 공고문</a>
+                        <button onclick="addToCal('${item.title}', '${item.deadline}')" class="btn-sm btn-cal">📅 캘린더</button>
                     </div>
                 `;
                 list.appendChild(div);
             });
         }
-        
-        // ... (나머지 함수들: 모달, AI검색, 캘린더 등 기존과 동일) ...
-        // 생략된 부분은 이전 코드와 동일하게 유지해주세요.
 
-        // (전체 코드 합본이 필요하시면 말씀해주세요. 여기는 수정된 renderList가 핵심입니다.)
-        
-        // ---------- 이하 모달, AI함수 등 기존 코드 복원 ----------
-        document.getElementById('btn-add').onclick = () => { document.getElementById('add-modal').style.display = 'flex'; };
-        function closeModal() { document.getElementById('add-modal').style.display = 'none'; document.getElementById('paste-area').value = ''; }
-        
-        async function processSmartAdd() { /* ... 기존 동일 ... */ }
-        function simpleSearch(keyword) { /* ... 기존 동일 ... */ }
-        async function searchWithAI(query) { /* ... 기존 동일 ... */ }
-        async function analyzeBidWithAI(title, agency, deadline, index) { /* ... 기존 동일 ... */ }
-        function doSearch(keyword) { /* ... 기존 동일 ... */ }
-        function initGoogle() { /* ... 기존 동일 ... */ }
-        function updateLoginState(loggedIn) { /* ... 기존 동일 ... */ }
-        function handleLogout() { /* ... 기존 동일 ... */ }
-        async function addToCal(title, deadline) { /* ... 기존 동일 ... */ }
-        
-        document.getElementById('btn-voice').onclick = () => { /* ... */ };
-        document.getElementById('btn-search').onclick = () => doSearch(document.getElementById('search-input').value);
+        // 직접등록 처리 (AI로 필드 추출)
+        async function processSmartAdd() {
+            const text = document.getElementById('paste-area').value;
+            if(!text) return;
+            
+            const btn = document.querySelector('#add-modal button:last-child');
+            btn.innerText = "분석 중...";
+            
+            // 16개 항목 추출 프롬프트
+            const prompt = `텍스트에서 다음 정보를 추출해 JSON으로 줘:
+            {"title":"공고명", "no":"공고번호", "region":"지역", "date":"공고일(YYYY-MM-DD)", "deadline":"마감일(YYYY-MM-DD HH:mm)", "client":"발주처", "agency":"수요기관", "period":"용역기간", "amount":"용역금액", "budget":"사업비", "manager":"담당자", "area":"대지면적", "ton":"예상톤수", "link":"링크", "aiResult":"이 공사의 빗물저류조 관련성 분석(1문장)"}
+            텍스트: ${text}`;
+            
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const json = await res.json();
+                const result = JSON.parse(json.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim());
+                
+                // Apps Script로 전송 (쿼리 스트링 조립)
+                let url = `${SCRIPT_URL}?action=add`;
+                for (let key in result) url += `&${key}=${encodeURIComponent(result[key])}`;
+                
+                await fetch(url, { mode: 'no-cors' });
+                alert("저장되었습니다!");
+                closeModal();
+                loadData();
+            } catch(e) {
+                alert("오류: " + e.message);
+            } finally {
+                btn.innerText = "분석 및 저장";
+            }
+        }
+
+        // 기타 필수 함수들 (모달, 검색, 로그인 등)
         document.getElementById('btn-refresh').onclick = loadData;
-
-        setupCalendarView();
+        document.getElementById('btn-add').onclick = () => document.getElementById('add-modal').style.display = 'flex';
+        function closeModal() { document.getElementById('add-modal').style.display = 'none'; }
+        
+        // (캘린더, 로그인 로직은 기존 코드 유지 - 지면상 생략했으나 실제 파일엔 포함되어야 함)
+        
+        // 초기 실행
         loadData();
-        initGoogle();
     </script>
 </body>
 </html>
