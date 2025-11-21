@@ -1,45 +1,31 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>한국수안 AI 입찰관리</title>
   <style>
     * { box-sizing: border-box; }
-
     body {
-      font-family: 'Pretendard', 'Malgun Gothic', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
       background-color: #f2f4f6;
       margin: 0;
-      padding: 0;
       color: #333;
     }
+    .content-wrapper { max-width: 1200px; width: 96%; margin: 0 auto; }
 
-    .content-wrapper {
-      max-width: 1200px;
-      width: 96%;
-      margin: 0 auto;
-    }
-
-    /* 상단 컨트롤 박스 */
+    /* 상단 컨트롤 */
     .control-box-bg {
       background: white;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-      padding: 15px 0 18px;
+      position: sticky; top: 0; z-index: 1000;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      padding: 15px 0 20px;
       border-bottom-left-radius: 20px;
       border-bottom-right-radius: 20px;
     }
-
     .button-row {
-      display: flex;
-      gap: 8px;
-      width: 100%;
-      margin-bottom: 12px;
+      display: flex; gap: 8px; width: 100%; margin-bottom: 15px;
     }
-
     .button-row button {
       flex: 1;
       padding: 12px 0;
@@ -47,28 +33,23 @@
       border-radius: 12px;
       font-size: 0.9em;
       font-weight: 700;
-      color: white;
+      color: #fff;
       cursor: pointer;
-      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
       transition: transform 0.1s, box-shadow 0.1s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
     }
-
     .button-row button:active {
       transform: scale(0.96);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-
-    #btn-voice   { background: linear-gradient(135deg, #ff7675, #d63031); }
-    #btn-refresh { background: linear-gradient(135deg, #00b894, #00cec9); }
-    #btn-add     { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
-    #btn-login   { background: linear-gradient(135deg, #0984e3, #74b9ff); }
+    #btn-voice   { background: linear-gradient(135deg,#ff7675,#d63031); }
+    #btn-refresh { background: linear-gradient(135deg,#00b894,#00cec9); }
+    #btn-add     { background: linear-gradient(135deg,#a29bfe,#6c5ce7); }
+    #btn-login   { background: linear-gradient(135deg,#0984e3,#74b9ff); }
 
     h1 {
-      margin: 10px 0 14px;
+      margin: 10px 0 5px;
       font-size: 1.7em;
       color: #1e272e;
       text-align: center;
@@ -76,11 +57,19 @@
       letter-spacing: -0.5px;
     }
 
+    .voice-text {
+      color: #e17055;
+      font-weight: 600;
+      min-height: 20px;
+      margin: 5px 0 10px;
+      font-size: 0.9em;
+      text-align: center;
+    }
+
     .input-group {
       display: flex;
       gap: 8px;
     }
-
     input[type="text"] {
       flex: 1;
       padding: 12px 15px;
@@ -90,1131 +79,898 @@
       background: #f8f9fa;
       outline: none;
     }
-
     input[type="text"]:focus {
       border-color: #0984e3;
-      background: white;
+      background: #fff;
     }
-
     #btn-search {
       width: 80px;
       background: #636e72;
-      color: white;
+      color: #fff;
       border: none;
       border-radius: 10px;
-      font-weight: bold;
+      font-weight: 700;
       cursor: pointer;
     }
 
-    .voice-text {
-      color: #e17055;
-      font-weight: bold;
-      min-height: 20px;
-      margin: 5px 0 8px;
-      font-size: 0.9em;
-      text-align: center;
-    }
-
-    #user-info {
+    #user-info  {
       text-align: right;
       font-size: 0.8em;
       color: #b2bec3;
-      margin-top: 3px;
-      height: 15px;
+      margin-top: 6px;
+      min-height: 16px;
     }
 
     #status {
       text-align: center;
-      margin-top: 20px;
+      margin: 20px 0 10px;
       color: #636e72;
       font-size: 0.95em;
       font-weight: 500;
-      min-height: 30px;
+      min-height: 24px;
       line-height: 1.5;
     }
-
     .spin-icon {
       display: inline-block;
       animation: spin 1.5s linear infinite;
-      font-size: 1.2em;
-      margin-right: 8px;
+      font-size: 1.1em;
+      margin-right: 6px;
     }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg);   }
-      100%{ transform: rotate(360deg); }
-    }
-
-    #bid-list {
-      margin-top: 20px;
-    }
+    #bid-list { margin-top: 10px; }
 
     /* 카드 UI */
     .card {
-      background: white;
+      background: #fff;
       padding: 20px 22px 18px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       border-radius: 18px;
       border-left: 5px solid #dfe6e9;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
       width: 100%;
     }
-
     .card.urgent { border-left-color: #ff7675; }
     .card.normal { border-left-color: #0984e3; }
 
-    .card-top-row {
+    .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
-
-    .card-badges {
+    .card-header-left {
       display: flex;
       align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-      font-size: 0.8em;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 9px;
-      border-radius: 999px;
-      font-weight: 600;
-    }
-
-    .badge-region {
-      background-color: #ecf0f1;
-      color: #34495e;
-    }
-
-    .badge-status {
-      background-color: #ffeaa7;
-      color: #d35400;
-    }
-
-    .badge-manual {
-      background-color: #dfe6e9;
+      gap: 8px;
+      font-size: 0.85em;
       color: #636e72;
     }
-
-    .badge-open {
-      background-color: #e3f2fd;
-      color: #1565c0;
-    }
-
-    .card-d-day {
-      font-size: 0.85em;
-      font-weight: 700;
-      padding: 4px 12px;
+    .region-tag {
+      padding: 3px 8px;
       border-radius: 999px;
-      background: #f1f2f6;
-      color: #2d3436;
+      background: #e8f0fe;
+      color: #1a73e8;
+      font-weight: 700;
+      font-size: 0.75em;
+    }
+    .bid-no {
+      font-weight: 600;
+      color: #636e72;
+    }
+    .status-chip {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75em;
+      font-weight: 700;
+      color: #e67e22;
+      background: #ffeaa7;
     }
 
     .card-title {
-      font-size: 1.2em;
+      display: block;
+      margin: 4px 0 10px;
+      font-size: 1.15em;
       font-weight: 800;
       color: #2d3436;
       text-decoration: none;
-      display: block;
-      margin: 6px 0 12px;
-      line-height: 1.4;
+      line-height: 1.5;
     }
+    .card-title:hover { text-decoration: underline; }
 
-    .card-title:hover {
-      text-decoration: underline;
+    .card-main {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 8px;
     }
-
-    .card-sub-title {
-      font-size: 0.85em;
-      color: #636e72;
-      margin-bottom: 10px;
-    }
-
-    .card-meta-row {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px 24px;
-      margin-bottom: 6px;
-    }
-
-    .meta-block {
+    .card-main-left, .card-main-right {
+      flex: 1;
       min-width: 0;
     }
+    .info-row {
+      display: flex;
+      gap: 6px;
+      font-size: 0.85em;
+      margin-bottom: 4px;
+      color: #636e72;
+    }
+    .info-label {
+      width: 55px;
+      flex-shrink: 0;
+      color: #95a5a6;
+    }
+    .info-value {
+      flex: 1;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .info-value-strong {
+      font-weight: 700;
+      color: #2d3436;
+    }
 
-    .meta-label {
+    .card-main-right {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 6px;
+      align-content: flex-start;
       font-size: 0.8em;
+    }
+    .stat-pill {
+      background: #f7f9fb;
+      border-radius: 10px;
+      padding: 6px 8px;
+      border: 1px solid #ecf0f1;
+    }
+    .stat-label {
+      font-size: 0.7em;
       color: #95a5a6;
       margin-bottom: 2px;
     }
-
-    .meta-value {
+    .stat-value {
+      font-weight: 700;
+      color: #2d3436;
       font-size: 0.9em;
-      color: #2c3e50;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
-
-    .meta-value-strong {
-      font-weight: 700;
+    .d-day-pill {
+      background: #ffeaa7;
+      border-color: #ffeaa7;
+      color: #d35400;
     }
-
-    .meta-value-em {
-      font-weight: 700;
-      color: #d63031;
-    }
-
-    .meta-value-small {
-      font-size: 0.85em;
-      color: #636e72;
-    }
-
-    .card-bottom-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px solid #f1f2f6;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .card-contact {
-      font-size: 0.8em;
-      color: #636e72;
-    }
-
-    .card-footer-buttons {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .card-footer-buttons button,
-    .card-footer-buttons a {
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: none;
-      font-size: 0.85em;
-      cursor: pointer;
-      font-weight: 600;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .btn-link  { background: #dfe6e9;  color: #2d3436; }
-    .btn-cal   { background: #e3f2fd;  color: #0984e3; }
-    .btn-ai    { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; }
 
     .ai-analysis-box {
       display: none;
       background-color: #f3e5f5;
-      padding: 14px;
-      margin-top: 12px;
+      padding: 12px;
+      margin-top: 10px;
       border-radius: 10px;
-      font-size: 0.9em;
+      font-size: 0.85em;
       color: #4a148c;
       border: 1px solid #e1bee7;
       line-height: 1.6;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 10px;
+      border-top: 1px solid #f1f1f1;
+    }
+    .card-footer button,
+    .card-footer a {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.8em;
+      cursor: pointer;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-link { background: #dfe6e9; color: #2d3436; }
+    .btn-cal  { background: #e3f2fd; color: #0984e3; }
+    .btn-ai   { background: linear-gradient(135deg,#a29bfe,#6c5ce7); color: #fff; }
+
+    /* 빈 결과 화면 */
+    .empty-box {
+      text-align: center;
+      padding: 60px 20px 40px;
+      color: #636e72;
+    }
+    .empty-box p { margin: 6px 0; }
+    .empty-emoji {
+      font-size: 3.4em;
+      margin-bottom: 6px;
     }
 
     /* 모달 */
     #add-modal {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.45);
-      z-index: 2000;
-      justify-content: center;
-      align-items: center;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:rgba(0,0,0,0.5);
+      z-index:2000;
+      justify-content:center;
+      align-items:center;
     }
-
     .modal-content {
-      background: white;
-      padding: 22px 22px 18px;
-      border-radius: 15px;
-      width: 90%;
-      max-width: 520px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      background:#fff;
+      padding:22px;
+      border-radius:15px;
+      width:90%;
+      max-width:520px;
     }
-
     textarea {
-      width: 100%;
-      height: 160px;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      font-size: 14px;
-      font-family: system-ui, sans-serif;
+      width:100%;
+      height:180px;
+      padding:10px;
+      margin:10px 0;
+      border-radius:8px;
+      border:1px solid #ddd;
+      font-size:14px;
+      font-family: sans-serif;
       resize: none;
     }
-
     .modal-btns {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 4px;
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
     }
 
-    .calendar-area {
-      margin-top: 20px;
-      display: none;
-    }
-
+    .calendar-area { margin-top: 20px; display:none; }
     iframe {
       width: 100%;
       height: 600px;
-      border: none;
-      border-radius: 16px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+      border:none;
+      border-radius:16px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
     }
 
     @media (max-width: 768px) {
-      .card-meta-row {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      .card-main {
+        flex-direction: column;
+      }
+      .card-main-right {
+        grid-template-columns: repeat(2, minmax(0,1fr));
       }
     }
-
-    @media (max-width: 600px) {
-      .card-meta-row {
-        grid-template-columns: 1fr;
-      }
-      .card-bottom-row {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .card-footer-buttons {
-        width: 100%;
-      }
-      .card-footer-buttons button,
-      .card-footer-buttons a {
-        flex: 1;
-        justify-content: center;
+    @media (max-width: 480px) {
+      .card-main-right {
+        grid-template-columns: minmax(0,1fr);
       }
     }
   </style>
 </head>
 <body>
-  <div class="control-box-bg">
-    <div class="content-wrapper">
-      <div class="button-row">
-        <button id="btn-voice">🎤 음성</button>
-        <button id="btn-refresh">🔄 공고검색</button>
-        <button id="btn-add">📝 직접등록</button>
-        <button id="btn-login">📅 로그인</button>
-      </div>
 
-      <h1>💧 한국수안 AI 입찰관리</h1>
+<div class="control-box-bg">
+  <div class="content-wrapper">
+    <div class="button-row">
+      <button id="btn-voice">🎤 음성</button>
+      <button id="btn-refresh">🔄 공고검색</button>
+      <button id="btn-add">📝 직접등록</button>
+      <button id="btn-login">📅 로그인</button>
+    </div>
 
-      <div class="voice-text" id="voice-result"></div>
+    <h1>💧 한국수안 AI 입찰관리</h1>
 
-      <div class="input-group">
-        <input
-          type="text"
-          id="search-input"
-          placeholder="예: 다음 주 마감되는 저류조 공고 찾아줘"
-        />
-        <button id="btn-search">검색</button>
-      </div>
-      <div id="user-info"></div>
+    <div class="voice-text" id="voice-result"></div>
+
+    <div class="input-group">
+      <input type="text" id="search-input" placeholder="예: 다음 주 마감되는 저류조 공고 찾아줘">
+      <button id="btn-search">검색</button>
+    </div>
+    <div id="user-info"></div>
+  </div>
+</div>
+
+<div id="status"></div>
+<div id="bid-list" class="content-wrapper"></div>
+
+<div class="calendar-area content-wrapper" id="cal-area">
+  <h3 style="text-align:center; color:#2c3e50;">📅 입찰 일정표</h3>
+  <iframe id="cal-frame" src=""></iframe>
+</div>
+
+<!-- 직접등록 모달 -->
+<div id="add-modal">
+  <div class="modal-content">
+    <h3 style="margin-top:0; color:#2c3e50;">📝 외부 공고 스마트 등록</h3>
+    <p style="font-size:0.9em; color:#666; line-height:1.4;">
+      외부 사이트 공고문을 그대로 붙여넣으면, AI가 공고번호·마감일·금액·면적·톤수까지 추출하여 시트에 저장합니다.
+    </p>
+    <textarea id="paste-area" placeholder="[예시]&#13;&#10;공고명: 서울시 빗물저류조 설치공사&#13;&#10;공고번호: R25BK00000000&#13;&#10;지역: 서울특별시 강남구&#13;&#10;공고일: 2025년 11월 20일 10:00&#13;&#10;마감일: 2025년 12월 1일 18:00&#13;&#10;발주처: 서울특별시청&#13;&#10;수요기관: 서울시 물순환정책과&#13;&#10;용역기간: 계약일로부터 12개월&#13;&#10;용역금액: 3억 5천만원&#13;&#10;총사업비: 5억원&#13;&#10;대지면적: 12,345㎡&#13;&#10;저류조 예상용량: 약 2,500톤&#13;&#10;담당자: 홍길동(02-1234-5678)&#13;&#10;링크: https://..."></textarea>
+    <div class="modal-btns">
+      <button onclick="closeModal()" style="background:#b2bec3; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">취소</button>
+      <button id="btn-smart-save" onclick="processSmartAdd()" style="background:#6c5ce7; color:white; font-weight:bold; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">✨ AI 분석 및 저장</button>
     </div>
   </div>
+</div>
 
-  <div id="status">
-    <span class="spin-icon">⏳</span> 데이터를 불러오고 있습니다...
-  </div>
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-  <div id="bid-list" class="content-wrapper"></div>
+<script>
+  // ===== 설정값 (이미 사용 중인 값 그대로 반영) =====
+  const GEMINI_API_KEY_FRONT = 'AIzaSyDaRFQQE-I3lwCnIiKcRWIUYxQLHrrfO1M';
+  const GEMINI_MODEL_ID      = 'gemini-1.5-flash-latest';
 
-  <div class="calendar-area content-wrapper" id="cal-area">
-    <h3 style="text-align: center; color: #2c3e50; margin-bottom: 10px">
-      📅 입찰 일정표
-    </h3>
-    <iframe id="cal-frame" src=""></iframe>
-  </div>
+  const BID_CALENDAR_ID  = 'd51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04@group.calendar.google.com';
+  const SCRIPT_URL       = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
 
-  <!-- 직접등록 모달 -->
-  <div id="add-modal">
-    <div class="modal-content">
-      <h3 style="margin-top: 0; color: #2c3e50">📝 외부 공고 스마트 등록</h3>
-      <p style="font-size: 0.9em; color: #666; line-height: 1.4">
-        외부 사이트 내용 복붙 ➔ AI가 자동 정리(지역/금액/면적/톤수까지) ➔ 엑셀 저장
-      </p>
-      <textarea
-        id="paste-area"
-        placeholder="[예시]&#13;&#10;공고명: 서울시 ○○지역 빗물저류조 설치공사&#13;&#10;공고번호: 2025-12345&#13;&#10;공고일: 2025년 11월 10일&#13;&#10;마감일: 2025년 11월 21일 14:00&#13;&#10;발주처: 서울특별시청&#13;&#10;수요기관: 서울시 ○○구청&#13;&#10;사업기간: 착공일로부터 12개월&#13;&#10;공사비: 25억(추정)&#13;&#10;대지면적: 3,200㎡&#13;&#10;저류조 용량: 3,000톤&#13;&#10;담당자: 홍길동(02-123-4567)&#13;&#10;링크: https://www.g2b.go.kr/..."
-      ></textarea>
-      <div class="modal-btns">
-        <button
-          onclick="closeModal()"
-          style="
-            background: #b2bec3;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-          "
-        >
-          취소
-        </button>
-        <button
-          id="btn-smart-save"
-          onclick="processSmartAdd()"
-          style="
-            background: #6c5ce7;
-            color: white;
-            font-weight: bold;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-          "
-        >
-          ✨ AI 분석 및 저장
-        </button>
-      </div>
-    </div>
-  </div>
+  const CLIENT_ID   = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com';
+  const SCOPES      = 'https://www.googleapis.com/auth/calendar.events';
+  const STORAGE_KEY = 'hksuan_google_token_v2';
 
-  <!-- Google / Gemini / Markdown -->
-  <script src="https://apis.google.com/js/api.js"></script>
-  <script src="https://accounts.google.com/gsi/client"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  let allData    = [];
+  let tokenClient;
+  let isLogin    = false;
 
-  <script>
-    // ============================================================
-    // 🔑 프론트 전용 Gemini / Calendar / Apps Script 설정
-    //  - 백엔드(Apps Script)용 키와 분리하여 사용
-    // ============================================================
-    const GEMINI_API_KEY_FRONT = 'AIzaSyDaRFQQE-I3lwCnIiKcRWIUYxQLHrrfO1M';
-    const GEMINI_MODEL_ID      = 'gemini-1.5-flash-latest';
-
-    const BID_CALENDAR_ID = 'd51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04@group.calendar.google.com';
-
-    // Apps Script 웹앱 URL (백엔드 doGet)
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
-
-    const CLIENT_ID   = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com';
-    const SCOPES      = 'https://www.googleapis.com/auth/calendar.events';
-    const STORAGE_KEY = 'hksuan_google_token_v2';
-
-    let allData = [];
-    let currentData = [];
-    let tokenClient;
-    let isLogin = false;
-
-    // ------------------------------------------------------------
-    // 공통: 캘린더 iframe
-    // ------------------------------------------------------------
-    function setupCalendarView() {
-      const iframe = document.getElementById('cal-frame');
-      let calSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(
-        BID_CALENDAR_ID
-      )}&ctz=Asia%2FSeoul&hl=ko`;
-      if (BID_CALENDAR_ID === 'primary') {
-        calSrc =
-          'https://calendar.google.com/calendar/embed?src=primary&ctz=Asia%2FSeoul&hl=ko';
-      }
-      iframe.src = calSrc;
+  // 캘린더 iframe 기본 설정
+  function setupCalendarView() {
+    const iframe = document.getElementById('cal-frame');
+    let calSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(BID_CALENDAR_ID)}&ctz=Asia%2FSeoul&hl=ko`;
+    if (BID_CALENDAR_ID === 'primary') {
+      calSrc = 'https://calendar.google.com/calendar/embed?src=primary&ctz=Asia%2FSeoul&hl=ko';
     }
+    iframe.src = calSrc;
+  }
 
-    // ------------------------------------------------------------
-    // 공통: Gemini 호출 (프론트 전용 키 사용)
-    // ------------------------------------------------------------
-    async function callGemini(prompt) {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+  // 공통 Gemini 호출 (프론트용)
+  async function callGemini(prompt) {
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => controller.abort(), 15000);
 
-      try {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL_ID}:generateContent?key=${GEMINI_API_KEY_FRONT}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }]
-            }),
-            signal: controller.signal
-          }
-        );
-
-        const data = await response.json();
-        if (!response.ok) {
-          const msg = data.error?.message || `HTTP ${response.status}`;
-          throw new Error(msg);
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL_ID}:generateContent?key=${GEMINI_API_KEY_FRONT}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [ { parts: [ { text: prompt } ] } ]
+          }),
+          signal: controller.signal
         }
-        return data;
-      } finally {
-        clearTimeout(timeoutId);
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        const msg = data.error?.message || `HTTP ${response.status}`;
+        throw new Error(msg);
       }
+      return data;
+    } finally {
+      clearTimeout(timeoutId);
     }
+  }
 
-    function extractGeminiText(data) {
-      const parts = data?.candidates?.[0]?.content?.parts || [];
-      let text = parts.map(p => p.text || '').join('\n');
-      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) text = jsonMatch[0];
-      return text;
-    }
+  function extractGeminiText(data) {
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    let text    = parts.map(p => p.text || '').join('\n');
+    text        = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) text = jsonMatch[0];
+    return text;
+  }
 
-    // ------------------------------------------------------------
-    // 날짜 파서 (백엔드에서 온 "YYYY-MM-DD HH:mm" 문자열 기준)
-    // ------------------------------------------------------------
-    function parseDateTimeLocal(str) {
-      if (!str) return null;
-      const s = String(str).trim();
-      if (!s) return null;
+  // ===== 1. 데이터 로드 =====
+  async function loadData() {
+    const statusEl = document.getElementById('status');
+    statusEl.innerHTML = `<span class="spin-icon">⏳</span> 입찰 공고를 불러오는 중입니다...`;
 
-      const [datePart, timePart] = s.split(' ');
-      if (!datePart) return null;
+    try {
+      const res  = await fetch(SCRIPT_URL + '?t=' + Date.now());
+      if (!res.ok) throw new Error('서버 오류: ' + res.status);
 
-      const [y, m, d] = datePart.split('-').map(n => parseInt(n, 10));
-      let hh = 0, mm = 0;
-
-      if (timePart) {
-        const [h, m2] = timePart.split(':').map(n => parseInt(n, 10));
-        if (!isNaN(h)) hh = h;
-        if (!isNaN(m2)) mm = m2;
+      const text = await res.text();
+      if (!text.trim()) throw new Error('응답이 비어 있습니다.');
+      if (text.trim().startsWith('<')) {
+        throw new Error('JSON 대신 HTML이 반환되었습니다. 웹앱 배포 URL(SCRIPT_URL)을 확인하세요.');
       }
-      if (isNaN(y) || isNaN(m) || isNaN(d)) return null;
-      return new Date(y, m - 1, d, hh, mm);
-    }
 
-    // ------------------------------------------------------------
-    // 1. 데이터 로드 (백엔드 → JSON)
-    //   - 여기서도 마감된 공고는 1차적으로 필터
-    // ------------------------------------------------------------
-    async function loadData() {
-      const status = document.getElementById('status');
-      status.innerHTML =
-        '<span class="spin-icon">⏳</span> 입찰 공고를 불러오는 중입니다...';
-
+      let json;
       try {
-        const res = await fetch(SCRIPT_URL);
-        if (!res.ok)
-          throw new Error('서버 연결 실패 (Apps Script /exec 주소 확인 필요)');
-
-        const text = await res.text();
-        if (text.trim().startsWith('<')) {
-          throw new Error(
-            'Apps Script에서 HTML이 반환되었습니다. "최종 배포된 웹 앱 URL"인지 확인해주세요.'
-          );
-        }
-
-        const json = JSON.parse(text);
-
-        const now = new Date();
-        // 마감된 공고는 프론트에서도 숨김
-        allData = json.filter(item => {
-          const end = parseDateTimeLocal(item.deadline);
-          if (!end) return true; // 마감일 정보 없으면 일단 표시
-          return end >= now;
-        });
-
-        renderList(allData);
-        status.innerHTML = `✅ 총 <b>${allData.length}</b>건의 공고를 찾았습니다.`;
-      } catch (e) {
-        status.innerHTML = `<span style="color:red">❌ 오류 발생: ${e.message}</span>`;
-        console.error(e);
-      }
-    }
-
-    // ------------------------------------------------------------
-    // 2. 직접등록 모달
-    // ------------------------------------------------------------
-    document.getElementById('btn-add').onclick = () => {
-      document.getElementById('add-modal').style.display = 'flex';
-    };
-
-    function closeModal() {
-      document.getElementById('add-modal').style.display = 'none';
-      document.getElementById('paste-area').value = '';
-    }
-
-    // 스마트 등록: 텍스트 → AI 분석 → 시트 저장
-    async function processSmartAdd() {
-      const text = document.getElementById('paste-area').value;
-      if (!text) {
-        alert('내용을 붙여넣어 주세요!');
-        return;
+        json = JSON.parse(text);
+      } catch (err) {
+        throw new Error('JSON 파싱 실패: ' + err.message + '\n응답 일부: ' + text.slice(0, 120) + '...');
       }
 
-      const btn = document.getElementById('btn-smart-save');
-      btn.innerText = '🧠 분석 및 저장 중...';
-      btn.disabled = true;
-
-      const prompt =
-        '다음은 한국 공공입찰 공고 원문 텍스트이다.\n' +
-        '아래 항목을 최대한 정확하게 추출하여 JSON 객체 하나로만 응답해라.\n\n' +
-        '필드 정의:\n' +
-        'no            : 공고번호 (없으면 "정보없음")\n' +
-        'region        : 지역 (예: "서울특별시 강남구", "경기도 양주시"처럼 위치 한 줄)\n' +
-        'title         : 공고명\n' +
-        'date          : 공고일 (형식: "YYYY-MM-DD HH:mm" 또는 "YYYY-MM-DD")\n' +
-        'deadline      : 마감일 (형식: "YYYY-MM-DD HH:mm")\n' +
-        'client        : 발주처(공고 기관)\n' +
-        'agency        : 수요기관 (명시 없으면 발주처와 동일하게)\n' +
-        'servicePeriod : 용역/공사 기간(자유로운 한국어 문자열, 예: "착공일로부터 12개월")\n' +
-        'serviceAmount : 용역금액 또는 추정 공사비 (숫자만, 단위와 콤마 제거, 모르겠으면 빈 문자열)\n' +
-        'projectBudget : 전체 사업비 (숫자만, 단위와 콤마 제거, 없으면 빈 문자열)\n' +
-        'clientManager : 발주처 담당자 이름 및 연락처를 한 줄로 (예: "홍길동 02-123-4567")\n' +
-        'siteArea      : 대지면적, 단위 m² (숫자만, 예: "3200", 없으면 빈 문자열)\n' +
-        'expectedTon   : 빗물저류조 예상 톤수 (숫자만, 예: "3000", 공고에 없으면 빈 문자열)\n' +
-        'link          : 공고 상세 링크 URL (없으면 "#")\n\n' +
-        '반드시 아래 예시처럼 JSON 객체 한 줄로만 출력:\n' +
-        '{"no":"R25BK...","region":"경기도 양주시","title":"...","date":"2025-11-10 09:00","deadline":"2025-11-21 14:00","client":"경기도 양주시","agency":"경기도 양주시","servicePeriod":"착공일로부터 12개월","serviceAmount":"2500000000","projectBudget":"2500000000","clientManager":"홍길동 02-123-4567","siteArea":"3200","expectedTon":"3000","link":"https://..."}\n\n' +
-        '입력 텍스트:\n' +
-        text;
-
-      try {
-        const aiData = await callGemini(prompt);
-        const aiText = extractGeminiText(aiData);
-        const result = JSON.parse(aiText);
-
-        const params = new URLSearchParams({
-          action: 'add',
-          no: result.no || '정보없음',
-          region: result.region || '',
-          title: result.title || '',
-          date: result.date || '',
-          deadline: result.deadline || '',
-          client: result.client || '',
-          agency: result.agency || '',
-          servicePeriod: result.servicePeriod || '',
-          serviceAmount: result.serviceAmount || '',
-          projectBudget: result.projectBudget || '',
-          clientManager: result.clientManager || '',
-          siteArea: result.siteArea || '',
-          expectedTon: result.expectedTon || '',
-          link: result.link || '#',
-          status: '수동등록',
-          aiResult: '직접등록 텍스트 기반'
-        });
-
-        await fetch(`${SCRIPT_URL}?${params.toString()}`, { mode: 'no-cors' });
-
-        alert(`✅ 저장 요청 완료!\n[${result.title || '제목없음'}]`);
-        closeModal();
-        setTimeout(loadData, 2000);
-      } catch (e) {
-        console.error(e);
-        alert('저장 실패: ' + e.message);
-      } finally {
-        btn.innerText = '✨ AI 분석 및 저장';
-        btn.disabled = false;
-      }
-    }
-
-    // ------------------------------------------------------------
-    // 3. 리스트 렌더링 (UI 정리 + 마감 숨김)
-    // ------------------------------------------------------------
-    function renderList(data) {
-      const list = document.getElementById('bid-list');
-      const query = document.getElementById('search-input').value || '';
-
-      list.innerHTML = '';
       const now = new Date();
-
-      // 마감된 공고는 여기서도 한번 더 필터
-      const visible = data.filter(item => {
-        const end = parseDateTimeLocal(item.deadline);
-        if (!end) return true;
-        return end >= now;
+      // 마감일이 지난 공고는 프론트에서 한 번 더 필터링
+      allData = json.filter(item => {
+        if (!item.deadline) return true;
+        const iso = String(item.deadline).replace(' ', 'T');
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return true;
+        return d >= now;
       });
 
-      currentData = visible;
+      renderList(allData);
+      statusEl.innerHTML = `✅ 총 <b>${allData.length}</b>건의 공고를 찾았습니다.`;
+    } catch (e) {
+      console.error('loadData 오류', e);
+      allData = [];
+      renderList([]);
+      document.getElementById('status').innerHTML =
+        `<span style="color:red">❌ 오류: ${e.message}</span>`;
+    }
+  }
 
-      if (visible.length === 0) {
-        let html = `
-          <div style="text-align:center; padding:50px 20px; color:#636e72;">
-            <p style="font-size:3em; margin-bottom:10px;">🤔</p>
-            <p style="font-weight:bold; font-size:1.05em;">조건에 맞는 공고가 없습니다.</p>
-        `;
-        if (query) {
-          html += `
-            <p style="font-size:0.9em; margin-bottom:18px;">내부 DB에는 결과가 없습니다. 웹 검색을 시도해 보시겠습니까?</p>
-            <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
-              <button onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(
-                query + ' 입찰 공고'
-              )}')" 
-                      style="padding:10px 20px; background:#4285F4; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:5px;">
-                  🌐 구글 검색
-              </button>
-              <button onclick="window.open('https://search.naver.com/search.naver?query=${encodeURIComponent(
-                query + ' 입찰 공고'
-              )}')" 
-                      style="padding:10px 20px; background:#03C75A; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:5px;">
-                  ✅ 네이버 검색
-              </button>
-            </div>
-          `;
-        }
-        html += '</div>';
-        list.innerHTML = html;
-        return;
-      }
+  // ===== 2. 직접등록 모달 =====
+  document.getElementById('btn-add').onclick = () => {
+    document.getElementById('add-modal').style.display = 'flex';
+  };
 
-      visible.forEach((item, index) => {
-        const end = parseDateTimeLocal(item.deadline);
-        let dDayLabel = '-';
-        let cardClass = 'normal';
+  function closeModal() {
+    document.getElementById('add-modal').style.display = 'none';
+    document.getElementById('paste-area').value = '';
+  }
 
-        if (end) {
-          const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
-          if (diff < 0) {
-            // 이 경우는 위에서 이미 필터되었으므로 거의 없음
-            return;
-          } else if (diff === 0) {
-            dDayLabel = '오늘 마감';
-            cardClass = 'urgent';
-          } else if (diff <= 3) {
-            dDayLabel = `D-${diff}`;
-            cardClass = 'urgent';
-          } else {
-            dDayLabel = `D-${diff}`;
-          }
-        }
-
-        const statusBadge =
-          item.status === '수동등록'
-            ? '<span class="badge badge-manual">수동등록</span>'
-            : '<span class="badge badge-open">공고중</span>';
-
-        const regionBadge = item.region
-          ? `<span class="badge badge-region">#${item.region}</span>`
-          : '';
-
-        const serviceAmount = item.serviceAmount
-          ? `${Number(item.serviceAmount).toLocaleString()}원`
-          : '-';
-
-        const projectBudget = item.projectBudget
-          ? `${Number(item.projectBudget).toLocaleString()}원`
-          : '-';
-
-        const siteTon = `${item.siteArea || '-'}㎡ / ${
-          item.expectedTon || '-'
-        }톤`;
-
-        const div = document.createElement('div');
-        div.className = `card ${cardClass}`;
-        div.innerHTML = `
-          <div class="card-top-row">
-            <div class="card-badges">
-              ${regionBadge}
-              ${statusBadge}
-            </div>
-            <div class="card-d-day">${dDayLabel}</div>
-          </div>
-
-          <div class="card-sub-title">공고번호 <span style="font-weight:700; color:#2d3436;">${
-            item.no || '-'
-          }</span></div>
-
-          <a href="${item.link || '#'}" target="_blank" class="card-title">
-            ${item.title || '-'}
-          </a>
-
-          <div class="card-meta-row">
-            <div class="meta-block">
-              <div class="meta-label">발주처</div>
-              <div class="meta-value meta-value-strong">${
-                item.client || '-'
-              }</div>
-            </div>
-            <div class="meta-block">
-              <div class="meta-label">수요기관</div>
-              <div class="meta-value">${item.agency || '-'}</div>
-            </div>
-            <div class="meta-block">
-              <div class="meta-label">용역기간</div>
-              <div class="meta-value meta-value-small">${
-                item.servicePeriod || '-'
-              }</div>
-            </div>
-          </div>
-
-          <div class="card-meta-row">
-            <div class="meta-block">
-              <div class="meta-label">공고일</div>
-              <div class="meta-value meta-value-small">${item.date || '-'}</div>
-            </div>
-            <div class="meta-block">
-              <div class="meta-label">마감일</div>
-              <div class="meta-value meta-value-em">${item.deadline || '-'}</div>
-            </div>
-            <div class="meta-block">
-              <div class="meta-label">대지/톤수</div>
-              <div class="meta-value meta-value-small">${siteTon}</div>
-            </div>
-          </div>
-
-          <div class="card-meta-row">
-            <div class="meta-block">
-              <div class="meta-label">용역금액</div>
-              <div class="meta-value meta-value-strong">${serviceAmount}</div>
-            </div>
-            <div class="meta-block">
-              <div class="meta-label">사업비</div>
-              <div class="meta-value meta-value-small">${projectBudget}</div>
-            </div>
-            <div class="meta-block">
-              <div class="meta-label">상태</div>
-              <div class="meta-value meta-value-small">${item.status || '-'}</div>
-            </div>
-          </div>
-
-          <div class="card-bottom-row">
-            <div class="card-contact">
-              📞 담당자: ${item.clientManager || '-'}
-            </div>
-            <div class="card-footer-buttons">
-              <button class="btn-ai" data-index="${index}">🤖 상세 AI 분석</button>
-              <a href="${item.link || '#'}" target="_blank" class="btn-link">📄 공고문</a>
-              <button class="btn-cal" data-index="${index}">📅 캘린더</button>
-            </div>
-          </div>
-
-          <div id="ai-result-${index}" class="ai-analysis-box"></div>
-        `;
-        list.appendChild(div);
-      });
-
-      // 버튼 핸들러 (currentData 기준)
-      document.querySelectorAll('.btn-ai').forEach(btn => {
-        btn.onclick = () => {
-          const i = parseInt(btn.dataset.index, 10);
-          const item = currentData[i];
-          if (!item) return;
-          analyzeBidWithAI(item, i);
-        };
-      });
-
-      document.querySelectorAll('.btn-cal').forEach(btn => {
-        btn.onclick = () => {
-          const i = parseInt(btn.dataset.index, 10);
-          const item = currentData[i];
-          if (!item) return;
-          addToCal(item.title, item.deadline);
-        };
-      });
+  async function processSmartAdd() {
+    const text = document.getElementById('paste-area').value;
+    if (!text) {
+      alert('내용을 붙여넣어 주세요!');
+      return;
     }
 
-    // ------------------------------------------------------------
-    // 4. 단순 검색 (제목/기관 텍스트 매칭)
-    // ------------------------------------------------------------
-    function simpleSearch(keyword) {
-      const q = keyword.toLowerCase();
-      const filtered = allData.filter(item =>
-        (item.title || '').toLowerCase().includes(q) ||
-        (item.client || '').toLowerCase().includes(q) ||
-        (item.agency || '').toLowerCase().includes(q) ||
-        (item.region || '').toLowerCase().includes(q)
-      );
+    const btn = document.getElementById('btn-smart-save');
+    btn.innerText = '🧠 분석 및 저장 중...';
+    btn.disabled  = true;
+
+    const prompt =
+      '다음은 한국의 공공입찰 공고문 텍스트입니다.\n' +
+      '아래 항목을 최대한 정확히 추출해서 JSON 한 줄로만 응답하세요.\n\n' +
+      '필드 설명:\n' +
+      'no            : 공고번호 (문자열, 없으면 "정보없음")\n' +
+      'region        : 지역 (예: "서울특별시 강남구" 등, 없으면 빈 문자열)\n' +
+      'title         : 공고명\n' +
+      'date          : 공고일 (YYYY-MM-DD HH:mm 형태, 시간 없으면 "YYYY-MM-DD 00:00")\n' +
+      'deadline      : 마감일 (YYYY-MM-DD HH:mm 형태, 없으면 빈 문자열)\n' +
+      'client        : 발주처(공고기관)\n' +
+      'agency        : 수요기관 (구분이 안 되면 발주처와 동일하게)\n' +
+      'servicePeriod : 용역기간 (예: "계약일로부터 12개월")\n' +
+      'serviceAmount : 용역금액 (예: "350,000,000원" 또는 "3억 5천만원" 등 원문 그대로 요약)\n' +
+      'projectBudget : 총사업비/사업비 (있으면 기입, 없으면 빈 문자열)\n' +
+      'clientManager : 발주처 담당자 이름과 연락처 (예: "홍길동(02-1234-5678)")\n' +
+      'siteArea      : 대지면적 또는 연면적 (㎡ 단위 숫자 또는 예: "12,345㎡")\n' +
+      'expectedTon   : 빗물저류조 예상 용량 또는 예상톤수 (예: "2,500톤" 또는 "약 2,500톤")\n' +
+      'link          : 공고문 URL (없으면 "#")\n\n' +
+      '출력 형식 예시(한 줄):\n' +
+      '{"no":"R25BK00000000","region":"서울특별시 강남구","title":"서울시 빗물저류조 설치공사","date":"2025-11-20 10:00","deadline":"2025-12-01 18:00","client":"서울특별시청","agency":"서울시 물순환정책과","servicePeriod":"계약일로부터 12개월","serviceAmount":"350,000,000원","projectBudget":"500,000,000원","clientManager":"홍길동(02-1234-5678)","siteArea":"12345㎡","expectedTon":"2500톤","link":"https://..."}\n\n' +
+      '위 형식을 반드시 지키고, 설명 문장 없이 JSON 객체 1개만 출력하세요.\n\n' +
+      '입력 텍스트:\n' + text;
+
+    try {
+      const aiData = await callGemini(prompt);
+      const aiText = extractGeminiText(aiData);
+      const result = JSON.parse(aiText);
+
+      const saveUrl =
+        `${SCRIPT_URL}?action=add` +
+        `&no=${encodeURIComponent(result.no || '정보없음')}` +
+        `&region=${encodeURIComponent(result.region || '')}` +
+        `&title=${encodeURIComponent(result.title || '')}` +
+        `&date=${encodeURIComponent(result.date || '')}` +
+        `&deadline=${encodeURIComponent(result.deadline || '')}` +
+        `&client=${encodeURIComponent(result.client || '')}` +
+        `&agency=${encodeURIComponent(result.agency || '')}` +
+        `&servicePeriod=${encodeURIComponent(result.servicePeriod || '')}` +
+        `&serviceAmount=${encodeURIComponent(result.serviceAmount || '')}` +
+        `&projectBudget=${encodeURIComponent(result.projectBudget || '')}` +
+        `&clientManager=${encodeURIComponent(result.clientManager || '')}` +
+        `&siteArea=${encodeURIComponent(result.siteArea || '')}` +
+        `&expectedTon=${encodeURIComponent(result.expectedTon || '')}` +
+        `&link=${encodeURIComponent(result.link || '#')}`;
+
+      await fetch(saveUrl, { mode: 'no-cors' });
+
+      alert(`✅ 저장 요청 완료!\n[${result.title}]`);
+      closeModal();
+      setTimeout(loadData, 2000);
+    } catch (e) {
+      console.error(e);
+      alert('저장 실패: ' + e.message);
+    } finally {
+      btn.innerText = '✨ AI 분석 및 저장';
+      btn.disabled  = false;
+    }
+  }
+
+  // ===== 3. 리스트 렌더링 =====
+  function renderList(data) {
+    const list  = document.getElementById('bid-list');
+    const query = document.getElementById('search-input').value;
+    list.innerHTML = '';
+
+    if (data.length === 0) {
+      const html = `
+        <div class="empty-box">
+          <div class="empty-emoji">🤔</div>
+          <p><strong>조건에 맞는 공고가 없습니다.</strong></p>
+        </div>`;
+      list.innerHTML = html;
+      return;
+    }
+
+    const now = new Date();
+
+    data.forEach((item, index) => {
+      const deadlineStr = item.deadline || '';
+      const deadlineIso = deadlineStr.replace(' ', 'T');
+      const end   = new Date(deadlineIso);
+      let dDayLabel = '마감일 미정';
+      let cardClass = 'normal';
+
+      if (!isNaN(end.getTime())) {
+        const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+        if (diff < 0) {
+          dDayLabel = '마감됨';
+        } else if (diff === 0) {
+          dDayLabel = '오늘 마감';
+          cardClass = 'urgent';
+        } else {
+          dDayLabel = `D-${diff}`;
+          if (diff <= 3) cardClass = 'urgent';
+        }
+      }
+
+      const div = document.createElement('div');
+      div.className = `card ${cardClass}`;
+      div.innerHTML = `
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="region-tag">#${item.region || '지역미상'}</span>
+            <span class="bid-no">${item.no || '-'}</span>
+          </div>
+          <span class="status-chip">${dDayLabel}</span>
+        </div>
+        <a href="${item.link || '#'}" target="_blank" class="card-title">${item.title || '(제목 없음)'}</a>
+
+        <div class="card-main">
+          <div class="card-main-left">
+            <div class="info-row">
+              <span class="info-label">수요기관</span>
+              <span class="info-value info-value-strong">${item.agency || '-'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">발주처</span>
+              <span class="info-value">${item.client || '-'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">담당자</span>
+              <span class="info-value">${item.clientManager || '-'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">용역기간</span>
+              <span class="info-value">${item.servicePeriod || '-'}</span>
+            </div>
+          </div>
+
+          <div class="card-main-right">
+            <div class="stat-pill d-day-pill">
+              <div class="stat-label">마감일</div>
+              <div class="stat-value">${deadlineStr || '-'}</div>
+            </div>
+            <div class="stat-pill">
+              <div class="stat-label">공고일</div>
+              <div class="stat-value">${item.date || '-'}</div>
+            </div>
+            <div class="stat-pill">
+              <div class="stat-label">용역금액</div>
+              <div class="stat-value">${item.serviceAmount || '-'}</div>
+            </div>
+            <div class="stat-pill">
+              <div class="stat-label">사업비</div>
+              <div class="stat-value">${item.projectBudget || '-'}</div>
+            </div>
+            <div class="stat-pill">
+              <div class="stat-label">대지면적</div>
+              <div class="stat-value">${item.siteArea || '-'}${item.siteArea ? '㎡' : ''}</div>
+            </div>
+            <div class="stat-pill">
+              <div class="stat-label">예상톤수</div>
+              <div class="stat-value">${item.expectedTon || '-'}${item.expectedTon ? '톤' : ''}</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="ai-result-${index}" class="ai-analysis-box"></div>
+
+        <div class="card-footer">
+          <button class="btn-ai" data-index="${index}">🤖 상세 AI 분석</button>
+          <a href="${item.link || '#'}" target="_blank" class="btn-link">📄 공고문</a>
+          <button class="btn-cal" data-index="${index}">📅 캘린더</button>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+
+    document.querySelectorAll('.btn-ai').forEach(btn => {
+      btn.onclick = () => {
+        const i = parseInt(btn.dataset.index, 10);
+        const item = allData[i];
+        analyzeBidWithAI(item, i);
+      };
+    });
+    document.querySelectorAll('.btn-cal').forEach(btn => {
+      btn.onclick = () => {
+        const i = parseInt(btn.dataset.index, 10);
+        const item = allData[i];
+        addToCal(item.title, item.deadline);
+      };
+    });
+  }
+
+  // ===== 4. 검색 =====
+  function simpleSearch(keyword) {
+    const q = keyword.toLowerCase();
+    const filtered = allData.filter(item =>
+      (item.title  || '').toLowerCase().includes(q) ||
+      (item.agency || '').toLowerCase().includes(q) ||
+      (item.region || '').toLowerCase().includes(q)
+    );
+    renderList(filtered);
+    const status = document.getElementById('status');
+    status.innerHTML = filtered.length > 0
+      ? `🔍 "<b>${keyword}</b>" 검색 결과: ${filtered.length}건`
+      : `🔍 "<b>${keyword}</b>" 내부 DB 검색 결과 없음`;
+  }
+
+  async function searchWithAI(query) {
+    if (!query) {
+      renderList(allData);
+      return;
+    }
+    const status = document.getElementById('status');
+
+    const basicFilter = allData.filter(item =>
+      (item.title  || '').includes(query) ||
+      (item.agency || '').includes(query) ||
+      (item.region || '').includes(query)
+    );
+    if (basicFilter.length > 0 && !query.match(/(내일|모레|주|달|월|마감|언제)/)) {
+      renderList(basicFilter);
+      status.innerHTML = `🔍 "<b>${query}</b>" 검색 결과: ${basicFilter.length}건`;
+      return;
+    }
+
+    status.innerHTML = `<span class="spin-icon">🧠</span> AI가 검색 조건을 분석하고 있습니다...`;
+
+    const today = new Date().toISOString().split('T')[0];
+    const prompt =
+      `Today is ${today}. Analyze this Korean query: "${query}"\n` +
+      'Extract keyword (for title/agency/region) and date range for bid deadline.\n' +
+      'Response format: {"keyword":"...","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"} ONLY.';
+
+    try {
+      const data   = await callGemini(prompt);
+      const text   = extractGeminiText(data);
+      const result = JSON.parse(text);
+
+      const filtered = allData.filter(item => {
+        let dateMatch    = true;
+        let keywordMatch = true;
+
+        if (result.startDate && result.endDate && item.deadline) {
+          const itemDate = String(item.deadline).split(' ')[0];
+          dateMatch = itemDate >= result.startDate && itemDate <= result.endDate;
+        }
+        if (result.keyword) {
+          const k = result.keyword.toLowerCase();
+          keywordMatch =
+            (item.title  || '').toLowerCase().includes(k) ||
+            (item.agency || '').toLowerCase().includes(k) ||
+            (item.region || '').toLowerCase().includes(k);
+        }
+        return dateMatch && keywordMatch;
+      });
+
       renderList(filtered);
+      status.innerHTML = filtered.length > 0
+        ? `🤖 AI 검색 결과: <b>${filtered.length}</b>건`
+        : '🤖 AI 분석 완료: <b>조건에 맞는 공고가 없습니다.</b>';
+    } catch (e) {
+      console.error('AI 검색 오류:', e);
+      simpleSearch(query);
+    }
+  }
 
-      const status = document.getElementById('status');
-      status.innerHTML =
-        filtered.length > 0
-          ? `🔍 "<b>${keyword}</b>" 검색 결과: ${filtered.length}건`
-          : `🔍 "<b>${keyword}</b>" 내부 DB 검색 결과 없음`;
+  function doSearch(keyword) {
+    if (!keyword) {
+      renderList(allData);
+      document.getElementById('status').innerHTML = `전체 <b>${allData.length}</b>건`;
+      return;
+    }
+    if (keyword.match(/(내일|모레|주|달|월|마감|언제)/)) {
+      searchWithAI(keyword);
+    } else {
+      simpleSearch(keyword);
+    }
+  }
+
+  // ===== 5. 개별 공고 상세 AI 분석 =====
+  async function analyzeBidWithAI(item, index) {
+    const box = document.getElementById(`ai-result-${index}`);
+    if (box.style.display === 'block') {
+      box.style.display = 'none';
+      return;
     }
 
-    // ------------------------------------------------------------
-    // 5. AI 검색 (기간·키워드 해석)
-    // ------------------------------------------------------------
-    async function searchWithAI(query) {
-      if (!query) {
-        renderList(allData);
-        return;
-      }
-      const status = document.getElementById('status');
+    box.style.display = 'block';
+    box.innerHTML     = `<span class="spin-icon">🧠</span> 분석 중...`;
 
-      const basicFilter = allData.filter(item =>
-        (item.title || '').includes(query) ||
-        (item.client || '').includes(query) ||
-        (item.agency || '').includes(query) ||
-        (item.region || '').includes(query)
-      );
-      if (basicFilter.length > 0 && !query.match(/(내일|모레|주|달|월|마감|언제|이번)/)) {
-        renderList(basicFilter);
-        status.innerHTML = `🔍 "<b>${query}</b>" 검색 결과: ${basicFilter.length}건`;
-        return;
-      }
+    const prompt =
+      "나는 '빗물저류조' 및 우수저류시설 전문 시공사(한국수안) 직원이다.\n" +
+      '다음 입찰 공고가 우리 회사에 얼마나 적합한지 간단히 분석해줘.\n\n' +
+      `공고번호: ${item.no}\n` +
+      `지역: ${item.region}\n` +
+      `공고명: ${item.title}\n` +
+      `공고일: ${item.date}\n` +
+      `마감일: ${item.deadline}\n` +
+      `발주처: ${item.client}\n` +
+      `수요기관: ${item.agency}\n` +
+      `용역기간: ${item.servicePeriod}\n` +
+      `용역금액: ${item.serviceAmount}\n` +
+      `사업비: ${item.projectBudget}\n` +
+      `대지면적: ${item.siteArea}\n` +
+      `예상톤수: ${item.expectedTon}\n\n` +
+      '1) 공사의 주요 내용과 스케일 요약\n' +
+      '2) 빗물저류조·우수저류시설·침수방지 사업과의 관련성 및 우리 회사 적합도 (높음/중간/낮음 + 이유)\n' +
+      '3) 입찰 참여 시 기술·가격·경쟁구도 관점 체크포인트 3~5개\n' +
+      '4) 추가로 발주처/설계자에게 확인해야 할 질문 3개 정도 제안\n' +
+      '순수 마크다운 텍스트로만 답변해줘.';
 
-      status.innerHTML =
-        '<span class="spin-icon">🧠</span> AI가 검색 조건을 분석하고 있습니다...';
-
-      const today = new Date().toISOString().split('T')[0];
-      const prompt =
-        `Today is ${today}. Analyze user input (Korean): "${query}"\n` +
-        'Decide search keyword and date range.\n' +
-        'Respond ONLY with JSON object:\n' +
-        '{"keyword":"string or empty","startDate":"YYYY-MM-DD or empty","endDate":"YYYY-MM-DD or empty"}';
-
-      try {
-        const data = await callGemini(prompt);
-        const text = extractGeminiText(data);
-        const result = JSON.parse(text);
-
-        const filtered = allData.filter(item => {
-          let dateMatch = true;
-          let keywordMatch = true;
-
-          if (result.startDate && result.endDate && item.deadline) {
-            const itemDate = String(item.deadline).split(' ')[0];
-            dateMatch =
-              itemDate >= result.startDate && itemDate <= result.endDate;
-          }
-          if (result.keyword) {
-            const k = result.keyword.toLowerCase();
-            keywordMatch =
-              (item.title || '').toLowerCase().includes(k) ||
-              (item.client || '').toLowerCase().includes(k) ||
-              (item.agency || '').toLowerCase().includes(k) ||
-              (item.region || '').toLowerCase().includes(k);
-          }
-          return dateMatch && keywordMatch;
-        });
-
-        renderList(filtered);
-        status.innerHTML =
-          filtered.length > 0
-            ? `🤖 AI 검색 결과: <b>${filtered.length}</b>건`
-            : '🤖 AI 분석 완료: <b>조건에 맞는 공고가 없습니다.</b>';
-      } catch (e) {
-        console.error('AI 검색 오류:', e);
-        simpleSearch(query);
-      }
+    try {
+      const data = await callGemini(prompt);
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '분석 결과가 없습니다.';
+      box.innerHTML = marked.parse(text);
+    } catch (e) {
+      console.error(e);
+      box.innerHTML = '❌ 분석 실패: ' + (e.message || '알 수 없는 오류');
     }
+  }
 
-    // ------------------------------------------------------------
-    // 6. 개별 공고 상세 AI 분석
-    // ------------------------------------------------------------
-    async function analyzeBidWithAI(item, index) {
-      const box = document.getElementById(`ai-result-${index}`);
-      if (box.style.display === 'block') {
-        box.style.display = 'none';
-        return;
-      }
-
-      box.style.display = 'block';
-      box.innerHTML = '<span class="spin-icon">🧠</span> 분석 중...';
-
-      const prompt =
-        "나는 '빗물저류조·우수저류시설' 전문 업체(한국수안)의 영업 담당자이다.\n" +
-        '아래 입찰 공고가 우리 회사에 얼마나 적합한지 간단히 분석해줘.\n\n' +
-        `공고번호: ${item.no}\n` +
-        `공고명: ${item.title}\n` +
-        `지역: ${item.region}\n` +
-        `발주처: ${item.client}\n` +
-        `수요기관: ${item.agency}\n` +
-        `용역기간: ${item.servicePeriod}\n` +
-        `용역금액: ${item.serviceAmount}\n` +
-        `사업비: ${item.projectBudget}\n` +
-        `대지면적: ${item.siteArea}\n` +
-        `예상톤수: ${item.expectedTon}\n` +
-        `마감일: ${item.deadline}\n\n` +
-        '다음 형식으로 마크다운으로만 정리:\n' +
-        '1) 공사/용역 주요 내용 요약 (2~3줄)\n' +
-        '2) 한국수안 입장에서 적합도 (높음/중간/낮음 + 이유)\n' +
-        '3) 입찰 참여 시 체크포인트 3~5개 (bullet)\n';
-
-      try {
-        const data = await callGemini(prompt);
-        const text =
-          data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-          '분석 결과가 없습니다.';
-        box.innerHTML = marked.parse(text);
-      } catch (e) {
-        console.error(e);
-        box.innerHTML = '❌ 분석 실패: ' + (e.message || '알 수 없는 오류');
-      }
-    }
-
-    // ------------------------------------------------------------
-    // 7. 검색 분기
-    // ------------------------------------------------------------
-    function doSearch(keyword) {
-      if (!keyword) {
-        renderList(allData);
-        document.getElementById('status').innerHTML = `전체 <b>${allData.length}</b>건`;
-        return;
-      }
-      if (keyword.match(/(내일|모레|주|달|월|마감|언제|이번)/)) {
-        searchWithAI(keyword);
-      } else {
-        simpleSearch(keyword);
-      }
-    }
-
-    // ------------------------------------------------------------
-    // 8. 구글 캘린더 연동
-    // ------------------------------------------------------------
-    function initGoogle() {
-      gapi.load('client', async () => {
-        await gapi.client.init({
-          discoveryDocs: [
-            'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'
-          ]
-        });
-        tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: CLIENT_ID,
-          scope: SCOPES,
-          callback: resp => {
-            if (resp.error) return;
-            gapi.client.setToken(resp);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(resp));
-            updateLoginState(true);
-          }
-        });
-
-        const savedToken = localStorage.getItem(STORAGE_KEY);
-        if (savedToken) {
-          try {
-            gapi.client.setToken(JSON.parse(savedToken));
-            updateLoginState(true);
-          } catch (e) {
-            handleLogout();
-          }
-        }
-
-        document.getElementById('btn-login').onclick = () => {
-          if (isLogin) {
-            if (confirm('로그아웃 하시겠습니까?')) handleLogout();
-          } else {
-            tokenClient.requestAccessToken({ prompt: '' });
-          }
-        };
+  // ===== 6. 구글 캘린더 연동 =====
+  function initGoogle() {
+    gapi.load('client', async () => {
+      await gapi.client.init({
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest']
       });
-    }
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: (resp) => {
+          if (resp.error) return;
+          gapi.client.setToken(resp);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(resp));
+          updateLoginState(true);
+        }
+      });
 
-    function updateLoginState(loggedIn) {
-      const btn = document.getElementById('btn-login');
-      const userInfo = document.getElementById('user-info');
-      const calArea = document.getElementById('cal-area');
-      isLogin = loggedIn;
-
-      if (loggedIn) {
-        btn.innerText = '🚪 로그아웃';
-        btn.style.background =
-          'linear-gradient(135deg, #636e72, #2d3436)';
-        userInfo.innerText = '✅ 구글 계정 연동됨';
-        calArea.style.display = 'block';
-        document.getElementById('cal-frame').src += '';
-      } else {
-        btn.innerText = '📅 로그인';
-        btn.style.background =
-          'linear-gradient(135deg, #0984e3, #74b9ff)';
-        userInfo.innerText = '';
-        calArea.style.display = 'none';
-      }
-    }
-
-    function handleLogout() {
-      const token = gapi.client.getToken();
-      if (token !== null) {
-        google.accounts.oauth2.revoke(token.access_token);
-      }
-      gapi.client.setToken(null);
-      localStorage.removeItem(STORAGE_KEY);
-      updateLoginState(false);
-    }
-
-    async function addToCal(title, deadline) {
-      if (!gapi.client.getToken()) {
-        alert('로그인이 필요합니다.');
-        handleLogout();
-        return;
-      }
-      if (!deadline) {
-        alert('마감일 정보가 없어 캘린더 등록이 어렵습니다.');
-        return;
-      }
-      if (!confirm(`[${title}] 일정을 캘린더에 등록하시겠습니까?`)) return;
-
-      const end = parseDateTimeLocal(deadline);
-      if (!end) {
-        alert('마감일 형식이 올바르지 않습니다.');
-        return;
+      const savedToken = localStorage.getItem(STORAGE_KEY);
+      if (savedToken) {
+        try {
+          gapi.client.setToken(JSON.parse(savedToken));
+          updateLoginState(true);
+        } catch (e) {
+          handleLogout();
+        }
       }
 
-      const start = new Date(end.getTime());
-      start.setHours(end.getHours() - 1);
-
-      const event = {
-        summary: `[입찰] ${title}`,
-        description: '한국수안 입찰비서 자동등록',
-        start: { dateTime: start.toISOString() },
-        end: { dateTime: end.toISOString() },
-        colorId: '11',
-        reminders: {
-          useDefault: false,
-          overrides: [
-            { method: 'popup', minutes: 60 },
-            { method: 'popup', minutes: 24 * 60 }
-          ]
+      document.getElementById('btn-login').onclick = () => {
+        if (isLogin) {
+          if (confirm('로그아웃 하시겠습니까?')) handleLogout();
+        } else {
+          tokenClient.requestAccessToken({ prompt: '' });
         }
       };
+    });
+  }
 
-      try {
-        await gapi.client.calendar.events.insert({
-          calendarId: BID_CALENDAR_ID,
-          resource: event
-        });
-        alert('✅ 일정 등록 완료!');
-        document.getElementById('cal-frame').src += '';
-      } catch (e) {
-        alert('등록 실패: ' + (e.result?.error?.message || e.message));
-        if (e.result?.error?.code === 401) handleLogout();
-      }
+  function updateLoginState(loggedIn) {
+    const btn      = document.getElementById('btn-login');
+    const userInfo = document.getElementById('user-info');
+    const calArea  = document.getElementById('cal-area');
+    isLogin        = loggedIn;
+
+    if (loggedIn) {
+      btn.innerText         = '🚪 로그아웃';
+      btn.style.background  = 'linear-gradient(135deg,#636e72,#2d3436)';
+      userInfo.innerText    = '✅ 구글 계정 연동됨';
+      calArea.style.display = 'block';
+      document.getElementById('cal-frame').src += '';
+    } else {
+      btn.innerText         = '📅 로그인';
+      btn.style.background  = 'linear-gradient(135deg,#0984e3,#74b9ff)';
+      userInfo.innerText    = '';
+      calArea.style.display = 'none';
     }
+  }
 
-    // ------------------------------------------------------------
-    // 9. UI 이벤트 바인딩
-    // ------------------------------------------------------------
-    document.getElementById('btn-voice').onclick = () => {
-      if (!('webkitSpeechRecognition' in window)) {
-        alert('크롬 브라우저를 사용해주세요.');
-        return;
+  function handleLogout() {
+    const token = gapi.client.getToken();
+    if (token !== null) {
+      google.accounts.oauth2.revoke(token.access_token);
+    }
+    gapi.client.setToken(null);
+    localStorage.removeItem(STORAGE_KEY);
+    updateLoginState(false);
+  }
+
+  async function addToCal(title, deadline) {
+    if (!gapi.client.getToken()) {
+      alert('로그인이 필요합니다.');
+      handleLogout();
+      return;
+    }
+    if (!confirm(`[${title}] 일정을 캘린더에 등록하시겠습니까?`)) return;
+
+    const endIso = String(deadline || '').replace(' ', 'T') || new Date().toISOString();
+    const end   = new Date(endIso);
+    const start = new Date(end);
+    start.setHours(end.getHours() - 1);
+
+    const event = {
+      summary    : `[입찰] ${title}`,
+      description: '한국수안 입찰비서 자동등록',
+      start      : { dateTime: start.toISOString() },
+      end        : { dateTime: end.toISOString() },
+      colorId    : '11',
+      reminders  : {
+        useDefault: false,
+        overrides: [
+          { method: 'popup', minutes: 60 },
+          { method: 'popup', minutes: 24 * 60 }
+        ]
       }
-      const rec = new webkitSpeechRecognition();
-      rec.lang = 'ko-KR';
-      rec.start();
-      document.getElementById('voice-result').innerText =
-        '듣고 있습니다... 👂';
-      rec.onresult = e => {
-        const txt = e.results[0][0].transcript;
-        document.getElementById('voice-result').innerText = `🗣️ "${txt}"`;
-        document.getElementById('search-input').value = txt;
-        doSearch(txt);
-      };
     };
 
-    document.getElementById('btn-search').onclick = () =>
-      doSearch(document.getElementById('search-input').value);
-    document.getElementById('btn-refresh').onclick = loadData;
+    try {
+      await gapi.client.calendar.events.insert({
+        calendarId: BID_CALENDAR_ID,
+        resource  : event
+      });
+      alert('✅ 일정 등록 완료!');
+      document.getElementById('cal-frame').src += '';
+    } catch (e) {
+      alert('등록 실패: ' + (e.result?.error?.message || e.message));
+      if (e.result?.error?.code === 401) handleLogout();
+    }
+  }
 
-    // ------------------------------------------------------------
-    // 10. 초기 실행
-    // ------------------------------------------------------------
-    setupCalendarView();
-    loadData();
-    initGoogle();
-  </script>
+  // ===== 7. UI 이벤트 =====
+  document.getElementById('btn-voice').onclick = () => {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert('크롬 브라우저를 사용해주세요.');
+      return;
+    }
+    const rec = new webkitSpeechRecognition();
+    rec.lang  = 'ko-KR';
+    rec.start();
+    document.getElementById('voice-result').innerText = '듣고 있습니다... 👂';
+    rec.onresult = (e) => {
+      const txt = e.results[0][0].transcript;
+      document.getElementById('voice-result').innerText = `🗣️ "${txt}"`;
+      document.getElementById('search-input').value     = txt;
+      doSearch(txt);
+    };
+  };
+
+  document.getElementById('btn-search').onclick  = () => doSearch(document.getElementById('search-input').value);
+  document.getElementById('btn-refresh').onclick = loadData;
+
+  // ===== 8. 초기 실행 =====
+  setupCalendarView();
+  loadData();
+  initGoogle();
+</script>
 </body>
 </html>
