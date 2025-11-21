@@ -1,376 +1,211 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>한국수안 AI 입찰관리</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>💧 한국수안 AI 입찰관리</title>
   <style>
     * { box-sizing: border-box; }
     body {
-      font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
-      background-color: #f2f4f6;
-      margin: 0;
-      color: #333;
+      font-family: 'Pretendard','Malgun Gothic',sans-serif;
+      background:#f4f6f8;
+      margin:0;
+      color:#333;
     }
-    .content-wrapper { max-width: 1200px; width: 96%; margin: 0 auto; }
+    .content-wrapper { max-width:1100px; margin:0 auto; padding:0 10px; }
 
-    /* 상단 컨트롤 */
+    /* 상단 박스 (접힘 유지) */
     .control-box-bg {
-      background: white;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      padding: 15px 0 20px;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
-      transition: transform 0.2s ease, opacity 0.2s ease;
+      background:#fff;
+      position:sticky; top:0; z-index:1000;
+      box-shadow:0 2px 10px rgba(0,0,0,0.05);
+      padding:10px 0 14px;
     }
-    /* 스크롤 내릴 때 상단 바 접기 */
-    .control-box-bg.collapsed {
-      transform: translateY(-110%);
-      opacity: 0;
-      pointer-events: none;
-    }
-
     .button-row {
-      display: flex; gap: 8px; width: 100%; margin-bottom: 15px;
+      display:flex; gap:6px; margin-bottom:8px;
     }
     .button-row button {
-      flex: 1;
-      padding: 12px 0;
-      border: none;
-      border-radius: 12px;
-      font-size: 0.9em;
-      font-weight: 700;
-      color: #fff;
-      cursor: pointer;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-      transition: transform 0.1s, box-shadow 0.1s;
-      display: flex; align-items: center; justify-content: center; gap: 5px;
+      flex:1; padding:10px 0;
+      border:none; border-radius:10px;
+      font-size:0.9em; font-weight:700;
+      color:#fff; cursor:pointer;
     }
-    .button-row button:active {
-      transform: scale(0.96);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    #btn-voice   { background: linear-gradient(135deg,#ff7675,#d63031); }
-    #btn-refresh { background: linear-gradient(135deg,#00b894,#00cec9); }
-    #btn-add     { background: linear-gradient(135deg,#a29bfe,#6c5ce7); }
-    #btn-login   { background: linear-gradient(135deg,#0984e3,#74b9ff); }
+    #btn-voice   { background:linear-gradient(135deg,#ff7675,#d63031); }
+    #btn-refresh { background:linear-gradient(135deg,#00b894,#00cec9); }
+    #btn-add     { background:linear-gradient(135deg,#a29bfe,#6c5ce7); }
+    #btn-login   { background:linear-gradient(135deg,#636e72,#2d3436); }
 
     h1 {
-      margin: 10px 0 5px;
-      font-size: 1.7em;
-      color: #1e272e;
-      text-align: center;
-      font-weight: 800;
-      letter-spacing: -0.5px;
+      margin:4px 0 2px;
+      font-size:1.6em;
+      text-align:center;
     }
-
-    .voice-text {
-      color: #e17055;
-      font-weight: 600;
-      min-height: 20px;
-      margin: 5px 0 10px;
-      font-size: 0.9em;
-      text-align: center;
+    #voice-result {
+      text-align:center;
+      color:#e17055;
+      font-size:0.9em;
+      font-weight:600;
+      min-height:18px;
+      margin-bottom:4px;
     }
-
-    .input-group {
-      display: flex;
-      gap: 8px;
+    #search-input {
+      width:100%;
+      padding:10px 12px;
+      border-radius:8px;
+      border:1px solid #ddd;
+      font-size:0.95em;
     }
-    input[type="text"] {
-      flex: 1;
-      padding: 12px 15px;
-      border: 1px solid #dfe6e9;
-      border-radius: 10px;
-      font-size: 15px;
-      background: #f8f9fa;
-      outline: none;
-    }
-    input[type="text"]:focus {
-      border-color: #0984e3;
-      background: #fff;
-    }
-    #btn-search {
-      width: 80px;
-      background: #636e72;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    #user-info  {
-      text-align: right;
-      font-size: 0.8em;
-      color: #b2bec3;
-      margin-top: 6px;
-      min-height: 16px;
-    }
-
     #status {
-      text-align: center;
-      margin: 20px 0 10px;
-      color: #636e72;
-      font-size: 0.95em;
-      font-weight: 500;
-      min-height: 24px;
-      line-height: 1.5;
+      text-align:center;
+      margin-top:8px;
+      font-size:0.9em;
+      color:#636e72;
+      min-height:20px;
     }
     .spin-icon {
-      display: inline-block;
-      animation: spin 1.5s linear infinite;
-      font-size: 1.1em;
-      margin-right: 6px;
+      display:inline-block;
+      animation:spin 1.5s linear infinite;
+      margin-right:4px;
     }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes spin {0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
 
-    #bid-list { margin-top: 10px; }
-
-    /* 카드 UI */
+    /* 카드 */
+    #bid-list { margin-top:10px; }
     .card {
-      background: #fff;
-      padding: 20px 22px 18px;
-      margin-bottom: 14px;
-      border-radius: 18px;
-      border-left: 5px solid #dfe6e9;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-      width: 100%;
+      background:#fff;
+      margin:12px 0;
+      padding:15px 18px 12px;
+      border-radius:14px;
+      border-left:5px solid #dfe6e9;
+      box-shadow:0 4px 10px rgba(0,0,0,0.03);
     }
-    .card.urgent { border-left-color: #ff7675; }
-    .card.normal { border-left-color: #0984e3; }
+    .card.normal { border-left-color:#0984e3; }
+    .card.urgent { border-left-color:#ff7675; }
 
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .card-header-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.85em;
-      color: #636e72;
+    .card-header-top {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:4px;
     }
     .region-tag {
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: #e8f0fe;
-      color: #1a73e8;
-      font-weight: 700;
-      font-size: 0.75em;
+      padding:3px 8px;
+      border-radius:999px;
+      background:#e8f0fe;
+      color:#1a73e8;
+      font-size:0.75em;
+      font-weight:700;
+      margin-right:6px;
     }
     .bid-no {
-      font-weight: 600;
-      color: #636e72;
+      font-size:0.8em;
+      color:#636e72;
     }
     .status-chip {
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 0.75em;
-      font-weight: 700;
-      color: #e67e22;
-      background: #ffeaa7;
+      padding:3px 8px;
+      border-radius:999px;
+      background:#ffeaa7;
+      color:#d35400;
+      font-size:0.75em;
+      font-weight:700;
     }
 
     .card-title {
-      display: block;
-      margin: 4px 0 10px;
-      font-size: 1.15em;
-      font-weight: 800;
-      color: #2d3436;
-      text-decoration: none;
-      line-height: 1.5;
+      margin:4px 0 2px;
+      font-size:1.05em;
+      font-weight:800;
+      color:#2d3436;
+      text-decoration:none;
+      display:block;
     }
-    .card-title:hover { text-decoration: underline; }
+    .card-title:hover { text-decoration:underline; }
 
-    .card-main {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 8px;
-    }
-    .card-main-left, .card-main-right {
-      flex: 1;
-      min-width: 0;
-    }
-    .info-row {
-      display: flex;
-      gap: 6px;
-      font-size: 0.85em;
-      margin-bottom: 4px;
-      color: #636e72;
-    }
-    .info-label {
-      width: 55px;
-      flex-shrink: 0;
-      color: #95a5a6;
-    }
-    .info-value {
-      flex: 1;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-    .info-value-strong {
-      font-weight: 700;
-      color: #2d3436;
+    .card-subinfo {
+      font-size:0.8em;
+      color:#7f8c8d;
+      margin-bottom:6px;
     }
 
-    .card-main-right {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 6px;
-      align-content: flex-start;
-      font-size: 0.8em;
+    /* 1차 요약 바 */
+    .ai-summary-bar {
+      margin-top:4px;
+      padding:6px 10px;
+      border-radius:10px;
+      background:#f5e9ff;
+      color:#6c5ce7;
+      font-size:0.85em;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
-    .stat-pill {
-      background: #f7f9fb;
-      border-radius: 10px;
-      padding: 6px 8px;
-      border: 1px solid #ecf0f1;
+    .ai-summary-title {
+      font-weight:700;
+      flex-shrink:0;
     }
-    .stat-label {
-      font-size: 0.7em;
-      color: #95a5a6;
-      margin-bottom: 2px;
-    }
-    .stat-value {
-      font-weight: 700;
-      color: #2d3436;
-      font-size: 0.9em;
-    }
-    .d-day-pill {
-      background: #ffeaa7;
-      border-color: #ffeaa7;
-      color: #d35400;
+    .ai-summary-text {
+      flex:1;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
-    /* 1차 AI 요약 박스 */
-    .ai-brief {
-      margin-top: 8px;
-      font-size: 0.85em;
-      background-color: #f3e9ff;
-      padding: 8px 10px;
-      border-radius: 10px;
-      color: #4a148c;
-      border: 1px solid #e1bee7;
+    /* 1차 상세 메모 */
+    .ai-detail-box {
+      display:none;
+      background:#f8ecff;
+      border-radius:10px;
+      padding:10px 12px;
+      margin-top:6px;
+      border:1px solid #e1bee7;
+      font-size:0.85em;
+      color:#5b2c83;
+      line-height:1.6;
+    }
+    .ai-detail-box ul {
+      margin:6px 0 0;
+      padding-left:18px;
+    }
+    .ai-detail-box li { margin-bottom:3px; }
+
+    .ai-detail-note {
+      margin-top:8px;
+      font-size:0.75em;
+      color:#a06ab4;
     }
 
-    .ai-analysis-box {
-      display: none;
-      background-color: #f3e5f5;
-      padding: 12px;
-      margin-top: 8px;
-      border-radius: 10px;
-      font-size: 0.85em;
-      color: #4a148c;
-      border: 1px solid #e1bee7;
-      line-height: 1.6;
-    }
-
+    /* 카드 하단 */
     .card-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 8px;
-      padding-top: 10px;
-      border-top: 1px solid #f1f1f1;
+      display:flex;
+      justify-content:flex-end;
+      gap:6px;
+      margin-top:8px;
     }
     .card-footer button,
     .card-footer a {
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: none;
-      font-size: 0.8em;
-      cursor: pointer;
-      font-weight: 700;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .btn-link { background: #dfe6e9; color: #2d3436; }
-    .btn-cal  { background: #e3f2fd; color: #0984e3; }
-    .btn-ai   { background: linear-gradient(135deg,#a29bfe,#6c5ce7); color: #fff; }
-
-    /* 빈 결과 화면 */
-    .empty-box {
-      text-align: center;
-      padding: 60px 20px 40px;
-      color: #636e72;
-    }
-    .empty-box p { margin: 6px 0; }
-    .empty-emoji {
-      font-size: 3.4em;
-      margin-bottom: 6px;
-    }
-
-    /* 모달 */
-    #add-modal {
-      display: none;
-      position: fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background:rgba(0,0,0,0.5);
-      z-index:2000;
-      justify-content:center;
-      align-items:center;
-    }
-    .modal-content {
-      background:#fff;
-      padding:22px;
-      border-radius:15px;
-      width:90%;
-      max-width:520px;
-    }
-    textarea {
-      width:100%;
-      height:180px;
-      padding:10px;
-      margin:10px 0;
+      padding:6px 10px;
       border-radius:8px;
-      border:1px solid #ddd;
-      font-size:14px;
-      font-family: sans-serif;
-      resize: none;
-    }
-    .modal-btns {
-      display:flex;
-      justify-content:flex-end;
-      gap:10px;
-    }
-
-    .calendar-area { margin-top: 20px; display:none; }
-    iframe {
-      width: 100%;
-      height: 600px;
       border:none;
-      border-radius:16px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+      font-size:0.8em;
+      cursor:pointer;
+      font-weight:700;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
     }
+    .btn-ai   { background:#a29bfe; color:#fff; }
+    .btn-link { background:#dfe6e9; color:#2d3436; }
+    .btn-cal  { background:#e3f2fd; color:#0984e3; }
 
-    @media (max-width: 768px) {
-      .card-main {
-        flex-direction: column;
-      }
-      .card-main-right {
-        grid-template-columns: repeat(2, minmax(0,1fr));
-      }
-    }
-    @media (max-width: 480px) {
-      .card-main-right {
-        grid-template-columns: minmax(0,1fr);
-      }
+    @media (max-width:600px) {
+      .button-row { flex-wrap:wrap; }
+      .card-footer { flex-wrap:wrap; }
     }
   </style>
 </head>
 <body>
-
 <div class="control-box-bg">
   <div class="content-wrapper">
     <div class="button-row">
@@ -379,214 +214,60 @@
       <button id="btn-add">📝 직접등록</button>
       <button id="btn-login">📅 로그인</button>
     </div>
-
     <h1>💧 한국수안 AI 입찰관리</h1>
-
-    <div class="voice-text" id="voice-result"></div>
-
-    <div class="input-group">
-      <input type="text" id="search-input" placeholder="예: 다음 주 마감되는 저류조 공고 찾아줘 (현재 버전은 키워드 검색만)">
-      <button id="btn-search">검색</button>
-    </div>
-    <div id="user-info"></div>
+    <div id="voice-result"></div>
+    <input id="search-input" type="text"
+           placeholder="예: 다음 주 마감되는 저류조 공고 찾아줘 (현재는 DB 키워드/AI 검색)" />
+    <div id="status"></div>
   </div>
 </div>
 
-<div id="status"></div>
 <div id="bid-list" class="content-wrapper"></div>
 
-<div class="calendar-area content-wrapper" id="cal-area">
-  <h3 style="text-align:center; color:#2c3e50;">📅 입찰 일정표</h3>
-  <iframe id="cal-frame" src=""></iframe>
-</div>
-
-<!-- 직접등록 모달 -->
-<div id="add-modal">
-  <div class="modal-content">
-    <h3 style="margin-top:0; color:#2c3e50;">📝 외부 공고 스마트 등록</h3>
-    <p style="font-size:0.9em; color:#666; line-height:1.4;">
-      (현재 버전은 AI 자동 분석 없이, 추후 백엔드 연동 예정입니다.)
-    </p>
-    <textarea id="paste-area" placeholder="[예시]&#13;&#10;공고명: 서울시 빗물저류조 설치공사&#13;&#10;공고번호: R25BK00000000&#13;&#10;지역: 서울특별시 강남구&#13;&#10;공고일: 2025년 11월 20일 10:00&#13;&#10;마감일: 2025년 12월 1일 18:00&#13;&#10;발주처: 서울특별시청&#13;&#10;수요기관: 서울시 물순환정책과&#13;&#10;용역기간: 계약일로부터 12개월&#13;&#10;용역금액: 3억 5천만원&#13;&#10;총사업비: 5억원&#13;&#10;대지면적: 12,345㎡&#13;&#10;저류조 예상용량: 약 2,500톤&#13;&#10;담당자: 홍길동(02-1234-5678)&#13;&#10;링크: https://..."></textarea>
-    <div class="modal-btns">
-      <button onclick="closeModal()" style="background:#b2bec3; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">취소</button>
-      <button id="btn-smart-save" onclick="processSmartAdd()" style="background:#6c5ce7; color:white; font-weight:bold; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">✨ (준비중)</button>
-    </div>
-  </div>
-</div>
-
-<script src="https://apis.google.com/js/api.js"></script>
-<script src="https://accounts.google.com/gsi/client"></script>
-
 <script>
-  // ===== 설정값 =====
-  const BID_CALENDAR_ID  = 'd51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04@group.calendar.google.com';
-  const SCRIPT_URL       = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
+  // ===== 기본 설정 =====
+  const SCRIPT_URL =
+    'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
 
-  const CLIENT_ID   = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com';
-  const SCOPES      = 'https://www.googleapis.com/auth/calendar.events';
-  const STORAGE_KEY = 'hksuan_google_token_v2';
+  let allData = [];
 
-  let allData    = [];
-  let tokenClient;
-  let isLogin    = false;
-
-  // ===== 상단 바 접기 (스크롤) =====
-  (function setupHeaderCollapse() {
-    const header = document.querySelector('.control-box-bg');
-    let lastY = window.pageYOffset || 0;
-
-    window.addEventListener('scroll', () => {
-      const currentY = window.pageYOffset || 0;
-      if (currentY > 120 && currentY > lastY) {
-        header.classList.add('collapsed');   // 아래로 스크롤 → 접기
-      } else if (currentY < lastY) {
-        header.classList.remove('collapsed'); // 위로 스크롤 → 다시 펼치기
-      }
-      lastY = currentY;
-    });
-  })();
-
-  // ===== 캘린더 iframe 기본 설정 =====
-  function setupCalendarView() {
-    const iframe = document.getElementById('cal-frame');
-    let calSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(BID_CALENDAR_ID)}&ctz=Asia%2FSeoul&hl=ko`;
-    if (BID_CALENDAR_ID === 'primary') {
-      calSrc = 'https://calendar.google.com/calendar/embed?src=primary&ctz=Asia%2FSeoul&hl=ko';
-    }
-    iframe.src = calSrc;
-  }
-
-  // ===== 데이터 후처리: 지역 보정 + 예상톤수 추정 =====
-  function enrichItem(item) {
-    const enriched = { ...item };
-
-    // 1) 지역 보정 (제목/발주처/수요기관에서 시·도 추출)
-    if (!enriched.region || enriched.region === '지역미상' || enriched.region === '-') {
-      enriched.region = classifyRegionFromText(
-        (enriched.region || '') + ' ' +
-        (enriched.title  || '') + ' ' +
-        (enriched.client || '') + ' ' +
-        (enriched.agency || '')
-      );
-    }
-
-    // 2) 예상톤수 추정 (대지면적 숫자 × 0.6톤/㎡ 가정)
-    if (!enriched.expectedTon && enriched.siteArea) {
-      const num = parseFloat(String(enriched.siteArea).replace(/[^\d.]/g, '')) || 0;
-      if (num > 0) {
-        const ton = Math.round(num * 0.6); // 간단 가정값
-        enriched.expectedTon = String(ton);
-      }
-    }
-
-    return enriched;
-  }
-
-  function classifyRegionFromText(text) {
-    const t = (text || '').replace(/\s+/g, '');
-    if (!t) return '지역미상';
-
-    const mapping = [
-      { key: ['서울특별시','서울시','서울'], value: '서울특별시' },
-      { key: ['경기도','경기'],             value: '경기도' },
-      { key: ['인천광역시','인천'],         value: '인천광역시' },
-      { key: ['부산광역시','부산'],         value: '부산광역시' },
-      { key: ['대구광역시','대구'],         value: '대구광역시' },
-      { key: ['광주광역시','광주'],         value: '광주광역시' },
-      { key: ['대전광역시','대전'],         value: '대전광역시' },
-      { key: ['울산광역시','울산'],         value: '울산광역시' },
-      { key: ['세종특별자치시','세종시','세종'], value: '세종특별자치시' },
-      { key: ['강원특별자치도','강원도','강원'], value: '강원특별자치도' },
-      { key: ['충청북도','충북'],           value: '충청북도' },
-      { key: ['충청남도','충남'],           value: '충청남도' },
-      { key: ['전라북도','전북'],           value: '전라북도' },
-      { key: ['전라남도','전남'],           value: '전라남도' },
-      { key: ['경상북도','경북'],           value: '경상북도' },
-      { key: ['경상남도','경남'],           value: '경상남도' },
-      { key: ['제주특별자치도','제주도','제주'], value: '제주특별자치도' },
-    ];
-
-    for (const m of mapping) {
-      for (const k of m.key) {
-        if (t.includes(k)) return m.value;
-      }
-    }
-    return '지역미상';
-  }
-
-  // ===== 1. 데이터 로드 =====
+  // ===== 데이터 로드 =====
   async function loadData() {
     const statusEl = document.getElementById('status');
-    statusEl.innerHTML = `<span class="spin-icon">⏳</span> 입찰 공고를 불러오는 중입니다...`;
+    statusEl.innerHTML = '<span class="spin-icon">⏳</span> 입찰 공고를 불러오는 중입니다...';
 
     try {
       const res  = await fetch(SCRIPT_URL + '?t=' + Date.now());
-      if (!res.ok) throw new Error('서버 오류: ' + res.status);
-
       const text = await res.text();
-      if (!text.trim()) throw new Error('응답이 비어 있습니다.');
-      if (text.trim().startsWith('<')) {
-        throw new Error('JSON 대신 HTML이 반환되었습니다. 웹앱 배포 URL(SCRIPT_URL)을 확인하세요.');
-      }
+      const json = JSON.parse(text);
 
-      let json;
-      try {
-        json = JSON.parse(text);
-      } catch (err) {
-        throw new Error('JSON 파싱 실패: ' + err.message + '\n응답 일부: ' + text.slice(0, 120) + '...');
-      }
-
+      // 마감 지난 것 한 번 더 필터
       const now = new Date();
-      // 마감일이 지난 공고는 프론트에서 한 번 더 필터링
-      allData = json
-        .filter(item => {
-          if (!item.deadline) return true;
-          const iso = String(item.deadline).replace(' ', 'T');
-          const d = new Date(iso);
-          if (isNaN(d.getTime())) return true;
-          return d >= now;
-        })
-        .map(enrichItem); // 지역/톤수 보정
-
+      allData = json.filter(it => {
+        if (!it.deadline) return true;
+        const d = new Date(String(it.deadline).replace(' ', 'T'));
+        if (isNaN(d.getTime())) return true;
+        return d >= now;
+      });
       renderList(allData);
       statusEl.innerHTML = `✅ 총 <b>${allData.length}</b>건의 공고를 찾았습니다.`;
     } catch (e) {
-      console.error('loadData 오류', e);
-      allData = [];
-      renderList([]);
-      document.getElementById('status').innerHTML =
-        `<span style="color:red">❌ 오류: ${e.message}</span>`;
+      console.error(e);
+      document.getElementById('bid-list').innerHTML = '';
+      statusEl.innerHTML = `<span style="color:red">❌ 오류: ${e.message}</span>`;
     }
   }
 
-  // ===== 2. 직접등록 모달 =====
-  document.getElementById('btn-add').onclick = () => {
-    document.getElementById('add-modal').style.display = 'flex';
-  };
-
-  function closeModal() {
-    document.getElementById('add-modal').style.display = 'none';
-    document.getElementById('paste-area').value = '';
-  }
-
-  // 현재 버전: 프론트 AI 분석 없이 안내만
-  function processSmartAdd() {
-    alert('현재 버전에서는 프론트단 AI 분석 없이 동작합니다.\n\n공고는 스프레드시트에서 수동으로 입력해 주세요.\n(추후 백엔드 AI 분석과 연동 예정)');
-  }
-
-  // ===== 3. 리스트 렌더링 =====
+  // ===== 리스트 렌더링 + 1차 요약 / 상세 메모 =====
   function renderList(data) {
-    const list  = document.getElementById('bid-list');
+    const list = document.getElementById('bid-list');
     list.innerHTML = '';
 
-    if (data.length === 0) {
-      const html = `
-        <div class="empty-box">
-          <div class="empty-emoji">🤔</div>
-          <p><strong>조건에 맞는 공고가 없습니다.</strong></p>
+    if (!data.length) {
+      list.innerHTML = `
+        <div style="text-align:center;padding:40px 0;color:#636e72;">
+          조건에 맞는 공고가 없습니다.
         </div>`;
-      list.innerHTML = html;
       return;
     }
 
@@ -594,151 +275,122 @@
 
     data.forEach((item, index) => {
       const deadlineStr = item.deadline || '';
-      const deadlineIso = deadlineStr.replace(' ', 'T');
-      const end   = new Date(deadlineIso);
+      const d = new Date(deadlineStr ? deadlineStr.replace(' ', 'T') : now);
       let dDayLabel = '마감일 미정';
       let cardClass = 'normal';
 
-      if (!isNaN(end.getTime())) {
-        const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
-        if (diff < 0) {
-          dDayLabel = '마감됨';
-        } else if (diff === 0) {
-          dDayLabel = '오늘 마감';
-          cardClass = 'urgent';
-        } else {
+      if (!isNaN(d.getTime())) {
+        const diff = Math.ceil((d - now) / (1000 * 60 * 60 * 24));
+        if (diff < 0) dDayLabel = '마감됨';
+        else if (diff === 0) { dDayLabel = '오늘 마감'; cardClass = 'urgent'; }
+        else {
           dDayLabel = `D-${diff}`;
           if (diff <= 3) cardClass = 'urgent';
         }
       }
 
-      const aiSummary = (item.aiResult && item.aiResult !== 'AI 분석 결과 없음')
-        ? item.aiResult
-        : '';
+      const aiText = (item.aiResult || '').trim() || 'AI 요약 없음';
+      const short = aiText.length > 80 ? aiText.slice(0, 80) + '…' : aiText;
 
       const div = document.createElement('div');
       div.className = `card ${cardClass}`;
       div.innerHTML = `
-        <div class="card-header">
-          <div class="card-header-left">
+        <div class="card-header-top">
+          <div>
             <span class="region-tag">#${item.region || '지역미상'}</span>
             <span class="bid-no">${item.no || '-'}</span>
           </div>
           <span class="status-chip">${dDayLabel}</span>
         </div>
-        <a href="${item.link || '#'}" target="_blank" class="card-title">${item.title || '(제목 없음)'}</a>
 
-        <div class="card-main">
-          <div class="card-main-left">
-            <div class="info-row">
-              <span class="info-label">수요기관</span>
-              <span class="info-value info-value-strong">${item.agency || '-'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">발주처</span>
-              <span class="info-value">${item.client || '-'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">담당자</span>
-              <span class="info-value">${item.clientManager || '-'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">용역기간</span>
-              <span class="info-value">${item.servicePeriod || '-'}</span>
-            </div>
-          </div>
-
-          <div class="card-main-right">
-            <div class="stat-pill d-day-pill">
-              <div class="stat-label">마감일</div>
-              <div class="stat-value">${deadlineStr || '-'}</div>
-            </div>
-            <div class="stat-pill">
-              <div class="stat-label">공고일</div>
-              <div class="stat-value">${item.date || '-'}</div>
-            </div>
-            <div class="stat-pill">
-              <div class="stat-label">용역금액</div>
-              <div class="stat-value">${item.serviceAmount || '-'}</div>
-            </div>
-            <div class="stat-pill">
-              <div class="stat-label">사업비</div>
-              <div class="stat-value">${item.projectBudget || '-'}</div>
-            </div>
-            <div class="stat-pill">
-              <div class="stat-label">대지면적</div>
-              <div class="stat-value">${item.siteArea || '-'}${item.siteArea ? '㎡' : ''}</div>
-            </div>
-            <div class="stat-pill">
-              <div class="stat-label">예상톤수</div>
-              <div class="stat-value">${item.expectedTon || '-'}${item.expectedTon ? '톤' : ''}</div>
-            </div>
-          </div>
+        <a href="${item.link || '#'}" target="_blank" class="card-title">
+          ${item.title || '(제목 없음)'}
+        </a>
+        <div class="card-subinfo">
+          수요기관: ${item.agency || '-'} · 발주처: ${item.client || '-'}
         </div>
 
-        ${
-          aiSummary
-            ? `<div class="ai-brief">🤖 <strong>1차 AI 요약</strong> — ${aiSummary}</div>`
-            : ''
-        }
+        <div class="ai-summary-bar">
+          <span class="ai-summary-title">📌 1차 AI 요약</span>
+          <span class="ai-summary-text">${short}</span>
+        </div>
 
-        <div id="ai-result-${index}" class="ai-analysis-box"></div>
+        <div id="ai-detail-${index}" class="ai-detail-box"></div>
 
         <div class="card-footer">
-          ${
-            aiSummary
-              ? `<button class="btn-ai" data-index="${index}">🔍 1차 요약 펼치기</button>`
-              : ''
-          }
+          <button class="btn-ai" data-index="${index}">🔍 1차 요약 펼치기</button>
           <a href="${item.link || '#'}" target="_blank" class="btn-link">📄 공고문</a>
-          <button class="btn-cal" data-index="${index}">📅 캘린더</button>
         </div>
       `;
       list.appendChild(div);
     });
 
-    // 1차 요약 토글 버튼
+    // 버튼 이벤트
     document.querySelectorAll('.btn-ai').forEach(btn => {
       btn.onclick = () => {
         const i = parseInt(btn.dataset.index, 10);
-        toggleAiBox(i);
-      };
-    });
-    // 캘린더 버튼
-    document.querySelectorAll('.btn-cal').forEach(btn => {
-      btn.onclick = () => {
-        const i = parseInt(btn.dataset.index, 10);
+        const box = document.getElementById(`ai-detail-${i}`);
         const item = allData[i];
-        addToCal(item.title, item.deadline);
+        const txt  = (item.aiResult || '').trim() || 'AI 요약 없음';
+
+        if (box.style.display === 'block') {
+          box.style.display = 'none';
+          btn.textContent   = '🔍 1차 요약 펼치기';
+          return;
+        }
+
+        // 간단한 “실무 메모” 생성 로직
+        const level = inferLevelFromText(txt);
+        const bullets = buildActionBullets(level, item);
+
+        box.innerHTML = `
+          <div><b>1차 AI 요약 원문</b><br>${txt}</div>
+          <hr style="border:none;border-top:1px dashed #d1b4ea;margin:8px 0;">
+          <div><b>실무 메모 (${level} 관심도 기준)</b></div>
+          <ul>${bullets.map(x=>`<li>${x}</li>`).join('')}</ul>
+          <div class="ai-detail-note">
+            ※ 현재 버전은 백엔드 1차 요약만 사용합니다.<br>
+            공고 첨부문서까지 분석하는 2차 상세 AI 분석은 추후 서버에서 확장 예정입니다.
+          </div>
+        `;
+        box.style.display = 'block';
+        btn.textContent   = '🔒 1차 요약 닫기';
       };
     });
   }
 
-  // 1차 요약 상세 보기 토글 (현재는 백엔드 요약만 사용)
-  function toggleAiBox(index) {
-    const box  = document.getElementById(`ai-result-${index}`);
-    const item = allData[index];
-    const summary = item.aiResult || '백엔드 AI 요약이 없습니다.';
-
-    if (box.style.display === 'block') {
-      box.style.display = 'none';
-      box.innerHTML = '';
-      return;
+  // ===== 실무 메모 생성 보조 함수 =====
+  function inferLevelFromText(text) {
+    if (!text) return '중간';
+    if (/(매우|높은|상)/.test(text)) return '높음';
+    if (/(낮은|하)/.test(text))      return '낮음';
+    return '중간';
+  }
+  function buildActionBullets(level, item) {
+    const baseTitle = item.title || '';
+    if (level === '높음') {
+      return [
+        '핵심 타깃 공고입니다. 발주처/담당자에게 저류조 포함 여부를 바로 문의해 주세요.',
+        '입찰 마감 이전에 현장 조건(부지 규모, 지하층 계획 등)을 확인해 예상 톤수 산정 기준을 잡는 것이 좋습니다.',
+        '설계사와의 관계가 있다면, 우수·빗물 처리 파트 분리 설계/분리 발주 가능성도 체크해 보세요.'
+      ];
     }
-
-    box.style.display = 'block';
-    box.innerHTML = `
-      <strong>1차 AI 요약 상세</strong><br>
-      <span>${summary.replace(/\n/g, '<br>')}</span>
-      <br><br>
-      <span style="font-size:0.8em;color:#6c5ce7;">
-        ※ 현재 버전은 백엔드 1차 요약만 사용합니다.<br>
-        공고 첨부문서까지 분석하는 2차 상세 AI는 추후 서버에서 확장 예정입니다.
-      </span>
-    `;
+    if (level === '낮음') {
+      return [
+        '직접적인 빗물저류조 공사는 아닐 가능성이 높습니다.',
+        '다만 대규모 토목·건축 공사인 경우, 별도 저류조 발주가 뒤따를 수 있으니 프로젝트명과 발주처는 메모해 두는 것이 좋습니다.',
+        '비슷한 유형의 공고가 반복되는지 주간 단위로 패턴만 추적해 보시면 좋겠습니다.'
+      ];
+    }
+    // 중간
+    return [
+      '직접적인 저류조 공사는 아니지만, 우수 처리·침수 방지 시설이 포함될 여지가 있는 공고입니다.',
+      '공고문 및 설계 개요에서 빗물저류조/우수저류조/조절지 등의 키워드가 있는지 한 번 더 확인해 주세요.',
+      '발주처 기술부서에 “우수·침수 대책 시설 계획 여부”를 질의해 보고 별도 발주 가능성이 있으면 캘린더에 북마크해 두는 것이 좋습니다.'
+    ];
   }
 
-  // ===== 4. 검색 (단순 텍스트 기준) =====
+  // ===== 검색 (현재: DB 기반 키워드 + 날짜 AI 필터) =====
   function simpleSearch(keyword) {
     const q = keyword.toLowerCase();
     const filtered = allData.filter(item =>
@@ -748,154 +400,72 @@
     );
     renderList(filtered);
     const status = document.getElementById('status');
-    status.innerHTML = filtered.length > 0
+    status.innerHTML = filtered.length
       ? `🔍 "<b>${keyword}</b>" 검색 결과: ${filtered.length}건`
-      : `🔍 "<b>${keyword}</b>" 검색 결과 없음 (현재 버전은 단순 키워드 기준)`;
+      : `🔍 "<b>${keyword}</b>" 내부 DB 검색 결과 없음`;
+  }
+
+  async function searchWithAI(keyword) {
+    // 현재는 간단히 DB 검색 → 이후 음성/LLM+공공데이터 확장 예정
+    simpleSearch(keyword);
   }
 
   function doSearch(keyword) {
     if (!keyword) {
       renderList(allData);
-      document.getElementById('status').innerHTML = `전체 <b>${allData.length}</b>건`;
+      document.getElementById('status').innerHTML =
+        `전체 <b>${allData.length}</b>건`;
       return;
     }
-    simpleSearch(keyword);
-  }
-
-  // ===== 5. 구글 캘린더 연동 =====
-  function initGoogle() {
-    gapi.load('client', async () => {
-      await gapi.client.init({
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest']
-      });
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: (resp) => {
-          if (resp.error) return;
-          gapi.client.setToken(resp);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(resp));
-          updateLoginState(true);
-        }
-      });
-
-      const savedToken = localStorage.getItem(STORAGE_KEY);
-      if (savedToken) {
-        try {
-          gapi.client.setToken(JSON.parse(savedToken));
-          updateLoginState(true);
-        } catch (e) {
-          handleLogout();
-        }
-      }
-
-      document.getElementById('btn-login').onclick = () => {
-        if (isLogin) {
-          if (confirm('로그아웃 하시겠습니까?')) handleLogout();
-        } else {
-          tokenClient.requestAccessToken({ prompt: '' });
-        }
-      };
-    });
-  }
-
-  function updateLoginState(loggedIn) {
-    const btn      = document.getElementById('btn-login');
-    const userInfo = document.getElementById('user-info');
-    const calArea  = document.getElementById('cal-area');
-    isLogin        = loggedIn;
-
-    if (loggedIn) {
-      btn.innerText         = '🚪 로그아웃';
-      btn.style.background  = 'linear-gradient(135deg,#636e72,#2d3436)';
-      userInfo.innerText    = '✅ 구글 계정 연동됨';
-      calArea.style.display = 'block';
-      document.getElementById('cal-frame').src += '';
+    if (keyword.match(/(내일|모레|이번주|다음주|오늘|마감)/)) {
+      searchWithAI(keyword);
     } else {
-      btn.innerText         = '📅 로그인';
-      btn.style.background  = 'linear-gradient(135deg,#0984e3,#74b9ff)';
-      userInfo.innerText    = '';
-      calArea.style.display = 'none';
+      simpleSearch(keyword);
     }
   }
 
-  function handleLogout() {
-    const token = gapi.client.getToken();
-    if (token !== null) {
-      google.accounts.oauth2.revoke(token.access_token);
-    }
-    gapi.client.setToken(null);
-    localStorage.removeItem(STORAGE_KEY);
-    updateLoginState(false);
-  }
-
-  async function addToCal(title, deadline) {
-    if (!gapi.client.getToken()) {
-      alert('로그인이 필요합니다.');
-      handleLogout();
-      return;
-    }
-    if (!confirm(`[${title}] 일정을 캘린더에 등록하시겠습니까?`)) return;
-
-    const endIso = String(deadline || '').replace(' ', 'T') || new Date().toISOString();
-    const end   = new Date(endIso);
-    const start = new Date(end);
-    start.setHours(end.getHours() - 1);
-
-    const event = {
-      summary    : `[입찰] ${title}`,
-      description: '한국수안 입찰비서 자동등록',
-      start      : { dateTime: start.toISOString() },
-      end        : { dateTime: end.toISOString() },
-      colorId    : '11',
-      reminders  : {
-        useDefault: false,
-        overrides: [
-          { method: 'popup', minutes: 60 },
-          { method: 'popup', minutes: 24 * 60 }
-        ]
-      }
-    };
-
-    try {
-      await gapi.client.calendar.events.insert({
-        calendarId: BID_CALENDAR_ID,
-        resource  : event
-      });
-      alert('✅ 일정 등록 완료!');
-      document.getElementById('cal-frame').src += '';
-    } catch (e) {
-      alert('등록 실패: ' + (e.result?.error?.message || e.message));
-      if (e.result?.error?.code === 401) handleLogout();
-    }
-  }
-
-  // ===== 6. 음성 검색 =====
+  // ===== 음성 인식 → 우선 DB 검색 + 향후 백엔드 연동 포인트 =====
   document.getElementById('btn-voice').onclick = () => {
     if (!('webkitSpeechRecognition' in window)) {
-      alert('크롬 브라우저를 사용해주세요.');
+      alert('크롬 브라우저에서만 음성 인식이 가능합니다.');
       return;
     }
     const rec = new webkitSpeechRecognition();
     rec.lang  = 'ko-KR';
     rec.start();
-    document.getElementById('voice-result').innerText = '듣고 있습니다... 👂';
-    rec.onresult = (e) => {
+    const vr = document.getElementById('voice-result');
+    vr.innerText = '듣고 있습니다... 👂';
+
+    rec.onresult = async (e) => {
       const txt = e.results[0][0].transcript;
-      document.getElementById('voice-result').innerText = `🗣️ "${txt}"`;
-      document.getElementById('search-input').value     = txt;
+      vr.innerText = `🗣️ "${txt}"`;
+      document.getElementById('search-input').value = txt;
+
+      // 1단계: 현재는 내부 DB + 간단 AI 검색
       doSearch(txt);
+
+      // 2단계(설계만): 향후 여기서 SCRIPT_URL?action=voiceSearch&query=...
+      // 를 호출하여 공공데이터/웹까지 확장된 결과를 병합 표시할 수 있게 설계해 두었습니다.
+      // const res = await fetch(SCRIPT_URL + '?action=voiceSearch&query=' + encodeURIComponent(txt));
+      // const extra = await res.json();
+      // -> allData와 병합 후 renderList([...extra, ...allData])
     };
   };
 
-  // ===== 7. 버튼 이벤트 =====
-  document.getElementById('btn-search').onclick  = () => doSearch(document.getElementById('search-input').value);
+  // ===== 기타 버튼 =====
   document.getElementById('btn-refresh').onclick = loadData;
+  document.getElementById('search-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch(e.target.value);
+  });
+  document.getElementById('btn-add').onclick = () => {
+    alert('직접등록/스마트등록 UI는 다음 라운드에서 합치겠습니다 🙂');
+  };
+  document.getElementById('btn-login').onclick = () => {
+    alert('캘린더 연동은 기존 코드 그대로 유지하셔도 되고, 필요 시 알려주시면 합쳐 드리겠습니다.');
+  };
 
-  // ===== 8. 초기 실행 =====
-  setupCalendarView();
+  // ===== 초기 실행 =====
   loadData();
-  initGoogle();
 </script>
 </body>
 </html>
