@@ -3,826 +3,458 @@
 <head>
   <meta charset="UTF-8" />
   <title>한국수안 AI 입찰관리</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #050816;
+      color: #f5f5f5;
     }
-    a { color: #38bdf8; text-decoration: none; }
-
-    /* 상단 바 */
     header {
-      background: #020617;
-      border-bottom: 1px solid #1f2937;
-      padding: 10px 16px;
+      padding: 16px 24px;
+      border-bottom: 1px solid #222;
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
+      background: #050816;
       position: sticky;
       top: 0;
       z-index: 10;
     }
-    header .title {
-      font-size: 18px;
-      font-weight: 600;
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+    .search-bar {
       display: flex;
-      align-items: center;
       gap: 8px;
+      width: 60%;
     }
-    header .title span.badge {
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      background: #1d4ed8;
-      color: #e5e7eb;
-    }
-    header button {
-      background: #111827;
-      border: 1px solid #374151;
-      color: #e5e7eb;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-    header button:hover {
-      background: #1f2937;
-    }
-
-    /* 필터 영역 */
-    .filter-wrapper {
-      padding: 10px 16px;
-      background: #020617;
-      border-bottom: 1px solid #1f2937;
-      transition: max-height 0.25s ease, opacity 0.25s ease;
-      overflow: hidden;
-    }
-    .filter-wrapper.collapsed {
-      max-height: 0;
-      opacity: 0;
-      padding-top: 0;
-      padding-bottom: 0;
-      border-bottom: none;
-    }
-    .filter-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .filter-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 160px;
+    .search-bar input,
+    .search-bar select {
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #0b1020;
+      color: #f5f5f5;
       flex: 1;
     }
-    .filter-item label {
-      font-size: 11px;
-      color: #9ca3af;
-    }
-    .filter-item input, .filter-item select {
-      background: #020617;
-      border: 1px solid #374151;
+    .search-bar button {
+      padding: 8px 14px;
       border-radius: 6px;
-      padding: 6px 8px;
-      color: #e5e7eb;
-      font-size: 13px;
-    }
-
-    /* 본문 */
-    main {
-      padding: 12px 16px 24px;
-    }
-
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .toolbar .left {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      font-size: 13px;
-      color: #9ca3af;
-    }
-    .toolbar .right {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .btn {
-      background: #111827;
-      border-radius: 999px;
-      border: 1px solid #374151;
-      font-size: 12px;
-      color: #e5e7eb;
-      padding: 4px 10px;
+      border: none;
+      background: #3b82f6;
+      color: #fff;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+      white-space: nowrap;
     }
-    .btn.primary {
-      background: #1d4ed8;
-      border-color: #1d4ed8;
+    main {
+      padding: 16px 24px 40px;
     }
-    .btn.primary:hover {
-      background: #2563eb;
-    }
-    .btn:hover {
-      background: #1f2937;
-    }
-
-    .status-pill {
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      background: #0f172a;
-      border: 1px solid #1f2937;
-      color: #9ca3af;
-    }
-
-    /* 카드 리스트 */
-    .bid-list {
+    #bidList {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 16px;
     }
     .bid-card {
-      background: #020617;
-      border-radius: 12px;
-      border: 1px solid #1f2937;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      background: #0b1020;
+      border-radius: 10px;
+      padding: 14px 16px;
+      border: 1px solid #1e293b;
     }
-    .bid-main {
+    .bid-header {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .bid-title-line {
-      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 6px;
-      font-size: 14px;
-    }
-    .bid-region {
-      font-size: 11px;
-      padding: 1px 6px;
-      border-radius: 999px;
-      background: #0c4a6e;
-      color: #e0f2fe;
+      font-size: 12px;
+      margin-bottom: 6px;
     }
     .bid-title {
+      margin: 4px 0 8px;
+      font-size: 16px;
       font-weight: 600;
-      color: #e5e7eb;
     }
     .bid-meta {
-      font-size: 11px;
-      color: #9ca3af;
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-    }
-    .bid-meta span::before {
-      content: "• ";
-    }
-
-    .bid-metrics {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 11px;
-      color: #9ca3af;
-    }
-    .metric-pill {
-      padding: 2px 6px;
-      border-radius: 999px;
-      background: #020617;
-      border: 1px dashed #374151;
-    }
-
-    /* 1차 AI 요약 카드 */
-    .ai-summary-box {
-      background: #020617;
-      border-radius: 10px;
-      border: 1px solid #1e293b;
-      padding: 6px 8px;
+      gap: 10px;
       font-size: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      color: #cbd5f5;
+      margin-bottom: 8px;
     }
-    .ai-summary-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-    .ai-summary-header span.label {
-      font-size: 11px;
-      color: #9ca3af;
-    }
-    .ai-summary-header span.relevance {
-      font-size: 11px;
-      padding: 1px 6px;
-      border-radius: 999px;
+    .ai-block {
+      margin-top: 6px;
+      padding: 10px;
+      background: #111827;
+      border-radius: 8px;
       border: 1px solid #1f2937;
-    }
-    .ai-summary-body {
-      font-size: 12px;
-      color: #e5e7eb;
-      line-height: 1.4;
-    }
-    .ai-summary-body.collapsed {
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-height: 1.4em;
-    }
-
-    .bid-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      margin-top: 2px;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .bid-actions-left {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .bid-actions-right {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    /* 로딩 / 빈 상태 */
-    .loading, .empty {
-      font-size: 13px;
-      color: #9ca3af;
-      padding: 16px 0;
-      text-align: center;
-    }
-
-    /* 2차 분석 모달 */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(15,23,42,0.8);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 30;
-    }
-    .modal-backdrop.show {
-      display: flex;
-    }
-    .modal {
-      background: #020617;
-      border-radius: 14px;
-      border: 1px solid #1f2937;
-      max-width: 720px;
-      width: 95%;
-      max-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .modal-header {
-      padding: 10px 14px;
-      border-bottom: 1px solid #1f2937;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-    .modal-header h2 {
-      font-size: 14px;
-      margin: 0;
-    }
-    .modal-body {
-      padding: 10px 14px 12px;
-      overflow-y: auto;
       font-size: 13px;
     }
-    .modal-section {
-      margin-bottom: 10px;
-    }
-    .modal-section h3 {
-      margin: 0 0 4px;
-      font-size: 12px;
-      color: #9ca3af;
-    }
-    .modal-section p {
-      margin: 0;
-      line-height: 1.5;
-      white-space: pre-line;
-    }
-    .modal-metrics {
+    .ai-head {
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      font-size: 12px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
     }
-    .modal-metrics .chip {
+    .ai-text {
+      margin: 0 0 8px;
+      white-space: pre-wrap;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
       padding: 2px 8px;
       border-radius: 999px;
-      border: 1px solid #374151;
-      background: #020617;
+      font-size: 11px;
     }
-    .modal ul {
-      margin: 0;
-      padding-left: 16px;
+    .badge-region {
+      background: #1e293b;
+      color: #e5e7eb;
+      margin-right: 6px;
+    }
+    .badge-days {
+      background: #22c55e33;
+      color: #4ade80;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+    .badge-high {
+      background: #ef444433;
+      color: #f97373;
+    }
+    .badge-mid {
+      background: #eab30833;
+      color: #facc15;
+    }
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .btn-primary,
+    .btn-outline {
+      padding: 6px 10px;
       font-size: 12px;
+      border-radius: 6px;
+      cursor: pointer;
     }
-    .modal ul li {
-      margin-bottom: 2px;
+    .btn-primary {
+      border: none;
+      background: #3b82f6;
+      color: #fff;
+    }
+    .btn-outline {
+      border: 1px solid #4b5563;
+      background: transparent;
+      color: #e5e7eb;
+    }
+    .help {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    .error {
+      font-size: 13px;
+      color: #fca5a5;
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    .modal.hidden {
+      display: none;
+    }
+    .modal-inner {
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid #1e293b;
+      padding: 16px 18px;
+      width: min(720px, 96vw);
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.7);
+      font-size: 13px;
+    }
+    .modal-title {
+      margin: 0 0 4px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .modal-sub {
+      margin: 0 0 10px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .modal-section {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #1e293b;
+    }
+    .modal-section h3 {
+      margin: 0 0 6px;
+      font-size: 13px;
+    }
+    .modal-section p {
+      margin: 2px 0;
+      white-space: pre-wrap;
+    }
+    .modal-buttons {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    ul {
+      padding-left: 18px;
+      margin: 4px 0;
     }
   </style>
 </head>
 <body>
   <header>
-    <div class="title">
-      <span>한국수안 AI 입찰관리</span>
-      <span class="badge">AI 저류조 필터 v2</span>
-    </div>
-    <div>
-      <button id="toggle-filter">상단 접기</button>
+    <h1>한국수안 AI 입찰관리</h1>
+    <div class="search-bar">
+      <input id="keywordInput" type="text" placeholder="예: 학교 개축, 리모델링, 서울시" />
+      <select id="regionSelect">
+        <option value="전체">전체 지역</option>
+        <option value="서울">서울</option>
+        <option value="경기">경기</option>
+        <option value="부산">부산</option>
+        <option value="대전">대전</option>
+        <option value="광주">광주</option>
+        <option value="인천">인천</option>
+        <option value="강원">강원</option>
+        <option value="충청">충청</option>
+        <option value="경상">경상</option>
+        <option value="전라">전라</option>
+      </select>
+      <button id="searchBtn">검색</button>
     </div>
   </header>
 
-  <div id="filter-wrapper" class="filter-wrapper">
-    <div class="filter-grid">
-      <div class="filter-item">
-        <label for="search-title">공고명 / 발주처 검색</label>
-        <input id="search-title" type="text" placeholder="예: 학교 개축, 저류조, 서울시" />
-      </div>
-      <div class="filter-item">
-        <label for="filter-region">지역</label>
-        <select id="filter-region">
-          <option value="">전체</option>
-          <option value="서울">서울</option>
-          <option value="경기">경기</option>
-          <option value="인천">인천</option>
-          <option value="부산">부산</option>
-          <option value="대전">대전</option>
-          <option value="광주">광주</option>
-          <option value="대구">대구</option>
-          <option value="울산">울산</option>
-          <option value="강원">강원</option>
-          <option value="충청">충청</option>
-          <option value="전라">전라</option>
-          <option value="경상">경상</option>
-          <option value="제주">제주</option>
-          <option value="지역미상">지역미상</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
   <main>
-    <div class="toolbar">
-      <div class="left">
-        <span id="stats-count">공고 로딩 중...</span>
-      </div>
-      <div class="right">
-        <button class="btn" id="refresh-btn">새로고침</button>
-        <button class="btn" id="voice-btn" title="(다음 단계에서 확장)">
-          🎙️ 음성 검색 (준비중)
-        </button>
-      </div>
-    </div>
-
-    <div id="list-container">
-      <div class="loading">AI 필터링된 공고를 불러오는 중입니다...</div>
+    <div id="bidList" class="bid-list">
+      <!-- 카드가 여기에 렌더링됩니다 -->
     </div>
   </main>
 
   <!-- 2차 분석 모달 -->
-  <div id="detail-modal-backdrop" class="modal-backdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <h2 id="detail-title">공고 상세 분석</h2>
-        <button class="btn" id="detail-close-btn">닫기</button>
-      </div>
-      <div class="modal-body">
-        <div class="modal-section">
-          <h3>1차 AI 요약</h3>
-          <p id="detail-summary1"></p>
-        </div>
-        <div class="modal-section">
-          <h3>2차 상세 분석 (가격·규모·톤수)</h3>
-          <p id="detail-summary2"></p>
-        </div>
-        <div class="modal-section">
-          <h3>규모 및 금액 추정</h3>
-          <div class="modal-metrics">
-            <div class="chip" id="chip-siteArea">대지면적: -</div>
-            <div class="chip" id="chip-expectedTon">예상톤수: -</div>
-            <div class="chip" id="chip-serviceAmount">용역금액: -</div>
-            <div class="chip" id="chip-projectBudget">사업비: -</div>
-          </div>
-        </div>
-        <div class="modal-section">
-          <h3>첨부문서 이름 (나라장터 기준)</h3>
-          <ul id="detail-attachments"></ul>
-          <p style="font-size:11px;color:#6b7280;margin-top:4px;">
-            * 첨부파일 다운로드는 나라장터 원문 페이지에서 직접 확인해 주세요.
-          </p>
-        </div>
-      </div>
+  <div id="detailModal" class="modal hidden">
+    <div class="modal-inner">
+      <div id="detailContent"></div>
     </div>
   </div>
 
   <script>
-    // ==============================
-    // 환경 설정
-    // ==============================
-    const API_BASE = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec'; // ← Apps Script WebApp URL로 교체
+    // ✅ 여기에 Apps Script WebApp URL 입력
+    const API_BASE = 'YOUR_WEBAPP_URL_HERE';
 
     let allBids = [];
 
-    // ==============================
-    // 초기화
-    // ==============================
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('toggle-filter').addEventListener('click', toggleFilter);
-      document.getElementById('refresh-btn').addEventListener('click', loadBids);
-
-      document.getElementById('search-title').addEventListener('input', applyFilter);
-      document.getElementById('filter-region').addEventListener('change', applyFilter);
-
-      document.getElementById('detail-close-btn').addEventListener('click', closeDetailModal);
-      document.getElementById('detail-modal-backdrop').addEventListener('click', (e) => {
-        if (e.target.id === 'detail-modal-backdrop') closeDetailModal();
+      loadBidList();
+      document.getElementById('searchBtn').addEventListener('click', applyFilter);
+      document.getElementById('keywordInput').addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') applyFilter();
       });
 
-      loadBids();
+      // 모달 바깥 클릭 시 닫기
+      document.getElementById('detailModal').addEventListener('click', (e) => {
+        if (e.target.id === 'detailModal') hideDetailModal();
+      });
+
+      // 전역 버튼 핸들링
+      document.addEventListener('click', globalClickHandler);
     });
 
-    // ==============================
-    // 상단 필터 접기/펼치기
-    // ==============================
-    function toggleFilter() {
-      const wrapper = document.getElementById('filter-wrapper');
-      const btn = document.getElementById('toggle-filter');
-      const collapsed = wrapper.classList.toggle('collapsed');
-      btn.textContent = collapsed ? '상단 펼치기' : '상단 접기';
-    }
-
-    // ==============================
-    // 공고 목록 로딩
-    // ==============================
-    async function loadBids() {
-      const container = document.getElementById('list-container');
-      container.innerHTML = '<div class="loading">AI 필터링된 공고를 불러오는 중입니다...</div>';
-      document.getElementById('stats-count').textContent = '공고 로딩 중...';
-
+    async function loadBidList() {
+      const listEl = document.getElementById('bidList');
+      listEl.innerHTML = '<p class="help">공고를 불러오는 중입니다...</p>';
       try {
-        const res = await fetch(API_BASE);
-        const data = await res.json();
-        allBids = Array.isArray(data) ? data : [];
+        const resp = await fetch(API_BASE);
+        const data = await resp.json();
+        allBids = data || [];
         renderBids(allBids);
-      } catch (e) {
-        console.error(e);
-        container.innerHTML = '<div class="empty">데이터를 불러오는 중 오류가 발생했습니다.</div>';
-        document.getElementById('stats-count').textContent = '오류 발생';
+      } catch (err) {
+        listEl.innerHTML = '<p class="error">목록을 가져오는 중 오류: ' +
+          escapeHtml(err.message) + '</p>';
       }
     }
 
-    // ==============================
-    // 필터 적용
-    // ==============================
+    function renderBids(list) {
+      const listEl = document.getElementById('bidList');
+      if (!list || !list.length) {
+        listEl.innerHTML = '<p class="help">조건에 맞는 공고가 없습니다.</p>';
+        return;
+      }
+      const html = list.map(item => {
+        const ai = item.aiResult || 'AI 분석 대기중';
+        const relBadge =
+          ai.indexOf('[상]') >= 0
+            ? '<span class="badge badge-high">관련성 상</span>'
+            : ai.indexOf('[중]') >= 0
+            ? '<span class="badge badge-mid">관련성 중</span>'
+            : '';
+
+        return `
+<div class="bid-card">
+  <div class="bid-header">
+    <div>
+      <span class="badge badge-region">${escapeHtml(item.region || '지역미상')}</span>
+      <span class="bid-no">${escapeHtml(item.no || '')}</span>
+    </div>
+    <span class="badge-days">${escapeHtml(item.status || '공고중')}</span>
+  </div>
+  <h2 class="bid-title">${escapeHtml(item.title || '')}</h2>
+  <div class="bid-meta">
+    <span>수요기관: ${escapeHtml(item.client || '')}</span>
+    <span>발주처: ${escapeHtml(item.agency || '')}</span>
+    <span>마감: ${escapeHtml(item.deadline || '')}</span>
+  </div>
+  <div class="ai-block">
+    <div class="ai-head">
+      <strong>1차 AI 요약</strong>
+      ${relBadge}
+    </div>
+    <p class="ai-text">${escapeHtml(ai)}</p>
+    <div class="btn-row">
+      <button class="btn-primary btn-second"
+        data-no="${escapeHtml(item.no || '')}"
+        data-link="${escapeHtml(item.link || '')}"
+        data-title="${escapeHtml(item.title || '')}"
+        data-region="${escapeHtml(item.region || '')}"
+        data-client="${escapeHtml(item.client || '')}">
+        2차 분석
+      </button>
+      <button class="btn-outline btn-open-nara"
+        data-link="${escapeHtml(item.link || '')}">
+        나라장터 열기
+      </button>
+    </div>
+  </div>
+</div>`;
+      }).join('');
+      listEl.innerHTML = html;
+    }
+
     function applyFilter() {
-      const keyword = document.getElementById('search-title').value.trim();
-      const region = document.getElementById('filter-region').value;
-
-      const filtered = allBids.filter(bid => {
-        let ok = true;
-
-        if (keyword) {
-          const hay = [
-            bid.title || '',
-            bid.client || '',
-            bid.agency || '',
-            bid.no || ''
-          ].join(' ').toLowerCase();
-          if (!hay.includes(keyword.toLowerCase())) {
-            ok = false;
-          }
-        }
-
-        if (ok && region) {
-          if (!(bid.region || '').includes(region)) {
-            ok = false;
-          }
-        }
-
-        return ok;
+      const q = document.getElementById('keywordInput').value.trim();
+      const region = document.getElementById('regionSelect').value;
+      const filtered = allBids.filter(item => {
+        const condRegion =
+          !region || region === '전체' ||
+          (item.region && item.region.indexOf(region) >= 0);
+        const condText =
+          !q ||
+          (item.title && item.title.indexOf(q) >= 0) ||
+          (item.client && item.client.indexOf(q) >= 0);
+        return condRegion && condText;
       });
-
       renderBids(filtered);
     }
 
-    // ==============================
-    // 리스트 렌더링
-    // ==============================
-    function renderBids(bids) {
-      const container = document.getElementById('list-container');
-
-      if (!bids || bids.length === 0) {
-        container.innerHTML = '<div class="empty">조건에 맞는 공고가 없습니다.</div>';
-        document.getElementById('stats-count').textContent = '0건';
-        return;
+    function globalClickHandler(e) {
+      const target = e.target;
+      if (target.classList.contains('btn-open-nara')) {
+        const link = target.dataset.link;
+        if (link) window.open(link, '_blank');
+      } else if (target.classList.contains('btn-second')) {
+        openSecondAnalysis(target);
+      } else if (target.id === 'modalCloseBtn') {
+        hideDetailModal();
+      } else if (target.id === 'modalOpenNara') {
+        const link = target.dataset.link;
+        if (link) window.open(link, '_blank');
       }
-
-      document.getElementById('stats-count').textContent =
-        `${bids.length.toLocaleString()}건 (필터 후)`;
-
-      const frag = document.createDocumentFragment();
-
-      bids.forEach(bid => {
-        const card = document.createElement('div');
-        card.className = 'bid-card';
-
-        const regionLabel = bid.region || '지역미상';
-        const title = bid.title || '제목없음';
-        const no = bid.no || '-';
-        const deadline = bid.deadline || bid.date || '';
-        const client = bid.client || '';
-        const agency = bid.agency || '';
-        const status = bid.status || '공고중';
-        const link = bid.link || '#';
-        const aiResult = bid.aiResult || 'AI 분석 결과 없음';
-
-        const siteArea = bid.siteArea || '';
-        const expectedTon = bid.expectedTon || '';
-        const serviceAmount = bid.serviceAmount || '';
-        const projectBudget = bid.projectBudget || '';
-
-        // 상·중·하 추출
-        const relevanceMatch = aiResult.match(/\[(상|중|하)\]/);
-        const relevance = relevanceMatch ? relevanceMatch[1] : null;
-
-        // 메인
-        const mainDiv = document.createElement('div');
-        mainDiv.className = 'bid-main';
-
-        const titleLine = document.createElement('div');
-        titleLine.className = 'bid-title-line';
-
-        const regionSpan = document.createElement('span');
-        regionSpan.className = 'bid-region';
-        regionSpan.textContent = regionLabel;
-
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'bid-title';
-        titleSpan.textContent = title;
-
-        titleLine.appendChild(regionSpan);
-        titleLine.appendChild(titleSpan);
-
-        const metaDiv = document.createElement('div');
-        metaDiv.className = 'bid-meta';
-
-        const meta1 = document.createElement('span');
-        meta1.textContent = `공고번호 ${no}`;
-        const meta2 = document.createElement('span');
-        meta2.textContent = `마감 ${deadline}`;
-        if (client) {
-          const meta3 = document.createElement('span');
-          meta3.textContent = `발주처 ${client}`;
-          metaDiv.appendChild(meta3);
-        }
-        if (agency) {
-          const meta4 = document.createElement('span');
-          meta4.textContent = `수요기관 ${agency}`;
-          metaDiv.appendChild(meta4);
-        }
-        metaDiv.appendChild(meta1);
-        metaDiv.appendChild(meta2);
-
-        mainDiv.appendChild(titleLine);
-        mainDiv.appendChild(metaDiv);
-
-        // 규모/금액 미니 정보
-        const metricsDiv = document.createElement('div');
-        metricsDiv.className = 'bid-metrics';
-
-        if (siteArea) {
-          const m = document.createElement('span');
-          m.className = 'metric-pill';
-          m.textContent = `대지면적: ${siteArea}`;
-          metricsDiv.appendChild(m);
-        }
-        if (expectedTon) {
-          const m = document.createElement('span');
-          m.className = 'metric-pill';
-          m.textContent = `예상톤수: ${expectedTon}`;
-          metricsDiv.appendChild(m);
-        }
-        if (serviceAmount) {
-          const m = document.createElement('span');
-          m.className = 'metric-pill';
-          m.textContent = `용역금액: ${serviceAmount}`;
-          metricsDiv.appendChild(m);
-        }
-        if (projectBudget) {
-          const m = document.createElement('span');
-          m.className = 'metric-pill';
-          m.textContent = `사업비: ${projectBudget}`;
-          metricsDiv.appendChild(m);
-        }
-
-        // 1차 요약 카드
-        const aiBox = document.createElement('div');
-        aiBox.className = 'ai-summary-box';
-
-        const aiHeader = document.createElement('div');
-        aiHeader.className = 'ai-summary-header';
-
-        const labelSpan = document.createElement('span');
-        labelSpan.className = 'label';
-        labelSpan.textContent = '1차 AI 요약';
-
-        const relevanceSpan = document.createElement('span');
-        relevanceSpan.className = 'relevance';
-        if (relevance === '상') {
-          relevanceSpan.style.borderColor = '#22c55e';
-          relevanceSpan.style.color = '#bbf7d0';
-        } else if (relevance === '중') {
-          relevanceSpan.style.borderColor = '#eab308';
-          relevanceSpan.style.color = '#facc15';
-        } else if (relevance === '하') {
-          relevanceSpan.style.borderColor = '#4b5563';
-          relevanceSpan.style.color = '#9ca3af';
-        }
-        relevanceSpan.textContent = relevance ? `관련성 ${relevance}` : '관련성 -';
-
-        const toggleBtn = document.createElement('button');
-        toggleBtn.className = 'btn';
-        toggleBtn.style.fontSize = '11px';
-        toggleBtn.textContent = '자세히';
-
-        const bodyDiv = document.createElement('div');
-        bodyDiv.className = 'ai-summary-body collapsed';
-        bodyDiv.textContent = aiResult.replace(/^\[(상|중|하)\]\s*/, '');
-
-        toggleBtn.addEventListener('click', () => {
-          const collapsed = bodyDiv.classList.toggle('collapsed');
-          toggleBtn.textContent = collapsed ? '자세히' : '닫기';
-        });
-
-        aiHeader.appendChild(labelSpan);
-        aiHeader.appendChild(relevanceSpan);
-        aiHeader.appendChild(toggleBtn);
-
-        aiBox.appendChild(aiHeader);
-        aiBox.appendChild(bodyDiv);
-
-        // 액션 영역
-        const actions = document.createElement('div');
-        actions.className = 'bid-actions';
-
-        const left = document.createElement('div');
-        left.className = 'bid-actions-left';
-
-        const statusPill = document.createElement('span');
-        statusPill.className = 'status-pill';
-        statusPill.textContent = status;
-
-        left.appendChild(statusPill);
-
-        const right = document.createElement('div');
-        right.className = 'bid-actions-right';
-
-        const detailBtn = document.createElement('button');
-        detailBtn.className = 'btn primary';
-        detailBtn.style.fontSize = '11px';
-        detailBtn.textContent = '2차 분석';
-        detailBtn.addEventListener('click', () => {
-          openDetailAnalysis(no);
-        });
-
-        const linkA = document.createElement('a');
-        linkA.href = link || '#';
-        linkA.target = '_blank';
-        linkA.rel = 'noopener noreferrer';
-        linkA.className = 'btn';
-        linkA.style.fontSize = '11px';
-        linkA.textContent = '나라장터 열기';
-
-        right.appendChild(detailBtn);
-        right.appendChild(linkA);
-
-        actions.appendChild(left);
-        actions.appendChild(right);
-
-        card.appendChild(mainDiv);
-        if (metricsDiv.childElementCount > 0) {
-          card.appendChild(metricsDiv);
-        }
-        card.appendChild(aiBox);
-        card.appendChild(actions);
-
-        frag.appendChild(card);
-      });
-
-      container.innerHTML = '';
-      container.appendChild(frag);
     }
 
-    // ==============================
-    // 2차 분석 호출
-    // ==============================
-    async function openDetailAnalysis(no) {
-      if (!no) {
-        alert('공고번호가 없습니다.');
-        return;
-      }
+    async function openSecondAnalysis(btn) {
+      const bidNo = btn.dataset.no;
+      const link = btn.dataset.link;
+      const title = btn.dataset.title;
+      const region = btn.dataset.region;
+      const client = btn.dataset.client;
 
-      const backdrop = document.getElementById('detail-modal-backdrop');
-      const titleEl = document.getElementById('detail-title');
-      const s1El = document.getElementById('detail-summary1');
-      const s2El = document.getElementById('detail-summary2');
-      const attEl = document.getElementById('detail-attachments');
-
-      // 초기화
-      titleEl.textContent = '2차 상세 분석 중...';
-      s1El.textContent = '';
-      s2El.textContent = 'AI가 상세 분석을 수행하고 있습니다...';
-      attEl.innerHTML = '';
-      setChip('chip-siteArea', '대지면적: -');
-      setChip('chip-expectedTon', '예상톤수: -');
-      setChip('chip-serviceAmount', '용역금액: -');
-      setChip('chip-projectBudget', '사업비: -');
-
-      backdrop.classList.add('show');
+      const modal = document.getElementById('detailModal');
+      const content = document.getElementById('detailContent');
+      modal.classList.remove('hidden');
+      content.innerHTML =
+        '<p class="help">[' + escapeHtml(bidNo) + '] ' +
+        escapeHtml(title) + '<br>2차 분석 중입니다...</p>';
 
       try {
-        const res = await fetch(`${API_BASE}?action=detailAnalysis&no=${encodeURIComponent(no)}`);
-        const data = await res.json();
+        const url =
+          API_BASE + '?action=secondAnalysis' +
+          '&bidNo=' + encodeURIComponent(bidNo) +
+          '&link=' + encodeURIComponent(link) +
+          '&title=' + encodeURIComponent(title) +
+          '&region=' + encodeURIComponent(region) +
+          '&client=' + encodeURIComponent(client);
 
-        if (!data.success) {
-          alert(data.message || '2차 분석에 실패했습니다.');
-          closeDetailModal();
-          return;
-        }
+        const resp = await fetch(url);
+        const data = await resp.json();
 
-        titleEl.textContent = `[${data.no}] ${data.title || ''}`;
-        s1El.textContent = data.summary1 || '(1차 요약 없음)';
-        s2El.textContent = data.summary2 || '(2차 상세 요약 없음)';
+        const attachHtml =
+          data.attachments && data.attachments.length
+            ? '<ul>' +
+              data.attachments
+                .map(name => '<li>' + escapeHtml(name) + '</li>')
+                .join('') +
+              '</ul>'
+            : '<p class="help">나라장터 상세에서 첨부파일 이름을 찾지 못했습니다.</p>';
 
-        setChip('chip-siteArea', `대지면적: ${data.siteArea || '-'}`);
-        setChip('chip-expectedTon', `예상톤수: ${data.expectedTon || '-'}`);
-        setChip('chip-serviceAmount', `용역금액: ${data.serviceAmount || '-'}`);
-        setChip('chip-projectBudget', `사업비: ${data.projectBudget || '-'}`);
-
-        attEl.innerHTML = '';
-        if (Array.isArray(data.attachments) && data.attachments.length > 0) {
-          data.attachments.forEach(name => {
-            const li = document.createElement('li');
-            li.textContent = name;
-            attEl.appendChild(li);
-          });
-        } else {
-          const li = document.createElement('li');
-          li.textContent = '첨부파일 이름 정보를 찾지 못했습니다.';
-          attEl.appendChild(li);
-        }
-      } catch (e) {
-        console.error(e);
-        alert('2차 분석 호출 중 오류가 발생했습니다.');
-        closeDetailModal();
+        content.innerHTML = `
+  <h2 class="modal-title">[${escapeHtml(data.bidNo || bidNo)}] ${escapeHtml(data.title || title)}</h2>
+  <p class="modal-sub">수요기관: ${escapeHtml(data.client || client)} / 지역: ${escapeHtml(data.region || region)}</p>
+  <div class="modal-section">
+    <h3>한국수안 관점 2차 요약 ${data.relevance ? '(' + escapeHtml(data.relevance) + ')' : ''}</h3>
+    <p>${escapeHtml(data.summary || '요약 결과가 없습니다.')}</p>
+    ${data.reason ? '<p class="help">' + escapeHtml(data.reason) + '</p>' : ''}
+  </div>
+  <div class="modal-section">
+    <h3>톤수 추정 & 시설 유형</h3>
+    <p>예상 시설 유형: ${escapeHtml(data.siteType || '추정 불가')}</p>
+    <p>예상 저류조 규모: ${escapeHtml(data.tonEstimate || '')} ${data.tonLevel ? '(' + escapeHtml(data.tonLevel) + ')' : ''}</p>
+    ${data.tonReason ? '<p class="help">' + escapeHtml(data.tonReason) + '</p>' : ''}
+  </div>
+  <div class="modal-section">
+    <h3>리스크 & 기회</h3>
+    <p><strong>리스크:</strong> ${escapeHtml(data.risk || '별도 언급 없음')}</p>
+    <p><strong>기회:</strong> ${escapeHtml(data.opportunity || '별도 언급 없음')}</p>
+  </div>
+  <div class="modal-section">
+    <h3>나라장터 첨부파일 이름</h3>
+    ${attachHtml}
+  </div>
+  <div class="modal-buttons">
+    <button id="modalCloseBtn" class="btn-outline">닫기</button>
+    <button id="modalOpenNara" class="btn-primary" data-link="${escapeHtml(link)}">나라장터 열기</button>
+  </div>`;
+      } catch (err) {
+        content.innerHTML =
+          '<p class="error">2차 분석 중 오류가 발생했습니다: ' +
+          escapeHtml(err.message) + '</p>';
       }
     }
 
-    function setChip(id, text) {
-      const el = document.getElementById(id);
-      if (el) el.textContent = text;
+    function hideDetailModal() {
+      document.getElementById('detailModal').classList.add('hidden');
     }
 
-    function closeDetailModal() {
-      document.getElementById('detail-modal-backdrop').classList.remove('show');
+    function escapeHtml(str) {
+      return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
   </script>
 </body>
