@@ -17,12 +17,22 @@
     /* 상단 컨트롤 */
     .control-box-bg {
       background: white;
-      position: sticky; top: 0; z-index: 1000;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
       box-shadow: 0 4px 15px rgba(0,0,0,0.05);
       padding: 15px 0 20px;
       border-bottom-left-radius: 20px;
       border-bottom-right-radius: 20px;
+      transition: transform 0.2s ease, opacity 0.2s ease;
     }
+    /* 스크롤 내릴 때 상단 바 접기 */
+    .control-box-bg.collapsed {
+      transform: translateY(-110%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
     .button-row {
       display: flex; gap: 8px; width: 100%; margin-bottom: 15px;
     }
@@ -240,11 +250,22 @@
       color: #d35400;
     }
 
+    /* 1차 AI 요약 박스 */
+    .ai-brief {
+      margin-top: 8px;
+      font-size: 0.85em;
+      background-color: #f3e9ff;
+      padding: 8px 10px;
+      border-radius: 10px;
+      color: #4a148c;
+      border: 1px solid #e1bee7;
+    }
+
     .ai-analysis-box {
       display: none;
       background-color: #f3e5f5;
       padding: 12px;
-      margin-top: 10px;
+      margin-top: 8px;
       border-radius: 10px;
       font-size: 0.85em;
       color: #4a148c;
@@ -364,7 +385,7 @@
     <div class="voice-text" id="voice-result"></div>
 
     <div class="input-group">
-      <input type="text" id="search-input" placeholder="예: 다음 주 마감되는 저류조 공고 찾아줘">
+      <input type="text" id="search-input" placeholder="예: 다음 주 마감되는 저류조 공고 찾아줘 (현재 버전은 키워드 검색만)">
       <button id="btn-search">검색</button>
     </div>
     <div id="user-info"></div>
@@ -384,29 +405,25 @@
   <div class="modal-content">
     <h3 style="margin-top:0; color:#2c3e50;">📝 외부 공고 스마트 등록</h3>
     <p style="font-size:0.9em; color:#666; line-height:1.4;">
-      외부 사이트 공고문을 그대로 붙여넣으면, AI가 공고번호·마감일·금액·면적·톤수까지 추출하여 시트에 저장합니다.
+      (현재 버전은 AI 자동 분석 없이, 추후 백엔드 연동 예정입니다.)
     </p>
     <textarea id="paste-area" placeholder="[예시]&#13;&#10;공고명: 서울시 빗물저류조 설치공사&#13;&#10;공고번호: R25BK00000000&#13;&#10;지역: 서울특별시 강남구&#13;&#10;공고일: 2025년 11월 20일 10:00&#13;&#10;마감일: 2025년 12월 1일 18:00&#13;&#10;발주처: 서울특별시청&#13;&#10;수요기관: 서울시 물순환정책과&#13;&#10;용역기간: 계약일로부터 12개월&#13;&#10;용역금액: 3억 5천만원&#13;&#10;총사업비: 5억원&#13;&#10;대지면적: 12,345㎡&#13;&#10;저류조 예상용량: 약 2,500톤&#13;&#10;담당자: 홍길동(02-1234-5678)&#13;&#10;링크: https://..."></textarea>
     <div class="modal-btns">
       <button onclick="closeModal()" style="background:#b2bec3; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">취소</button>
-      <button id="btn-smart-save" onclick="processSmartAdd()" style="background:#6c5ce7; color:white; font-weight:bold; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">✨ AI 분석 및 저장</button>
+      <button id="btn-smart-save" onclick="processSmartAdd()" style="background:#6c5ce7; color:white; font-weight:bold; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">✨ (준비중)</button>
     </div>
   </div>
 </div>
 
 <script src="https://apis.google.com/js/api.js"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
   // ===== 설정값 =====
-  const GEMINI_MODEL_ID = 'gemini-2.0-flash';
-
-  // 👉 기존에 사용하시던 값으로 그대로 둡니다.
   const BID_CALENDAR_ID  = 'd51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04@group.calendar.google.com';
   const SCRIPT_URL       = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
-  const CLIENT_ID        = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com';
 
+  const CLIENT_ID   = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com';
   const SCOPES      = 'https://www.googleapis.com/auth/calendar.events';
   const STORAGE_KEY = 'hksuan_google_token_v2';
 
@@ -414,7 +431,23 @@
   let tokenClient;
   let isLogin    = false;
 
-  // 캘린더 iframe 기본 설정
+  // ===== 상단 바 접기 (스크롤) =====
+  (function setupHeaderCollapse() {
+    const header = document.querySelector('.control-box-bg');
+    let lastY = window.pageYOffset || 0;
+
+    window.addEventListener('scroll', () => {
+      const currentY = window.pageYOffset || 0;
+      if (currentY > 120 && currentY > lastY) {
+        header.classList.add('collapsed');   // 아래로 스크롤 → 접기
+      } else if (currentY < lastY) {
+        header.classList.remove('collapsed'); // 위로 스크롤 → 다시 펼치기
+      }
+      lastY = currentY;
+    });
+  })();
+
+  // ===== 캘린더 iframe 기본 설정 =====
   function setupCalendarView() {
     const iframe = document.getElementById('cal-frame');
     let calSrc = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(BID_CALENDAR_ID)}&ctz=Asia%2FSeoul&hl=ko`;
@@ -424,45 +457,62 @@
     iframe.src = calSrc;
   }
 
-  // ────────────────────────────────────
-  // 공통 Gemini 호출 – Apps Script 프록시 사용
-  // ────────────────────────────────────
-  async function callGemini(prompt) {
-    const controller = new AbortController();
-    const timeoutId  = setTimeout(() => controller.abort(), 20000);
+  // ===== 데이터 후처리: 지역 보정 + 예상톤수 추정 =====
+  function enrichItem(item) {
+    const enriched = { ...item };
 
-    try {
-      const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'gemini',
-          model: GEMINI_MODEL_ID,
-          prompt: prompt
-        }),
-        signal: controller.signal
-      });
-
-      const data = await response.json();
-
-      if (data && data.error) {
-        const msg = data.message || `Gemini 프록시 오류 (status=${data.status || 'unknown'})`;
-        throw new Error(msg);
-      }
-
-      return data;
-    } finally {
-      clearTimeout(timeoutId);
+    // 1) 지역 보정 (제목/발주처/수요기관에서 시·도 추출)
+    if (!enriched.region || enriched.region === '지역미상' || enriched.region === '-') {
+      enriched.region = classifyRegionFromText(
+        (enriched.region || '') + ' ' +
+        (enriched.title  || '') + ' ' +
+        (enriched.client || '') + ' ' +
+        (enriched.agency || '')
+      );
     }
+
+    // 2) 예상톤수 추정 (대지면적 숫자 × 0.6톤/㎡ 가정)
+    if (!enriched.expectedTon && enriched.siteArea) {
+      const num = parseFloat(String(enriched.siteArea).replace(/[^\d.]/g, '')) || 0;
+      if (num > 0) {
+        const ton = Math.round(num * 0.6); // 간단 가정값
+        enriched.expectedTon = String(ton);
+      }
+    }
+
+    return enriched;
   }
 
-  function extractGeminiText(data) {
-    const parts = data?.candidates?.[0]?.content?.parts || [];
-    let text    = parts.map(p => p.text || '').join('\n');
-    text        = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) text = jsonMatch[0];
-    return text;
+  function classifyRegionFromText(text) {
+    const t = (text || '').replace(/\s+/g, '');
+    if (!t) return '지역미상';
+
+    const mapping = [
+      { key: ['서울특별시','서울시','서울'], value: '서울특별시' },
+      { key: ['경기도','경기'],             value: '경기도' },
+      { key: ['인천광역시','인천'],         value: '인천광역시' },
+      { key: ['부산광역시','부산'],         value: '부산광역시' },
+      { key: ['대구광역시','대구'],         value: '대구광역시' },
+      { key: ['광주광역시','광주'],         value: '광주광역시' },
+      { key: ['대전광역시','대전'],         value: '대전광역시' },
+      { key: ['울산광역시','울산'],         value: '울산광역시' },
+      { key: ['세종특별자치시','세종시','세종'], value: '세종특별자치시' },
+      { key: ['강원특별자치도','강원도','강원'], value: '강원특별자치도' },
+      { key: ['충청북도','충북'],           value: '충청북도' },
+      { key: ['충청남도','충남'],           value: '충청남도' },
+      { key: ['전라북도','전북'],           value: '전라북도' },
+      { key: ['전라남도','전남'],           value: '전라남도' },
+      { key: ['경상북도','경북'],           value: '경상북도' },
+      { key: ['경상남도','경남'],           value: '경상남도' },
+      { key: ['제주특별자치도','제주도','제주'], value: '제주특별자치도' },
+    ];
+
+    for (const m of mapping) {
+      for (const k of m.key) {
+        if (t.includes(k)) return m.value;
+      }
+    }
+    return '지역미상';
   }
 
   // ===== 1. 데이터 로드 =====
@@ -489,13 +539,15 @@
 
       const now = new Date();
       // 마감일이 지난 공고는 프론트에서 한 번 더 필터링
-      allData = json.filter(item => {
-        if (!item.deadline) return true;
-        const iso = String(item.deadline).replace(' ', 'T');
-        const d = new Date(iso);
-        if (isNaN(d.getTime())) return true;
-        return d >= now;
-      });
+      allData = json
+        .filter(item => {
+          if (!item.deadline) return true;
+          const iso = String(item.deadline).replace(' ', 'T');
+          const d = new Date(iso);
+          if (isNaN(d.getTime())) return true;
+          return d >= now;
+        })
+        .map(enrichItem); // 지역/톤수 보정
 
       renderList(allData);
       statusEl.innerHTML = `✅ 총 <b>${allData.length}</b>건의 공고를 찾았습니다.`;
@@ -518,74 +570,9 @@
     document.getElementById('paste-area').value = '';
   }
 
-  async function processSmartAdd() {
-    const text = document.getElementById('paste-area').value;
-    if (!text) {
-      alert('내용을 붙여넣어 주세요!');
-      return;
-    }
-
-    const btn = document.getElementById('btn-smart-save');
-    btn.innerText = '🧠 분석 및 저장 중...';
-    btn.disabled  = true;
-
-    const prompt =
-      '다음은 한국의 공공입찰 공고문 텍스트입니다.\n' +
-      '아래 항목을 최대한 정확히 추출해서 JSON 한 줄로만 응답하세요.\n\n' +
-      '필드 설명:\n' +
-      'no            : 공고번호 (문자열, 없으면 "정보없음")\n' +
-      'region        : 지역 (예: "서울특별시 강남구" 등, 없으면 빈 문자열)\n' +
-      'title         : 공고명\n' +
-      'date          : 공고일 (YYYY-MM-DD HH:mm 형태, 시간 없으면 "YYYY-MM-DD 00:00")\n' +
-      'deadline      : 마감일 (YYYY-MM-DD HH:mm 형태, 없으면 빈 문자열)\n' +
-      'client        : 발주처(공고기관)\n' +
-      'agency        : 수요기관 (구분이 안 되면 발주처와 동일하게)\n' +
-      'servicePeriod : 용역기간 (예: "계약일로부터 12개월")\n' +
-      'serviceAmount : 용역금액 (예: "350,000,000원" 또는 "3억 5천만원" 등 원문 그대로 요약)\n' +
-      'projectBudget : 총사업비/사업비 (있으면 기입, 없으면 빈 문자열)\n' +
-      'clientManager : 발주처 담당자 이름과 연락처 (예: "홍길동(02-1234-5678)")\n' +
-      'siteArea      : 대지면적 또는 연면적 (㎡ 단위 숫자 또는 예: "12,345㎡")\n' +
-      'expectedTon   : 빗물저류조 예상 용량 또는 예상톤수 (예: "2,500톤" 또는 "약 2,500톤")\n' +
-      'link          : 공고문 URL (없으면 "#")\n\n' +
-      '출력 형식 예시(한 줄):\n' +
-      '{"no":"R25BK00000000","region":"서울특별시 강남구","title":"서울시 빗물저류조 설치공사","date":"2025-11-20 10:00","deadline":"2025-12-01 18:00","client":"서울특별시청","agency":"서울시 물순환정책과","servicePeriod":"계약일로부터 12개월","serviceAmount":"350,000,000원","projectBudget":"500,000,000원","clientManager":"홍길동(02-1234-5678)","siteArea":"12345㎡","expectedTon":"2500톤","link":"https://..."}\n\n' +
-      '위 형식을 반드시 지키고, 설명 문장 없이 JSON 객체 1개만 출력하세요.\n\n' +
-      '입력 텍스트:\n' + text;
-
-    try {
-      const aiData = await callGemini(prompt);
-      const aiText = extractGeminiText(aiData);
-      const result = JSON.parse(aiText);
-
-      const saveUrl =
-        `${SCRIPT_URL}?action=add` +
-        `&no=${encodeURIComponent(result.no || '정보없음')}` +
-        `&region=${encodeURIComponent(result.region || '')}` +
-        `&title=${encodeURIComponent(result.title || '')}` +
-        `&date=${encodeURIComponent(result.date || '')}` +
-        `&deadline=${encodeURIComponent(result.deadline || '')}` +
-        `&client=${encodeURIComponent(result.client || '')}` +
-        `&agency=${encodeURIComponent(result.agency || '')}` +
-        `&servicePeriod=${encodeURIComponent(result.servicePeriod || '')}` +
-        `&serviceAmount=${encodeURIComponent(result.serviceAmount || '')}` +
-        `&projectBudget=${encodeURIComponent(result.projectBudget || '')}` +
-        `&clientManager=${encodeURIComponent(result.clientManager || '')}` +
-        `&siteArea=${encodeURIComponent(result.siteArea || '')}` +
-        `&expectedTon=${encodeURIComponent(result.expectedTon || '')}` +
-        `&link=${encodeURIComponent(result.link || '#')}`;
-
-      await fetch(saveUrl, { mode: 'no-cors' });
-
-      alert(`✅ 저장 요청 완료!\n[${result.title}]`);
-      closeModal();
-      setTimeout(loadData, 2000);
-    } catch (e) {
-      console.error(e);
-      alert('저장 실패: ' + e.message);
-    } finally {
-      btn.innerText = '✨ AI 분석 및 저장';
-      btn.disabled  = false;
-    }
+  // 현재 버전: 프론트 AI 분석 없이 안내만
+  function processSmartAdd() {
+    alert('현재 버전에서는 프론트단 AI 분석 없이 동작합니다.\n\n공고는 스프레드시트에서 수동으로 입력해 주세요.\n(추후 백엔드 AI 분석과 연동 예정)');
   }
 
   // ===== 3. 리스트 렌더링 =====
@@ -624,6 +611,10 @@
           if (diff <= 3) cardClass = 'urgent';
         }
       }
+
+      const aiSummary = (item.aiResult && item.aiResult !== 'AI 분석 결과 없음')
+        ? item.aiResult
+        : '';
 
       const div = document.createElement('div');
       div.className = `card ${cardClass}`;
@@ -685,10 +676,20 @@
           </div>
         </div>
 
+        ${
+          aiSummary
+            ? `<div class="ai-brief">🤖 <strong>1차 AI 요약</strong> — ${aiSummary}</div>`
+            : ''
+        }
+
         <div id="ai-result-${index}" class="ai-analysis-box"></div>
 
         <div class="card-footer">
-          <button class="btn-ai" data-index="${index}">🤖 상세 AI 분석</button>
+          ${
+            aiSummary
+              ? `<button class="btn-ai" data-index="${index}">🔍 1차 요약 펼치기</button>`
+              : ''
+          }
           <a href="${item.link || '#'}" target="_blank" class="btn-link">📄 공고문</a>
           <button class="btn-cal" data-index="${index}">📅 캘린더</button>
         </div>
@@ -696,13 +697,14 @@
       list.appendChild(div);
     });
 
+    // 1차 요약 토글 버튼
     document.querySelectorAll('.btn-ai').forEach(btn => {
       btn.onclick = () => {
         const i = parseInt(btn.dataset.index, 10);
-        const item = allData[i];
-        analyzeBidWithAI(item, i);
+        toggleAiBox(i);
       };
     });
+    // 캘린더 버튼
     document.querySelectorAll('.btn-cal').forEach(btn => {
       btn.onclick = () => {
         const i = parseInt(btn.dataset.index, 10);
@@ -712,7 +714,31 @@
     });
   }
 
-  // ===== 4. 검색 =====
+  // 1차 요약 상세 보기 토글 (현재는 백엔드 요약만 사용)
+  function toggleAiBox(index) {
+    const box  = document.getElementById(`ai-result-${index}`);
+    const item = allData[index];
+    const summary = item.aiResult || '백엔드 AI 요약이 없습니다.';
+
+    if (box.style.display === 'block') {
+      box.style.display = 'none';
+      box.innerHTML = '';
+      return;
+    }
+
+    box.style.display = 'block';
+    box.innerHTML = `
+      <strong>1차 AI 요약 상세</strong><br>
+      <span>${summary.replace(/\n/g, '<br>')}</span>
+      <br><br>
+      <span style="font-size:0.8em;color:#6c5ce7;">
+        ※ 현재 버전은 백엔드 1차 요약만 사용합니다.<br>
+        공고 첨부문서까지 분석하는 2차 상세 AI는 추후 서버에서 확장 예정입니다.
+      </span>
+    `;
+  }
+
+  // ===== 4. 검색 (단순 텍스트 기준) =====
   function simpleSearch(keyword) {
     const q = keyword.toLowerCase();
     const filtered = allData.filter(item =>
@@ -724,66 +750,7 @@
     const status = document.getElementById('status');
     status.innerHTML = filtered.length > 0
       ? `🔍 "<b>${keyword}</b>" 검색 결과: ${filtered.length}건`
-      : `🔍 "<b>${keyword}</b>" 내부 DB 검색 결과 없음`;
-  }
-
-  async function searchWithAI(query) {
-    if (!query) {
-      renderList(allData);
-      return;
-    }
-    const status = document.getElementById('status');
-
-    const basicFilter = allData.filter(item =>
-      (item.title  || '').includes(query) ||
-      (item.agency || '').includes(query) ||
-      (item.region || '').includes(query)
-    );
-    if (basicFilter.length > 0 && !query.match(/(내일|모레|주|달|월|마감|언제)/)) {
-      renderList(basicFilter);
-      status.innerHTML = `🔍 "<b>${query}</b>" 검색 결과: ${basicFilter.length}건`;
-      return;
-    }
-
-    status.innerHTML = `<span class="spin-icon">🧠</span> AI가 검색 조건을 분석하고 있습니다...`;
-
-    const today = new Date().toISOString().split('T')[0];
-    const prompt =
-      `Today is ${today}. Analyze this Korean query: "${query}"\n` +
-      'Extract keyword (for title/agency/region) and date range for bid deadline.\n' +
-      'Response format: {"keyword":"...","startDate":"YYYY-MM-DD","endDate":"YYYY-MM-DD"} ONLY.';
-
-    try {
-      const data   = await callGemini(prompt);
-      const text   = extractGeminiText(data);
-      const result = JSON.parse(text);
-
-      const filtered = allData.filter(item => {
-        let dateMatch    = true;
-        let keywordMatch = true;
-
-        if (result.startDate && result.endDate && item.deadline) {
-          const itemDate = String(item.deadline).split(' ')[0];
-          dateMatch = itemDate >= result.startDate && itemDate <= result.endDate;
-        }
-        if (result.keyword) {
-          const k = result.keyword.toLowerCase();
-          keywordMatch =
-            (item.title  || '').toLowerCase().includes(k) ||
-            (item.agency || '').toLowerCase().includes(k) ||
-            (item.region || '').toLowerCase().includes(k);
-        }
-        return dateMatch && keywordMatch;
-      });
-
-      renderList(filtered);
-      status.innerHTML = filtered.length > 0
-        ? `🤖 AI 검색 결과: <b>${filtered.length}</b>건`
-        : '🤖 AI 분석 완료: <b>조건에 맞는 공고가 없습니다.</b>';
-    } catch (e) {
-      console.error('AI 검색 오류:', e);
-      simpleSearch(query);
-    }
+      : `🔍 "<b>${keyword}</b>" 검색 결과 없음 (현재 버전은 단순 키워드 기준)`;
   }
 
   function doSearch(keyword) {
@@ -792,56 +759,10 @@
       document.getElementById('status').innerHTML = `전체 <b>${allData.length}</b>건`;
       return;
     }
-    if (keyword.match(/(내일|모레|주|달|월|마감|언제)/)) {
-      searchWithAI(keyword);
-    } else {
-      simpleSearch(keyword);
-    }
+    simpleSearch(keyword);
   }
 
-  // ===== 5. 개별 공고 상세 AI 분석 =====
-  async function analyzeBidWithAI(item, index) {
-    const box = document.getElementById(`ai-result-${index}`);
-    if (box.style.display === 'block') {
-      box.style.display = 'none';
-      return;
-    }
-
-    box.style.display = 'block';
-    box.innerHTML     = `<span class="spin-icon">🧠</span> 분석 중...`;
-
-    const prompt =
-      "나는 '빗물저류조' 및 우수저류시설 전문 시공사(한국수안) 직원이다.\n" +
-      '다음 입찰 공고가 우리 회사에 얼마나 적합한지 간단히 분석해줘.\n\n' +
-      `공고번호: ${item.no}\n` +
-      `지역: ${item.region}\n` +
-      `공고명: ${item.title}\n` +
-      `공고일: ${item.date}\n` +
-      `마감일: ${item.deadline}\n` +
-      `발주처: ${item.client}\n` +
-      `수요기관: ${item.agency}\n` +
-      `용역기간: ${item.servicePeriod}\n` +
-      `용역금액: ${item.serviceAmount}\n` +
-      `사업비: ${item.projectBudget}\n` +
-      `대지면적: ${item.siteArea}\n` +
-      `예상톤수: ${item.expectedTon}\n\n` +
-      '1) 공사의 주요 내용과 스케일 요약\n' +
-      '2) 빗물저류조·우수저류시설·침수방지 사업과의 관련성 및 우리 회사 적합도 (높음/중간/낮음 + 이유)\n' +
-      '3) 입찰 참여 시 기술·가격·경쟁구도 관점 체크포인트 3~5개\n' +
-      '4) 추가로 발주처/설계자에게 확인해야 할 질문 3개 정도 제안\n' +
-      '순수 마크다운 텍스트로만 답변해줘.';
-
-    try {
-      const data = await callGemini(prompt);
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '분석 결과가 없습니다.';
-      box.innerHTML = marked.parse(text);
-    } catch (e) {
-      console.error(e);
-      box.innerHTML = '❌ 분석 실패: ' + (e.message || '알 수 없는 오류');
-    }
-  }
-
-  // ===== 6. 구글 캘린더 연동 =====
+  // ===== 5. 구글 캘린더 연동 =====
   function initGoogle() {
     gapi.load('client', async () => {
       await gapi.client.init({
@@ -949,7 +870,7 @@
     }
   }
 
-  // ===== 7. UI 이벤트 =====
+  // ===== 6. 음성 검색 =====
   document.getElementById('btn-voice').onclick = () => {
     if (!('webkitSpeechRecognition' in window)) {
       alert('크롬 브라우저를 사용해주세요.');
@@ -967,8 +888,8 @@
     };
   };
 
-  document.getElementById('btn-search').onclick  = () =>
-    doSearch(document.getElementById('search-input').value);
+  // ===== 7. 버튼 이벤트 =====
+  document.getElementById('btn-search').onclick  = () => doSearch(document.getElementById('search-input').value);
   document.getElementById('btn-refresh').onclick = loadData;
 
   // ===== 8. 초기 실행 =====
