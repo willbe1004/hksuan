@@ -21,7 +21,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 8px;
     }
     header h1 {
       font-size: 20px;
@@ -188,6 +188,19 @@
       border-radius: 999px;
       background: #55efc4;
     }
+    .stats-bar {
+      font-size: 11px;
+      color: #b2bec3;
+      margin-bottom: 6px;
+    }
+    .stats-bar span {
+      margin-right: 8px;
+    }
+    .card-manager {
+      margin-top: 6px;
+      font-size: 10px;
+      color: #95a5a6;
+    }
 
     /* 모달 공통 */
     .modal-backdrop {
@@ -288,6 +301,8 @@
     </div>
   </header>
 
+  <div id="stats-bar" class="stats-bar"></div>
+
   <div class="filters">
     <input id="search-keyword" placeholder="예: 학교 개축, 리노베이션, 서울시" oninput="applyFilter()">
     <select id="region-filter" onchange="applyFilter()">
@@ -328,7 +343,12 @@
     </small>
 
     <div class="section-title">첨부파일 다운로드 주소 (선택)</div>
-    <input type="text" id="file-url" placeholder="예: https://.../공사입찰설명서.hwp (여러 개는 공백/콤마로 구분)">
+    <small style="display:block; margin-bottom:4px; font-size:10px; color:#7f8c8d;">
+      한 줄당 1개씩 여러 개 입력 가능 (예: 공고문 PDF + 과업지시서 HWP)
+    </small>
+    <textarea id="file-urls"
+      placeholder="예) https://.../공사입찰설명서.hwp&#13;&#10;https://.../기술제안요청서.pdf"
+      style="min-height:64px;"></textarea>
 
     <div class="section-title">텍스트 직접 붙여넣기 (선택)</div>
     <textarea id="paste-area"
@@ -353,7 +373,7 @@
     </div>
 
     <div id="detail-loading" style="font-size:12px; color:#b2bec3; margin-top:8px; display:none;">
-      🔍 나라장터 상세와 첨부 정보를 AI가 읽는 중입니다...
+      🔍 상세 페이지와 첨부 정보를 AI가 읽는 중입니다...
     </div>
 
     <div id="detail-content" style="display:none; margin-top:6px; font-size:12px;">
@@ -372,7 +392,7 @@
       <div class="section-title">체크 포인트</div>
       <ul id="detail-checkpoints" class="small-list"></ul>
 
-      <div class="section-title">첨부파일 이름 (나라장터 기준)</div>
+      <div class="section-title">첨부파일 이름 (상세 페이지 기준)</div>
       <ul id="detail-attachments" class="small-list"></ul>
 
       <div class="section-title">전략 메모</div>
@@ -392,6 +412,12 @@
   let allData = [];
   let filterMode = 'all'; // all | high | mid
 
+  function escapeHtml(str) {
+    return (str || '').replace(/[&<>"']/g, function (ch) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch] || ch;
+    });
+  }
+
   async function loadData() {
     const list = document.getElementById('list');
     list.innerHTML = '<div style="font-size:12px; color:#b2bec3;">데이터를 불러오는 중입니다...</div>';
@@ -403,6 +429,26 @@
     } catch (e) {
       console.error(e);
       list.innerHTML = '<div style="font-size:12px; color:#e17055;">데이터 로딩 실패: ' + e.message + '</div>';
+    }
+  }
+
+  async function loadStats() {
+    const el = document.getElementById('stats-bar');
+    if (!el) return;
+    try {
+      const res = await fetch(API_BASE + '?action=stats');
+      const json = await res.json();
+      const total = json.totalUnique || 0;
+      const selected = json.selectedRows || 0;
+      const sheetRows = json.sheetRows || 0;
+      const days = json.daysBack || 7;
+      const updated = json.lastUpdateAt || '';
+      el.textContent =
+        `최근 ${days}일 기준 자동 수집: API 조회 ${total}건 → 패턴 필터 ${selected}건 / 시트 전체 ${sheetRows}건` +
+        (updated ? ` (마지막 갱신: ${updated})` : '');
+    } catch (e) {
+      console.error(e);
+      el.textContent = '';
     }
   }
 
@@ -459,6 +505,21 @@
       if (/관련성 상/.test(aiText) || /\[.*상.*\]/.test(aiText)) relTagClass = 'green';
       if (/관련성 하/.test(aiText) || /\[.*하.*\]/.test(aiText)) relTagClass = 'red';
 
+      const isManual = (item.status || '').indexOf('수동') !== -1;
+      const linkLabel = isManual ? '원문 열기' : '나라장터 열기';
+      const hasLink = item.link && item.link !== '#';
+
+      const managerLine = item.clientManager
+        ? '<div class="card-manager">담당: ' + escapeHtml(item.clientManager) + '</div>'
+        : '';
+
+      const footerParts = [];
+      footerParts.push('공고일 ' + (item.date || '-'));
+      footerParts.push('마감 ' + (item.deadline || '-'));
+      if (item.expectedTon) footerParts.push('예상 ' + item.expectedTon);
+      if (item.serviceAmount) footerParts.push('용역금액 ' + item.serviceAmount);
+      if (item.projectBudget) footerParts.push('사업비 ' + item.projectBudget);
+
       card.innerHTML = `
         <div class="card-header">
           <div>
@@ -475,15 +536,14 @@
             <span>${item.status || '공고중'}</span>
           </div>
         </div>
-        <div class="card-body">${(aiText || 'AI 분석 대기중')}</div>
+        <div class="card-body">${(aiText || 'AI 분석 대기중')}${managerLine}</div>
         <div class="card-footer">
           <div class="card-footer-left">
-            공고일 ${item.date || '-'} · 마감 ${item.deadline || '-'}
-            ${item.expectedTon ? ' · 예상 ' + item.expectedTon : ''}
+            ${footerParts.join(' · ')}
           </div>
           <div class="card-footer-right">
             <button class="btn btn-secondary" onclick='openDetailModal(${JSON.stringify(item)})'>2차 분석</button>
-            <a class="btn btn-outline" href="${item.link || '#'}" target="_blank">나라장터 열기</a>
+            ${hasLink ? `<a class="btn btn-outline" href="${item.link}" target="_blank">${linkLabel}</a>` : ''}
           </div>
         </div>
       `;
@@ -493,7 +553,7 @@
 
   // ---------- 외부 공고 스마트 등록 모달 ----------
   function openAddModal() {
-    document.getElementById('file-url').value = '';
+    document.getElementById('file-urls').value = '';
     document.getElementById('paste-area').value = '';
     document.getElementById('add-modal-backdrop').classList.add('show');
   }
@@ -501,21 +561,11 @@
     document.getElementById('add-modal-backdrop').classList.remove('show');
   }
 
-  // 🔥 수정된 스마트 등록: 여러 URL + POST(JSON 문자열) 사용
   async function processSmartAdd() {
-    const fileUrlRaw = document.getElementById('file-url').value.trim();
+    const fileUrls = document.getElementById('file-urls').value.trim();
     const text = document.getElementById('paste-area').value.trim();
 
-    // 여러 URL 지원: 공백·콤마 기준 분리
-    let fileUrls = [];
-    if (fileUrlRaw) {
-      fileUrls = fileUrlRaw
-        .split(/[\s,]+/)
-        .map(u => u.trim())
-        .filter(u => u.length > 0);
-    }
-
-    if (!fileUrls.length && !text) {
+    if (!fileUrls && !text) {
       alert('첨부파일 URL 이나 내용을 하나 이상 입력해 주세요.');
       return;
     }
@@ -525,23 +575,16 @@
     btn.innerText = '🧠 AI 분석 및 저장 중...';
 
     try {
-      const payload = {
-        action: 'smart_add',
-        text: text,
-        fileUrls: fileUrls,
-        fileUrl: fileUrlRaw // 호환용
-      };
+      const params = new URLSearchParams();
+      params.append('action', 'smart_add');
+      params.append('fileUrls', fileUrls);
+      params.append('text', text);
 
-      // Content-Type을 지정하지 않고 문자열 body만 보내면
-      // text/plain 이라 preflight 없이 POST 됩니다.
       const res = await fetch(API_BASE, {
         method: 'POST',
-        body: JSON.stringify(payload)
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: params.toString()
       });
-
-      if (!res.ok) {
-        throw new Error('서버 응답 오류: HTTP ' + res.status);
-      }
 
       const json = await res.json();
 
@@ -557,7 +600,10 @@
       );
 
       closeAddModal();
-      setTimeout(loadData, 1000);
+      setTimeout(() => {
+        loadData();
+        loadStats();
+      }, 1000);
 
     } catch (e) {
       console.error(e);
@@ -573,6 +619,7 @@
     const backdrop = document.getElementById('detail-modal-backdrop');
     const content = document.getElementById('detail-content');
     const loading = document.getElementById('detail-loading');
+    const detailLink = document.getElementById('detail-link');
 
     document.getElementById('detail-title').innerText =
       '[' + item.no + '] ' + item.title;
@@ -582,7 +629,15 @@
     document.getElementById('detail-first-summary').innerText =
       item.aiResult || '(1차 요약 없음)';
 
-    document.getElementById('detail-link').href = item.link || '#';
+    const isManual = (item.status || '').indexOf('수동') !== -1;
+    if (item.link && item.link !== '#') {
+      detailLink.style.display = 'inline-flex';
+      detailLink.href = item.link;
+      detailLink.textContent = isManual ? '원문 열기' : '나라장터 원문 열기';
+    } else {
+      detailLink.style.display = 'none';
+      detailLink.href = '#';
+    }
 
     content.style.display = 'none';
     loading.style.display = 'block';
@@ -632,7 +687,7 @@
         (data.attachments || []).forEach(name => {
           const li = document.createElement('li');
           li.textContent = name;
-          ulAtt.appendChild(li);
+          ul.appendChild(li);
         });
         if (!ulAtt.children.length) {
           const li = document.createElement('li');
@@ -658,6 +713,7 @@
 
   // 최초 로딩
   loadData();
+  loadStats();
 </script>
 </body>
 </html>
