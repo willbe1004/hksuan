@@ -328,7 +328,7 @@
     </small>
 
     <div class="section-title">첨부파일 다운로드 주소 (선택)</div>
-    <input type="text" id="file-url" placeholder="예: https://.../공사입찰설명서.hwp">
+    <input type="text" id="file-url" placeholder="예: https://.../공사입찰설명서.hwp (여러 개는 공백/콤마로 구분)">
 
     <div class="section-title">텍스트 직접 붙여넣기 (선택)</div>
     <textarea id="paste-area"
@@ -386,7 +386,7 @@
 </div>
 
 <script>
-  // ★★★ 여기에 본인의 Apps Script WebApp URL 입력 ★★★
+  // ★★★ 본인의 Apps Script WebApp URL ★★★
   const API_BASE = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
 
   let allData = [];
@@ -501,11 +501,21 @@
     document.getElementById('add-modal-backdrop').classList.remove('show');
   }
 
+  // 🔥 수정된 스마트 등록: 여러 URL + POST(JSON 문자열) 사용
   async function processSmartAdd() {
-    const fileUrl = document.getElementById('file-url').value.trim();
+    const fileUrlRaw = document.getElementById('file-url').value.trim();
     const text = document.getElementById('paste-area').value.trim();
 
-    if (!fileUrl && !text) {
+    // 여러 URL 지원: 공백·콤마 기준 분리
+    let fileUrls = [];
+    if (fileUrlRaw) {
+      fileUrls = fileUrlRaw
+        .split(/[\s,]+/)
+        .map(u => u.trim())
+        .filter(u => u.length > 0);
+    }
+
+    if (!fileUrls.length && !text) {
       alert('첨부파일 URL 이나 내용을 하나 이상 입력해 주세요.');
       return;
     }
@@ -515,11 +525,24 @@
     btn.innerText = '🧠 AI 분석 및 저장 중...';
 
     try {
-      const url = API_BASE +
-        '?action=smart_add&fileUrl=' + encodeURIComponent(fileUrl) +
-        '&text=' + encodeURIComponent(text);
+      const payload = {
+        action: 'smart_add',
+        text: text,
+        fileUrls: fileUrls,
+        fileUrl: fileUrlRaw // 호환용
+      };
 
-      const res = await fetch(url);
+      // Content-Type을 지정하지 않고 문자열 body만 보내면
+      // text/plain 이라 preflight 없이 POST 됩니다.
+      const res = await fetch(API_BASE, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        throw new Error('서버 응답 오류: HTTP ' + res.status);
+      }
+
       const json = await res.json();
 
       if (json.result !== 'success') {
@@ -638,4 +661,3 @@
 </script>
 </body>
 </html>
-
