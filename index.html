@@ -22,6 +22,8 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
     }
     header h1 {
       font-size: 20px;
@@ -40,7 +42,6 @@
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-      justify-content: flex-end;
     }
     .btn {
       padding: 8px 14px;
@@ -51,7 +52,6 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      white-space: nowrap;
     }
     .btn-primary {
       background: #0984e3;
@@ -64,6 +64,10 @@
     }
     .btn-secondary {
       background: #2d3436;
+      color: #ecf0f1;
+    }
+    .btn-danger {
+      background: #c0392b;
       color: #ecf0f1;
     }
     .btn:disabled {
@@ -197,7 +201,7 @@
     .card-footer {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       gap: 6px;
       margin-top: 4px;
       flex-wrap: wrap;
@@ -205,6 +209,7 @@
     .card-footer-left {
       font-size: 10px;
       color: #95a5a6;
+      line-height: 1.4;
     }
     .card-footer-right {
       display: flex;
@@ -228,6 +233,7 @@
       border-radius: 999px;
       background: #55efc4;
     }
+
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -314,39 +320,27 @@
       margin-right: 4px;
     }
 
-    /* === 캘린더 섹션 === */
-    .calendar-section {
-      margin-top: 20px;
-      padding: 12px 14px 16px;
-      border-radius: 12px;
-      background: #0f1722;
+    /* 캘린더 영역 */
+    .calendar-wrapper {
+      margin-top: 18px;
+      padding: 10px 12px 12px;
+      border-radius: 16px;
+      background: #050b10;
       border: 1px solid #1f2933;
     }
-    .calendar-section h2 {
+    .calendar-title {
       font-size: 13px;
       margin: 0 0 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
       color: #dfe6e9;
     }
-    .calendar-embed-wrapper {
-      border-radius: 10px;
-      overflow: hidden;
-      border: 1px solid #2f3640;
-    }
-    .calendar-embed-wrapper iframe {
+    .calendar-frame {
       width: 100%;
       height: 480px;
       border: 0;
-      /* 🔹 구글 캘린더를 다크톤에 맞게 반전 */
-      filter: invert(0.88) hue-rotate(180deg);
-      transform-origin: center center;
-    }
-    @media (max-width: 768px) {
-      .calendar-embed-wrapper iframe {
-        height: 420px;
-      }
+      border-radius: 12px;
+      background: #050b10;
+      /* 다크모드에 어울리도록 색 반전 */
+      filter: invert(0.9) hue-rotate(180deg) contrast(0.98);
     }
   </style>
 </head>
@@ -357,7 +351,7 @@
       <h1>한국수안 AI 입찰관리 <span class="badge">AI 저류조 필터 v2</span></h1>
     </div>
     <div class="right">
-      <button class="btn btn-outline" onclick="openCalendarAuth()" id="btn-calendar-auth">캘린더 연동</button>
+      <button class="btn btn-outline" id="btn-calendar-auth" onclick="toggleCalendarAuth()">캘린더 로그인</button>
       <button class="btn btn-outline" onclick="loadData()">새로고침</button>
       <button class="btn btn-outline" onclick="runExternalUpdate()">외부웹 수집</button>
       <button class="btn btn-primary" onclick="openAddModal()">+ 외부 공고 스마트 등록</button>
@@ -401,16 +395,14 @@
 
   <div id="list" class="list"></div>
 
-  <!-- 입찰 마감 캘린더 -->
-  <div class="calendar-section">
-    <h2>📅 입찰 마감 캘린더</h2>
-    <div class="calendar-embed-wrapper">
-      <iframe
-        src="https://calendar.google.com/calendar/embed?src=d51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04%40group.calendar.google.com&ctz=Asia%2FSeoul"
-        frameborder="0"
-        scrolling="no">
-      </iframe>
-    </div>
+  <!-- 구글 캘린더 섹션 -->
+  <div class="calendar-wrapper">
+    <h2 class="calendar-title">입찰 마감 캘린더 (연동 캘린더)</h2>
+    <iframe
+      class="calendar-frame"
+      src="https://calendar.google.com/calendar/embed?src=d51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04%40group.calendar.google.com&ctz=Asia%2FSeoul"
+      frameborder="0"
+      scrolling="no"></iframe>
   </div>
 </div>
 
@@ -467,11 +459,11 @@
       </div>
       <div id="detail-summary2" style="font-size:11px; color:#dfe6e9; white-space:pre-line;"></div>
 
-      <div class="section-title">사업/금액/담당자</div>
-      <div id="detail-meta" style="font-size:11px; color:#b2bec3; white-space:pre-line;"></div>
-
       <div class="section-title">체크 포인트</div>
       <ul id="detail-checkpoints" class="small-list"></ul>
+
+      <div class="section-title">기간 / 금액 / 사업비 / 담당자</div>
+      <ul id="detail-meta" class="small-list"></ul>
 
       <div class="section-title">첨부파일 이름 (나라장터 기준)</div>
       <ul id="detail-attachments" class="small-list"></ul>
@@ -495,7 +487,7 @@
   let recognition = null;
   let recognizing = false;
   let lastStats = null;
-  let calendarLinked = false;
+  let calendarLinked = false; // 단순 UI용 상태 (localStorage 로 유지)
 
   async function loadData() {
     const list = document.getElementById('list');
@@ -540,11 +532,11 @@
     bar.innerHTML = `
       <div class="stats-chip"><span class="stats-chip-label">최근 업데이트:</span> ${finished}</div>
       <div class="stats-chip"><span class="stats-chip-label">조회기간:</span> 최근 ${daysBack}일</div>
-      <div class="stats-chip"><span class="stats-chip-label">전체 공고수:</span> ${rawTotal}건</div>
-      <div class="stats-chip"><span class="stats-chip-label">API호출:</span> ${apiCalls}회</div>
-      <div class="stats-chip"><span class="stats-chip-label">필터 전 유니크:</span> ${unique}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">전체 공고수(원시):</span> ${rawTotal}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">Unique 공고(필터전):</span> ${unique}건</div>
       <div class="stats-chip"><span class="stats-chip-label">필터 통과:</span> ${kept}건</div>
-      <div class="stats-chip"><span class="stats-chip-label">AI요약:</span> ${aiCalls}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">AI요약 수행:</span> ${aiCalls}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">API호출:</span> ${apiCalls}회</div>
     `;
   }
 
@@ -653,16 +645,18 @@
       const aiText = item.aiResult || '';
       const isManual = (item.status === '수동등록') || (item.client === '직접등록');
 
-      // 카드 하단 메타 정보 (공고일/마감/기간/금액/사업비/톤수/담당자)
-      const metaPieces = [];
-      if (item.date) metaPieces.push('공고일 ' + item.date);
-      if (item.deadline) metaPieces.push('마감 ' + item.deadline);
-      if (item.servicePeriod) metaPieces.push('기간 ' + item.servicePeriod);
-      if (item.serviceAmount) metaPieces.push('금액 ' + item.serviceAmount);
-      if (item.projectBudget) metaPieces.push('사업비 ' + item.projectBudget);
-      if (item.expectedTon) metaPieces.push('예상 ' + item.expectedTon);
-      if (item.clientManager) metaPieces.push('담당 ' + item.clientManager);
-      const metaText = metaPieces.join(' · ');
+      // 메타 라인 구성
+      const baseLineParts = [];
+      baseLineParts.push('공고일 ' + (item.date || '-'));
+      baseLineParts.push('마감 ' + (item.deadline || '-'));
+      if (item.expectedTon) baseLineParts.push('예상 ' + item.expectedTon);
+      const baseLine = baseLineParts.join(' · ');
+
+      const metaLineParts = [];
+      if (item.servicePeriod) metaLineParts.push('기간: ' + item.servicePeriod);
+      if (item.serviceAmount) metaLineParts.push('용역금액: ' + item.serviceAmount);
+      if (item.projectBudget) metaLineParts.push('사업비: ' + item.projectBudget);
+      const metaLine = metaLineParts.join(' · ');
 
       card.innerHTML = `
         <div class="card-header">
@@ -672,6 +666,7 @@
             </div>
             <div class="card-sub">
               ${item.client || '-'} / ${item.agency || '-'}
+              ${item.clientManager ? ' · 담당: ' + item.clientManager : ''}
             </div>
           </div>
           <div class="status-label">
@@ -682,7 +677,8 @@
         <div class="card-body">${(aiText || 'AI 분석 대기중')}</div>
         <div class="card-footer">
           <div class="card-footer-left">
-            ${metaText || '-'}
+            ${baseLine}
+            ${metaLine ? '<br>' + metaLine : ''}
           </div>
           <div class="card-footer-right">
             <button class="btn btn-secondary btn-detail">2차 분석</button>
@@ -710,6 +706,50 @@
     });
   }
 
+  // ---------- 캘린더 로그인/로그아웃 UI ----------
+  function loadCalendarLinkedState() {
+    try {
+      calendarLinked = localStorage.getItem('khsuan_calendarLinked') === '1';
+    } catch (e) {
+      calendarLinked = false;
+    }
+    updateCalendarAuthUi();
+  }
+
+  function updateCalendarAuthUi() {
+    const btn = document.getElementById('btn-calendar-auth');
+    if (!btn) return;
+    if (calendarLinked) {
+      btn.textContent = '캘린더 로그아웃';
+      btn.classList.remove('btn-outline');
+      btn.classList.add('btn-danger');
+    } else {
+      btn.textContent = '캘린더 로그인';
+      btn.classList.remove('btn-danger');
+      btn.classList.add('btn-outline');
+    }
+  }
+
+  function toggleCalendarAuth() {
+    if (!calendarLinked) {
+      // 로그인 플로우: 권한 승인용 팝업 호출
+      window.open(API_BASE + '?action=calendar_auth', '_blank', 'width=600,height=600');
+      calendarLinked = true;
+      try {
+        localStorage.setItem('khsuan_calendarLinked', '1');
+      } catch (e) {}
+      updateCalendarAuthUi();
+    } else {
+      // UI 상의 로그아웃 (실제 권한 해지는 계정 보안 설정에서 처리 필요)
+      calendarLinked = false;
+      try {
+        localStorage.removeItem('khsuan_calendarLinked');
+      } catch (e) {}
+      updateCalendarAuthUi();
+      alert('캘린더 연동 상태를 초기화했습니다.\n실제 구글 계정 권한 해지는 계정 보안 설정에서 하실 수 있습니다.');
+    }
+  }
+
   // ---------- 외부 공고 스마트 등록 모달 ----------
   function openAddModal() {
     document.getElementById('file-urls').value = '';
@@ -734,15 +774,15 @@
     btn.innerText = '🧠 AI 분석 및 저장 중...';
 
     try {
-      // 🔹 JSON 대신 FormData로 POST → Apps Script doPost(e.parameter) 경로 사용
-      const form = new FormData();
-      form.append('action', 'smart_add');
-      form.append('fileUrl', fileUrlsRaw);
-      form.append('text', text);
-
+      // GET → POST(JSON) 으로 전송 (긴 텍스트 대비)
       const res = await fetch(API_BASE, {
         method: 'POST',
-        body: form
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'smart_add',
+          fileUrl: fileUrlsRaw,
+          text: text
+        })
       });
       const json = await res.json();
 
@@ -803,7 +843,13 @@
       const res = await fetch(API_BASE + '?action=external_update');
       const json = await res.json();
       if (json.result === 'success') {
-        alert('외부 공고 소스를 다시 확인했습니다.\n(사용=Y 로 표시된 외부공고소스 행 기준)\n전체 신규 수집 : ' + (json.added || 0) + '건');
+        alert(
+          '외부 공고 소스를 다시 확인했습니다.\n' +
+          '전체 신규 수집 : ' + (json.added || 0) + '건\n\n' +
+          '※ 설명: 스크립트 내부 "외부공고소스" 시트에\n' +
+          '   (사용=Y) 로 표시된 Google/Naver 검색 결과 페이지 URL들을\n' +
+          '   기준으로 문서 링크를 수집합니다.'
+        );
         loadData();
       } else {
         alert('외부 수집 실패: ' + (json.message || '알 수 없는 오류'));
@@ -819,6 +865,11 @@
       alert('마감일 정보가 없어 캘린더에 등록할 수 없습니다.');
       return;
     }
+    if (!calendarLinked) {
+      alert('먼저 상단의 "캘린더 로그인" 버튼을 눌러\n구글 캘린더 권한을 승인해 주세요.');
+      return;
+    }
+
     const originalLabel = btnEl.innerText;
     btnEl.disabled = true;
     btnEl.innerText = '캘린더 연동 중...';
@@ -845,17 +896,6 @@
     } finally {
       btnEl.disabled = false;
     }
-  }
-
-  // ---------- 캘린더 인증(로그인) 버튼 ----------
-  function openCalendarAuth() {
-    window.open(API_BASE + '?action=calendar_auth', '_blank');
-    calendarLinked = true;
-    const btn = document.getElementById('btn-calendar-auth');
-    if (btn) {
-      btn.textContent = '캘린더 연동됨(재인증)';
-    }
-    alert('새 창에서 구글 권한 허용 창이 뜨면 승인해 주세요.\n완료 후 이 창으로 돌아와 캘린더 등록을 사용하시면 됩니다.');
   }
 
   // ---------- 2차 심화 분석 모달 ----------
@@ -904,21 +944,6 @@
         document.getElementById('detail-summary2').innerText =
           deep.summary2 || '(심화 요약 없음)';
 
-        // 사업/금액/담당자
-        const metaLines = [];
-        const sp = deep.servicePeriod || item.servicePeriod;
-        const sa = deep.serviceAmount || item.serviceAmount;
-        const pb = deep.projectBudget || item.projectBudget;
-        const mgr = deep.clientManager || item.clientManager;
-
-        if (sp) metaLines.push('용역기간: ' + sp);
-        if (sa) metaLines.push('용역금액: ' + sa);
-        if (pb) metaLines.push('사업비: ' + pb);
-        if (mgr) metaLines.push('담당자: ' + mgr);
-
-        document.getElementById('detail-meta').innerText =
-          metaLines.length ? metaLines.join('\n') : '추출된 정보가 없습니다.';
-
         const ul = document.getElementById('detail-checkpoints');
         ul.innerHTML = '';
         (deep.checkPoints || []).forEach(cp => {
@@ -930,6 +955,38 @@
           const li = document.createElement('li');
           li.textContent = '특별히 추출된 체크포인트가 없습니다.';
           ul.appendChild(li);
+        }
+
+        const metaUl = document.getElementById('detail-meta');
+        metaUl.innerHTML = '';
+        const sp = deep.servicePeriod || item.servicePeriod || '';
+        const sa = deep.serviceAmount || item.serviceAmount || '';
+        const pb = deep.projectBudget || item.projectBudget || '';
+        const cm = deep.clientManager || item.clientManager || '';
+        if (sp) {
+          const li = document.createElement('li');
+          li.textContent = '기간: ' + sp;
+          metaUl.appendChild(li);
+        }
+        if (sa) {
+          const li = document.createElement('li');
+          li.textContent = '용역금액: ' + sa;
+          metaUl.appendChild(li);
+        }
+        if (pb) {
+          const li = document.createElement('li');
+          li.textContent = '사업비: ' + pb;
+          metaUl.appendChild(li);
+        }
+        if (cm) {
+          const li = document.createElement('li');
+          li.textContent = '담당자: ' + cm;
+          metaUl.appendChild(li);
+        }
+        if (!metaUl.children.length) {
+          const li = document.createElement('li');
+          li.textContent = '추출된 기간·금액·사업비·담당자 정보가 없습니다.';
+          metaUl.appendChild(li);
         }
 
         const ulAtt = document.getElementById('detail-attachments');
@@ -961,7 +1018,8 @@
     document.getElementById('detail-modal-backdrop').classList.remove('show');
   }
 
-  // 최초 로딩
+  // 초기 실행
+  loadCalendarLinkedState();
   loadData();
 </script>
 </body>
