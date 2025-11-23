@@ -1003,7 +1003,7 @@
     const btn = document.getElementById('btn-calendar-auth');
     if (!btn) return;
     const flag = localStorage.getItem('hksuan_calendar_authed') === '1';
-    btn.textContent = flag ? '캘린더 로그아웃' : '캘린더 로그인';
+    btn.textContent = flag ? '로그아웃' : '로그인';
   }
 
   function toggleCalendarAuth() {
@@ -1029,4 +1029,5 @@
 </script>
 </body>
 </html>
+
 
