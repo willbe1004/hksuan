@@ -1,1033 +1,1707 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>한국수안 AI 입찰관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    * { box-sizing: border-box; }
+    :root {
+      --bg-main: #050b16;
+      --bg-card: #0e1b2a;
+      --bg-card-soft: #122538;
+      --accent: #ffb83f;
+      --accent-soft: rgba(255, 184, 63, 0.15);
+      --accent-strong: #ff9f1c;
+      --primary: #00c896;
+      --primary-soft: rgba(0, 200, 150, 0.15);
+      --danger: #ff5c7a;
+      --text-main: #f4f7fb;
+      --text-soft: #9faec6;
+      --border-subtle: #1e3146;
+      --shadow-soft: 0 18px 40px rgba(6, 17, 36, 0.85);
+      --radius-lg: 18px;
+      --radius-xl: 22px;
+      --transition-fast: 0.18s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", system-ui;
-      background: #0b1824;
-      color: #ecf0f1;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+      background: radial-gradient(circle at top, #10213a 0, #050b16 40%, #02030a 70%);
+      color: var(--text-main);
+      min-height: 100vh;
     }
-    .app {
-      max-width: 1280px;
+
+    .page-shell {
+      max-width: 1320px;
       margin: 0 auto;
-      padding: 16px 24px 40px;
+      padding: 20px 18px 32px;
     }
-    header {
+
+    /* 헤더 ------------------------------------------------------- */
+
+    .app-header {
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      gap: 12px;
+      gap: 16px;
+      margin-bottom: 18px;
     }
-    header h1 {
-      font-size: 20px;
-      margin: 0;
+
+    .app-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
-    header span.badge {
-      margin-left: 8px;
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid #00cec9;
-      color: #00cec9;
-    }
-    header .right {
+
+    .app-title-main {
       display: flex;
       align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
+      gap: 10px;
     }
-    .btn {
-      padding: 8px 14px;
+
+    .app-title-main h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+      color: #f8fbff;
+    }
+
+    .badge-version {
+      font-size: 11px;
+      padding: 4px 9px;
       border-radius: 999px;
-      font-size: 12px;
-      border: none;
-      cursor: pointer;
-      display: inline-flex;
+      border: 1px solid rgba(0, 200, 150, 0.6);
+      color: var(--primary);
+      background: radial-gradient(circle at top left, #123d3a, #050b16);
+    }
+
+    .app-subtitle {
+      font-size: 11px;
+      color: var(--text-soft);
+      display: flex;
       align-items: center;
       gap: 6px;
-      white-space: nowrap;
-    }
-    .btn-primary {
-      background: #0984e3;
-      color: white;
-    }
-    .btn-outline {
-      background: transparent;
-      color: #dfe6e9;
-      border: 1px solid #636e72;
-    }
-    .btn-secondary {
-      background: #2d3436;
-      color: #ecf0f1;
-    }
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: default;
     }
 
-    /* === 상단 통계바 === */
-    .stats-bar {
-      font-size: 11px;
-      color: #b2bec3;
-      margin-bottom: 8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: #111722;
-      border: 1px solid #1f2933;
-      display: none;
-      flex-wrap: wrap;
-      gap: 8px;
+    .app-subtitle span.dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(255, 184, 63, 0.8);
     }
-    .stats-chip {
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      position: relative;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-    }
-    .stats-chip-label {
-      color: #95a5a6;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 12px;
+      color: var(--text-main);
+      background: rgba(10, 23, 40, 0.9);
+      cursor: pointer;
+      transition: background var(--transition-fast), transform var(--transition-fast),
+        box-shadow var(--transition-fast), border-color var(--transition-fast),
+        color var(--transition-fast);
     }
 
-    .filters {
+    .btn span.icon {
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #00c896, #00e0b0);
+      border-color: rgba(0, 0, 0, 0.15);
+      color: #061118;
+      font-weight: 600;
+      box-shadow: 0 10px 24px rgba(0, 200, 150, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 32px rgba(0, 200, 150, 0.4);
+    }
+
+    .btn-ghost {
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(7, 16, 28, 0.9);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(18, 35, 58, 0.9);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+    }
+
+    .btn-danger {
+      background: rgba(255, 92, 122, 0.1);
+      border-color: rgba(255, 92, 122, 0.5);
+      color: #ffbac9;
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 92, 122, 0.2);
+    }
+
+    .btn-small {
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+
+    .btn.loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    .btn.loading::after {
+      content: "";
+      position: absolute;
+      right: 9px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      border-top-color: transparent;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .login-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      box-shadow: 0 0 12px rgba(255, 92, 122, 0.7);
+      background: var(--danger);
+    }
+
+    .login-status-dot.connected {
+      background: var(--primary);
+      box-shadow: 0 0 14px rgba(0, 200, 150, 0.9);
+    }
+
+    .login-status-text {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    /* 상단 정보 카드 ----------------------------------------------------- */
+
+    .summary-row {
       display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
       flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 16px;
     }
 
-    /* 검색 + 음성 버튼 래퍼 */
-    .search-with-voice {
+    .summary-card {
+      flex: 1 1 140px;
+      min-width: 130px;
+      padding: 14px 14px 12px;
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at top left, #152840, #07111f);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .summary-header {
       display: flex;
       align-items: center;
-      background: #1e272e;
-      border-radius: 999px;
-      border: 1px solid #2f3640;
-      padding-right: 4px;
-      flex: 1;
-      min-width: 220px;
-    }
-    .search-with-voice input {
-      border: none;
-      background: transparent;
-      color: #ecf0f1;
-      padding: 8px 10px 8px 12px;
-      font-size: 12px;
-      flex: 1;
-      outline: none;
-    }
-    .btn-icon {
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      font-size: 16px;
-      padding: 4px 6px;
-      color: #dfe6e9;
-    }
-    .btn-icon:disabled {
-      opacity: 0.6;
-      cursor: default;
+      justify-content: space-between;
+      margin-bottom: 2px;
     }
 
-    .filters select {
-      background: #1e272e;
+    .summary-label {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .summary-icon {
+      width: 22px;
+      height: 22px;
       border-radius: 999px;
-      border: 1px solid #2f3640;
-      color: #ecf0f1;
-      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      background: rgba(7, 234, 182, 0.06);
+      color: var(--primary);
+    }
+
+    .summary-value {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .summary-sub {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .summary-card.accent {
+      background: radial-gradient(circle at top, #3f2a00, #10141f);
+      border-color: rgba(255, 184, 63, 0.6);
+    }
+
+    .summary-card.accent .summary-icon {
+      background: rgba(255, 184, 63, 0.12);
+      color: var(--accent-strong);
+    }
+
+    .period-label {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-left: auto;
+    }
+
+    /* 도넛 그래프 -------------------------------------------------------- */
+    .donut-card {
+      flex: 0 0 210px;
+      max-width: 240px;
+      padding: 16px 10px 10px;
+      border-radius: var(--radius-xl);
+      background: radial-gradient(circle at top, #1d2f46, #050b16);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .donut-label {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-bottom: 8px;
+    }
+
+    .donut-wrapper {
+      position: relative;
+      width: 120px;
+      height: 120px;
+    }
+
+    .donut-ring {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 12px solid rgba(255, 255, 255, 0.06);
+      border-top-color: var(--accent);
+      border-right-color: var(--accent);
+      box-shadow: 0 0 40px rgba(255, 184, 63, 0.45);
+      animation: donut-spin 10s linear infinite;
+    }
+
+    .donut-center {
+      position: absolute;
+      inset: 50%;
+      width: 72px;
+      height: 72px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle at top, #162237, #050b16);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+
+    .donut-main {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .donut-sub {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    /* 검색/필터 ----------------------------------------------------------- */
+
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .search-input-wrap {
+      flex: 1 1 220px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 34px 8px 32px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(7, 16, 29, 0.96);
+      color: var(--text-main);
+      font-size: 13px;
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+        background var(--transition-fast);
+    }
+
+    .search-input::placeholder {
+      color: rgba(159, 174, 198, 0.6);
+    }
+
+    .search-icon-left,
+    .search-icon-right {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 15px;
+      color: var(--text-soft);
+      pointer-events: none;
+    }
+
+    .search-icon-left {
+      left: 10px;
+    }
+
+    .search-icon-right {
+      right: 10px;
+    }
+
+    .search-input:focus {
+      border-color: rgba(0, 200, 150, 0.85);
+      box-shadow: 0 0 0 1px rgba(0, 200, 150, 0.32);
+      background: rgba(11, 23, 40, 0.98);
+    }
+
+    .select {
+      min-width: 120px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(12, 23, 39, 0.96);
+      color: var(--text-main);
+      padding: 7px 26px 7px 10px;
       font-size: 12px;
-      max-width: 140px;
-      flex: 0 0 140px;
+      outline: none;
+      position: relative;
+      appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, #7e90aa 50%),
+        linear-gradient(135deg, #7e90aa 50%, transparent 50%);
+      background-position: calc(100% - 13px) 10px, calc(100% - 8px) 10px;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
     }
 
     .chip-group {
       display: flex;
-      gap: 6px;
-      margin-bottom: 8px;
       flex-wrap: wrap;
-    }
-    .chip {
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid #2d3436;
-      color: #b2bec3;
-      cursor: pointer;
-    }
-    .chip.active {
-      border-color: #00cec9;
-      color: #00cec9;
-      background: rgba(0, 206, 201, 0.08);
-    }
-    .list {
-      margin-top: 8px;
-    }
-    .card {
-      background: #111822;
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-bottom: 8px;
-      border: 1px solid #1f2933;
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .card-title {
-      font-size: 13px;
-      font-weight: 500;
-    }
-    .card-sub {
-      font-size: 11px;
-      color: #95a5a6;
-      margin-top: 2px;
-    }
-    .tag {
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid #636e72;
-      color: #dfe6e9;
-      display: inline-block;
-      margin-left: 4px;
-    }
-    .tag.green {
-      border-color: #00b894;
-      color: #00cec9;
-    }
-    .tag.yellow {
-      border-color: #fdcb6e;
-      color: #ffeaa7;
-    }
-    .tag.red {
-      border-color: #e17055;
-      color: #fab1a0;
-    }
-    .card-body {
-      font-size: 11px;
-      color: #dfe6e9;
-      margin: 6px 0 8px;
-      white-space: pre-line;
-    }
-    .card-extra {
-      font-size: 10px;
-      color: #b2bec3;
-      margin-bottom: 4px;
-      white-space: pre-line;
-    }
-    .card-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       gap: 6px;
-      margin-top: 4px;
-      flex-wrap: wrap;
-    }
-    .card-footer-left {
-      font-size: 10px;
-      color: #95a5a6;
-    }
-    .card-footer-right {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-    .status-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 10px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #2d3436;
-      color: #dfe6e9;
-    }
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: #55efc4;
-    }
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-    }
-    .modal-backdrop.show {
-      display: flex;
-    }
-    .modal {
-      background: #111722;
-      border-radius: 14px;
-      padding: 16px 18px;
-      max-width: 720px;
-      width: 100%;
-      max-height: 80vh;
-      overflow: auto;
-      border: 1px solid #2f3640;
-      box-shadow: 0 18px 45px rgba(0,0,0,0.6);
-    }
-    .modal h3 {
-      margin: 0 0 6px;
-      font-size: 15px;
-    }
-    .modal small {
-      font-size: 11px;
-      color: #95a5a6;
-    }
-    .modal textarea {
-      width: 100%;
-      min-height: 80px;
-      background: #1e272e;
-      border-radius: 8px;
-      border: 1px solid #2f3640;
-      color: #ecf0f1;
-      padding: 8px 10px;
-      font-size: 12px;
-      resize: vertical;
-      margin-bottom: 6px;
-    }
-    .modal input {
-      width: 100%;
-      background: #1e272e;
-      border-radius: 8px;
-      border: 1px solid #2f3640;
-      color: #ecf0f1;
-      padding: 8px 10px;
-      font-size: 12px;
-      margin-bottom: 8px;
-    }
-    .modal-btns {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .section-title {
-      font-size: 12px;
-      font-weight: 500;
-      margin-top: 10px;
-      margin-bottom: 4px;
-      color: #dfe6e9;
-    }
-    ul.small-list {
-      margin: 4px 0 0 16px;
-      padding: 0;
-      font-size: 11px;
-      color: #b2bec3;
-    }
-    ul.small-list li {
-      margin-bottom: 2px;
-    }
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: #1e272e;
-      margin-right: 4px;
     }
 
-    /* 캘린더 섹션 */
-    .calendar-section {
-      margin-top: 16px;
-      padding-top: 10px;
-      border-top: 1px solid #1f2933;
+    .chip {
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      font-size: 11px;
+      color: var(--text-soft);
+      cursor: pointer;
+      background: rgba(7, 16, 28, 0.8);
+      transition: background var(--transition-fast), color var(--transition-fast),
+        border-color var(--transition-fast), transform var(--transition-fast);
     }
+
+    .chip:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .chip.active {
+      background: var(--primary-soft);
+      border-color: rgba(0, 200, 150, 0.9);
+      color: #bff8ea;
+    }
+
+    /* 메인 레이아웃 ------------------------------------------------------- */
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2.4fr) minmax(320px, 1.3fr);
+      gap: 18px;
+      align-items: flex-start;
+      margin-top: 12px;
+    }
+
+    .bid-list-panel {
+      background: rgba(7, 15, 28, 0.9);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: var(--shadow-soft);
+      padding: 14px 14px 10px;
+      max-height: calc(100vh - 260px);
+      overflow-y: auto;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .panel-header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-count {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(9, 31, 55, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 11px;
+    }
+
+    .panel-header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mini-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 10px rgba(0, 200, 150, 0.8);
+    }
+
+    /* 입찰 카드 ----------------------------------------------------------- */
+
+    .bid-card {
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: linear-gradient(135deg, rgba(13, 28, 51, 0.98), rgba(7, 15, 29, 0.98));
+      padding: 12px 12px 10px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bid-card::before {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      background: radial-gradient(circle at 10% -10%, rgba(0, 200, 150, 0.12), transparent 50%),
+        radial-gradient(circle at 100% 120%, rgba(255, 184, 63, 0.08), transparent 55%);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .bid-card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .bid-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .badge-region {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      background: rgba(3, 15, 33, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      color: var(--text-soft);
+    }
+
+    .bid-no {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .badge-status {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      background: rgba(2, 36, 25, 0.9);
+      color: #b5ffe5;
+      border: 1px solid rgba(0, 200, 150, 0.7);
+    }
+
+    .badge-status.manual {
+      background: rgba(44, 26, 0, 0.9);
+      border-color: rgba(255, 184, 63, 0.7);
+      color: #ffe7b4;
+    }
+
+    .bid-title {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .bid-subline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+    }
+
+    .bid-subline span {
+      white-space: nowrap;
+    }
+
+    .meta-label {
+      font-size: 10px;
+      color: #7f92b2;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .meta-value {
+      font-size: 11px;
+      color: #d5e1ff;
+    }
+
+    .bid-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px 12px;
+      margin: 4px 0 5px;
+    }
+
+    .bid-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .ai-result-box {
+      margin-top: 4px;
+      padding: 7px 9px 7px;
+      border-radius: 12px;
+      background: rgba(3, 18, 35, 0.92);
+      border: 1px solid rgba(0, 200, 150, 0.15);
+      font-size: 11px;
+      color: var(--text-soft);
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .ai-result-icon {
+      font-size: 14px;
+      color: var(--primary);
+      margin-top: 1px;
+    }
+
+    .ai-result-text strong {
+      color: #f9fbff;
+    }
+
+    .bid-footer-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 10px;
+      color: var(--text-soft);
+    }
+
+    .bid-dates {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .bid-dates span {
+      white-space: nowrap;
+    }
+
+    .bid-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .btn-link {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .btn-link:hover {
+      text-decoration: underline;
+    }
+
+    /* 캘린더 카드 -------------------------------------------------------- */
+
+    .calendar-panel {
+      background: rgba(7, 15, 28, 0.96);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: var(--shadow-soft);
+      padding: 12px 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
     .calendar-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 6px;
       font-size: 12px;
-      color: #b2bec3;
-    }
-    .calendar-header span {
-      font-size: 11px;
-      color: #636e72;
-    }
-    .calendar-frame-wrapper {
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #1f2933;
-      background: #0b1824;
-    }
-    .calendar-frame-wrapper iframe {
-      width: 100%;
-      height: 420px;
-      border: 0;
-      /* 라이트 테마 캘린더를 다크톤에 맞추기 위한 필터 */
-      filter: invert(1) hue-rotate(180deg) contrast(0.9) brightness(0.9);
+      color: var(--text-soft);
+      margin-bottom: 2px;
     }
 
-    @media (max-width: 768px) {
-      .app { padding: 12px 12px 32px; }
-      .calendar-frame-wrapper iframe {
-        height: 380px;
+    .calendar-header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .calendar-tag {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      background: rgba(3, 18, 35, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .calendar-frame {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 14px 38px rgba(0, 0, 0, 0.9);
+    }
+
+    .calendar-frame iframe {
+      width: 100%;
+      height: 420px;
+      border: none;
+      display: block;
+      filter: saturate(1.15) contrast(1.02);
+    }
+
+    /* 스마트 등록 모달 --------------------------------------------------- */
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal {
+      width: min(680px, 92vw);
+      max-height: 80vh;
+      overflow: hidden;
+      border-radius: 18px;
+      background: radial-gradient(circle at top, #13233b, #050b16);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 12px 16px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .modal-body {
+      padding: 12px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 10px 16px 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+    }
+
+    .textarea {
+      width: 100%;
+      min-height: 120px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(6, 14, 26, 0.96);
+      color: var(--text-main);
+      font-size: 12px;
+      padding: 8px 10px;
+      outline: none;
+      resize: vertical;
+    }
+
+    .input {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(6, 14, 26, 0.96);
+      color: var(--text-main);
+      font-size: 12px;
+      padding: 7px 9px;
+      outline: none;
+    }
+
+    .textarea:focus,
+    .input:focus {
+      border-color: rgba(0, 200, 150, 0.85);
+      box-shadow: 0 0 0 1px rgba(0, 200, 150, 0.32);
+    }
+
+    /* 전역 로딩 --------------------------------------------------------- */
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.95));
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      backdrop-filter: blur(3px);
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .loading-box {
+      padding: 18px 22px 14px;
+      border-radius: 18px;
+      background: radial-gradient(circle at top, #172134, #050812);
+      border: 1px solid rgba(0, 200, 150, 0.4);
+      color: var(--text-main);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 220px;
+    }
+
+    .spinner-lg {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 3px solid rgba(0, 200, 150, 0.25);
+      border-top-color: #00e0b0;
+      border-right-color: #ffb83f;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .loading-text-main {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .loading-text-sub {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    /* 반응형 ------------------------------------------------------------- */
+
+    @media (max-width: 1020px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .calendar-panel {
+        order: -1;
+      }
+
+      .bid-list-panel {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .app-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .header-actions {
+        align-self: stretch;
+        justify-content: space-between;
+      }
+
+      .summary-row {
+        flex-direction: column;
+      }
+
+      .donut-card {
+        order: -1;
+        max-width: none;
+      }
+
+      .controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .calendar-frame iframe {
+        height: 360px;
+      }
+    }
+
+    /* 애니메이션 --------------------------------------------------------- */
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes donut-spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      40% {
+        transform: rotate(320deg);
+      }
+      100% {
+        transform: rotate(360deg);
       }
     }
   </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <div>
-      <h1>한국수안 AI 입찰관리 <span class="badge">AI 필터 v2</span></h1>
+<div class="page-shell">
+  <!-- 헤더 -->
+  <header class="app-header">
+    <div class="app-title-block">
+      <div class="app-title-main">
+        <h1>한국수안 AI 입찰관리</h1>
+        <span class="badge-version">AI 저류조 필터 v2</span>
+      </div>
+      <div class="app-subtitle">
+        <span class="dot"></span>
+        <span>나라장터·외부공고에서 저류조/우수·침수방지 관련 입찰만 자동 선별</span>
+      </div>
     </div>
-    <div class="right">
-      <button class="btn btn-outline" id="btn-calendar-auth" onclick="toggleCalendarAuth()">로그인</button>
-      <button class="btn btn-outline" onclick="loadData()">새로고침</button>
-      <button class="btn btn-outline" onclick="runExternalUpdate()">외부웹 수집</button>
-      <button class="btn btn-primary" onclick="openAddModal()">+ 공고 스마트 등록</button>
+
+    <div class="header-actions">
+      <button id="btnExternal" class="btn btn-ghost btn-small">
+        <span class="icon">🌐</span> 외부웹 수집
+      </button>
+      <button id="btnSmartAddOpen" class="btn btn-ghost btn-small">
+        <span class="icon">➕</span> 외부 공고 스마트 등록
+      </button>
+      <button id="btnRefresh" class="btn btn-primary btn-small">
+        <span class="icon">⚡</span> 새로고침
+      </button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="btnLogin" class="btn btn-ghost btn-small">
+          <span class="icon">🔑</span>
+          <span id="btnLoginLabel">캘린더 로그인</span>
+        </button>
+        <div>
+          <div id="loginStatusDot" class="login-status-dot"></div>
+          <div id="loginStatusText" class="login-status-text">캘린더 미연동</div>
+        </div>
+      </div>
     </div>
   </header>
 
-  <!-- 실행 통계 표시 바 -->
-  <div id="stats-bar" class="stats-bar"></div>
+  <!-- 상단 요약/도넛 -->
+  <section class="summary-row">
+    <article class="summary-card">
+      <div class="summary-header">
+        <span class="summary-label">전체 공고 (원시)</span>
+        <div class="summary-icon">📄</div>
+      </div>
+      <div id="statTotalRaw" class="summary-value">0</div>
+      <div class="summary-sub">나라장터 API 기준 최근 7일 합계</div>
+    </article>
 
-  <div class="filters">
-    <div class="search-with-voice">
-      <input id="search-keyword"
-             placeholder="예: 학교 개축, 리노베이션, 서울시"
-             oninput="applyFilter()">
-      <button class="btn-icon" type="button" onclick="toggleVoiceSearch()" title="음성 검색">
-        <span id="voice-status">🎙</span>
+    <article class="summary-card">
+      <div class="summary-header">
+        <span class="summary-label">필터 통과</span>
+        <div class="summary-icon">🧲</div>
+      </div>
+      <div id="statFiltered" class="summary-value">0</div>
+      <div class="summary-sub">도메인/패턴 필터 후 남은 공고</div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-header">
+        <span class="summary-label">AI 분석 수행</span>
+        <div class="summary-icon">🤖</div>
+      </div>
+      <div id="statAi" class="summary-value">0</div>
+      <div class="summary-sub">Gemini 1차 요약 호출 건수</div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-header">
+        <span class="summary-label">API 호출</span>
+        <div class="summary-icon">📡</div>
+      </div>
+      <div id="statApi" class="summary-value">0</div>
+      <div class="summary-sub">
+        <span id="statPeriod" class="period-label">Period: Last 7 days</span>
+      </div>
+    </article>
+
+    <article class="donut-card">
+      <div class="donut-label">관련성 분포 (상 + 중)</div>
+      <div class="donut-wrapper">
+        <div class="donut-ring" id="donutRing"></div>
+        <div class="donut-center">
+          <div id="donutMain" class="donut-main">0</div>
+          <div class="donut-sub">현재 조회 건수</div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- 검색/필터 -->
+  <section class="controls-bar">
+    <div class="search-input-wrap">
+      <input
+        id="searchInput"
+        class="search-input"
+        type="text"
+        placeholder="검색어 입력 (학교, 개축, 강동구, 설계 등)"
+      />
+      <span class="search-icon-left">🔍</span>
+      <span class="search-icon-right">⌨️</span>
+    </div>
+
+    <select id="filterRegion" class="select">
+      <option value="">전체 지역</option>
+      <option value="서울">서울</option>
+      <option value="경기">경기</option>
+      <option value="인천">인천</option>
+      <option value="부산">부산</option>
+      <option value="대구">대구</option>
+      <option value="광주">광주</option>
+      <option value="대전">대전</option>
+      <option value="울산">울산</option>
+      <option value="강원">강원</option>
+      <option value="충청">충청</option>
+      <option value="경상">경상</option>
+      <option value="전라">전라</option>
+      <option value="제주">제주</option>
+    </select>
+
+    <div class="chip-group">
+      <div class="chip active" data-rel="all">전체</div>
+      <div class="chip" data-rel="high">관련성 상</div>
+      <div class="chip" data-rel="mid">관련성 중 이상</div>
+    </div>
+  </section>
+
+  <!-- 메인 레이아웃 (입찰 리스트 + 캘린더) -->
+  <section class="main-layout">
+    <section class="bid-list-panel">
+      <header class="panel-header">
+        <div class="panel-header-left">
+          <span>검색 결과</span>
+          <span class="pill-count"><span id="resultCount">0</span>건</span>
+        </div>
+        <div class="panel-header-right">
+          <span class="mini-dot"></span>
+          <span id="statLastUpdate">Last Update: -</span>
+        </div>
+      </header>
+
+      <div id="bidList"></div>
+    </section>
+
+    <aside class="calendar-panel">
+      <header class="calendar-header">
+        <div class="calendar-header-left">
+          <span>입찰 마감 캘린더</span>
+          <span class="calendar-tag">Google Calendar</span>
+        </div>
+        <span style="font-size:11px;color:var(--text-soft);">
+          일정 등록 시 자동으로 동기화 됩니다.
+        </span>
+      </header>
+
+      <div class="calendar-frame">
+        <!-- 캘린더 ID는 이미 Apps Script에서 사용 중이므로 iframe만 UI용으로 유지 -->
+        <iframe
+          src="https://calendar.google.com/calendar/embed?src=d51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04%40group.calendar.google.com&ctz=Asia%2FSeoul&bgcolor=%23050915&mode=MONTH&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&showTz=0"
+        ></iframe>
+      </div>
+    </aside>
+  </section>
+</div>
+
+<!-- 스마트 등록 모달 -->
+<div id="smartModalBackdrop" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">외부 공고 스마트 등록</div>
+      <button id="btnSmartClose" class="btn btn-ghost btn-small">
+        닫기
       </button>
     </div>
-    <select id="region-filter" onchange="applyFilter()">
-      <option value="">전체 지역</option>
-      <option>서울</option>
-      <option>경기</option>
-      <option>인천</option>
-      <option>부산</option>
-      <option>대전</option>
-      <option>대구</option>
-      <option>광주</option>
-      <option>울산</option>
-      <option>강원</option>
-      <option>충청</option>
-      <option>경상</option>
-      <option>전라</option>
-    </select>
-  </div>
-
-  <div class="chip-group">
-    <div class="chip active" data-mode="all" onclick="setFilterMode('all')">전체</div>
-    <div class="chip" data-mode="high" onclick="setFilterMode('high')">관련성 상</div>
-    <div class="chip" data-mode="mid" onclick="setFilterMode('mid')">관련성 중 이상</div>
-  </div>
-
-  <div id="list" class="list"></div>
-
-  <!-- 구글 캘린더 영역 -->
-  <div class="calendar-section">
-    <div class="calendar-header">
-      <div>📅 입찰 마감 일정 캘린더</div>
-      <span>※ Dark 모드에 맞춰 색감만 보정된 Google Calendar 입니다.</span>
-    </div>
-    <div class="calendar-frame-wrapper">
-      <iframe
-        src="https://calendar.google.com/calendar/embed?src=d51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04%40group.calendar.google.com&ctz=Asia%2FSeoul"
-        frameborder="0"
-        scrolling="no">
-      </iframe>
-    </div>
+    <form id="smartForm">
+      <div class="modal-body">
+        <div>
+          <div class="field-label">① 공고 본문 텍스트 (선택)</div>
+          <textarea
+            id="smartText"
+            class="textarea"
+            placeholder="사이트에서 복사한 본문 텍스트를 붙여 넣으세요."
+          ></textarea>
+        </div>
+        <div>
+          <div class="field-label">
+            ② 첨부파일 / 다운로드 주소(URL) (줄바꿈 또는 쉼표로 여러 개 입력 가능)
+          </div>
+          <input
+            id="smartUrl"
+            class="input"
+            type="text"
+            placeholder="https://...hwp, https://...pdf 등"
+          />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <span>AI가 공고번호·금액·기간·담당자 등을 추출해 한 행으로 등록합니다.</span>
+        <div style="display:flex;gap:8px;">
+          <button type="button" id="btnSmartCancel" class="btn btn-ghost btn-small">
+            취소
+          </button>
+          <button type="submit" class="btn btn-primary btn-small">
+            <span class="icon">🤖</span> AI 분석·등록
+          </button>
+        </div>
+      </div>
+    </form>
   </div>
 </div>
 
-<!-- 외부 공고 스마트 등록 모달 -->
-<div id="add-modal-backdrop" class="modal-backdrop">
-  <div class="modal">
-    <h3>📝 외부 공고 스마트 등록</h3>
-    <small>
-      일반 웹사이트의 <b>첨부파일 URL</b> 이나 공고 내용을 붙여넣으면,<br>
-      AI가 입찰 정보를 추출하고 시트에 한 줄로 저장합니다.
-      <br>※ PDF/HWP를 다운받아 <b>구글 드라이브에 올린 후 공유 URL</b>을 넣어도 됩니다.
-    </small>
-
-    <div class="section-title">첨부파일 다운로드 주소 (선택)</div>
-    <textarea id="file-urls"
-      placeholder="여러 개일 경우 줄바꿈으로 입력&#13;&#10;예) https://.../공고1.pdf&#13;&#10;https://.../공고2.hwp"></textarea>
-
-    <div class="section-title">텍스트 직접 붙여넣기 (선택)</div>
-    <textarea id="paste-area"
-      placeholder="[선택] 공고문 내용 일부를 붙여넣으면 정확도가 올라갑니다.&#13;&#10;예) 공고명, 사업 개요, 위치, 규모 등"></textarea>
-
-    <div class="modal-btns">
-      <button class="btn btn-secondary" onclick="closeAddModal()">취소</button>
-      <button class="btn btn-primary" id="btn-smart-save" onclick="processSmartAdd()">✨ AI 분석 및 저장</button>
-    </div>
-  </div>
-</div>
-
-<!-- 2차 심화 분석 모달 -->
-<div id="detail-modal-backdrop" class="modal-backdrop">
-  <div class="modal">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-      <div>
-        <h3 id="detail-title"></h3>
-        <small id="detail-sub"></small>
-      </div>
-      <button class="btn btn-secondary" onclick="closeDetailModal()">닫기</button>
-    </div>
-
-    <div id="detail-loading" style="font-size:12px; color:#b2bec3; margin-top:8px; display:none;">
-      🔍 상세와 첨부 정보를 AI가 읽는 중입니다...
-    </div>
-
-    <div id="detail-content" style="display:none; margin-top:6px; font-size:12px;">
-      <div class="section-title">1차 AI 요약</div>
-      <div id="detail-first-summary" style="font-size:11px; color:#dfe6e9; white-space:pre-line;"></div>
-
-      <div class="section-title">2차 심화 분석</div>
-      <div style="margin-bottom:6px;">
-        <span class="pill" id="pill-relevance"></span>
-        <span class="pill" id="pill-facility"></span>
-        <span class="pill" id="pill-ton"></span>
-        <span class="pill" id="pill-risk"></span>
-      </div>
-      <div id="detail-summary2" style="font-size:11px; color:#dfe6e9; white-space:pre-line;"></div>
-
-      <div class="section-title">체크 포인트</div>
-      <ul id="detail-checkpoints" class="small-list"></ul>
-
-      <div class="section-title">첨부파일 이름 (나라장터 기준)</div>
-      <ul id="detail-attachments" class="small-list"></ul>
-
-      <div class="section-title">전략 메모</div>
-      <div id="detail-suggestion" style="font-size:11px; color:#b2bec3;"></div>
-
-      <div class="modal-btns" style="margin-top:12px;">
-        <a id="detail-link" href="#" target="_blank" class="btn btn-outline">나라장터 원문 열기</a>
-      </div>
+<!-- 전역 로딩 -->
+<div id="globalLoading" class="loading-overlay">
+  <div class="loading-box">
+    <div class="spinner-lg"></div>
+    <div>
+      <div id="globalLoadingText" class="loading-text-main">분석 중...</div>
+      <div class="loading-text-sub">잠시만 기다리시면 결과가 정리됩니다.</div>
     </div>
   </div>
 </div>
 
 <script>
-  // ★★★ 본인의 Apps Script WebApp URL 로 바꿔 주세요 ★★★
-  const API_BASE = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
+  // ★ 반드시 본인 Apps Script 웹앱 URL로 변경해 주세요.
+  const SCRIPT_URL =
+    "https://script.google.com/macros/s/여기에_본인_웹앱_URL_붙여넣기/exec";
 
-  let allData = [];
-  let filterMode = 'all'; // all | high | mid
-  let recognition = null;
-  let recognizing = false;
-  let lastStats = null;
+  let allItems = [];
+  let activeRelFilter = "all";
 
-  // ---------- 통계 렌더링 ----------
-  function renderStats(stats) {
-    const bar = document.getElementById('stats-bar');
-    if (!bar) return;
-    if (!stats) {
-      bar.style.display = 'none';
-      bar.innerHTML = '';
-      return;
-    }
-    const finished = stats.finishedAtText || stats.startedAtText || '';
-    const daysBack = stats.daysBack || '?';
-    const apiCalls = stats.totalApiCalls || 0;
+  document.addEventListener("DOMContentLoaded", () => {
+    bindUI();
+    loadData();
+  });
 
-    // 원시 전체 공고수(중복 포함): totalCountRaw 또는 totalCount 또는 totalItemsFromApi
-    const rawTotal =
-      stats.totalCountRaw ||
-      stats.totalCount ||
-      stats.totalItemsFromApi ||
-      0;
+  function bindUI() {
+    document.getElementById("btnRefresh").addEventListener("click", () => {
+      refreshAll();
+    });
 
-    const unique = stats.totalUnique || 0;
-    const kept = stats.rowsWritten || stats.totalKept || 0;
-    const aiCalls = stats.totalAiCalls || 0;
+    document.getElementById("btnExternal").addEventListener("click", () => {
+      externalUpdate();
+    });
 
-    bar.style.display = 'flex';
-    bar.innerHTML = `
-      <div class="stats-chip"><span class="stats-chip-label">최근 업데이트:</span> ${finished}</div>
-      <div class="stats-chip"><span class="stats-chip-label">조회기간:</span> 최근 ${daysBack}일</div>
-      <div class="stats-chip"><span class="stats-chip-label">전체 공고수(원시):</span> ${rawTotal}건</div>
-      <div class="stats-chip"><span class="stats-chip-label">키워드 중복 제거:</span> ${unique}건</div>
-      <div class="stats-chip"><span class="stats-chip-label">필터 통과 공고:</span> ${kept}건</div>
-      <div class="stats-chip"><span class="stats-chip-label">AI 요약 생성:</span> ${aiCalls}건</div>
-      <div class="stats-chip"><span class="stats-chip-label">API 호출:</span> ${apiCalls}회</div>
-    `;
+    document.getElementById("btnLogin").addEventListener("click", () => {
+      openCalendarAuth();
+    });
+
+    document
+      .getElementById("searchInput")
+      .addEventListener("input", applyFilters);
+    document
+      .getElementById("filterRegion")
+      .addEventListener("change", applyFilters);
+
+    document.querySelectorAll(".chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        document
+          .querySelectorAll(".chip")
+          .forEach((c) => c.classList.remove("active"));
+        chip.classList.add("active");
+        activeRelFilter = chip.dataset.rel || "all";
+        applyFilters();
+      });
+    });
+
+    // 스마트 등록 모달
+    document
+      .getElementById("btnSmartAddOpen")
+      .addEventListener("click", openSmartModal);
+    document
+      .getElementById("btnSmartClose")
+      .addEventListener("click", closeSmartModal);
+    document
+      .getElementById("btnSmartCancel")
+      .addEventListener("click", closeSmartModal);
+    document
+      .getElementById("smartModalBackdrop")
+      .addEventListener("click", (e) => {
+        if (e.target.id === "smartModalBackdrop") closeSmartModal();
+      });
+
+    document
+      .getElementById("smartForm")
+      .addEventListener("submit", handleSmartSubmit);
   }
 
-  // ---------- 데이터 로딩 ----------
-  async function loadData() {
-    const list = document.getElementById('list');
-    list.innerHTML = '<div style="font-size:12px; color:#b2bec3;">데이터를 불러오는 중입니다...</div>';
-    try {
-      const res = await fetch(API_BASE);
-      const json = await res.json();
+  // 전역 로딩 오버레이
+  function setGlobalLoading(on, message) {
+    const overlay = document.getElementById("globalLoading");
+    const text = document.getElementById("globalLoadingText");
+    if (!overlay) return;
+    overlay.classList.toggle("active", !!on);
+    if (message && text) text.textContent = message;
+  }
 
-      // 서버가 배열만 주는 예전 버전도 하위호환
-      if (Array.isArray(json)) {
-        allData = json;
-        lastStats = null;
-      } else {
-        allData = json.items || [];
-        lastStats = json.stats || null;
-      }
-      renderStats(lastStats);
-      applyFilter();
+  // 데이터 로드
+  async function loadData() {
+    try {
+      setGlobalLoading(true, "입찰 데이터를 불러오는 중입니다...");
+      const res = await fetch(SCRIPT_URL);
+      const data = await res.json();
+
+      allItems = data.items || [];
+      updateStatsUI(data.stats || {}, allItems);
+      renderBidList(allItems);
+      applyFilters(); // 검색/필터 반영
+
     } catch (e) {
       console.error(e);
-      list.innerHTML = '<div style="font-size:12px; color:#e17055;">데이터 로딩 실패: ' + e.message + '</div>';
+      alert("데이터를 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setGlobalLoading(false);
     }
   }
 
-  // ===== 음성 검색 =====
-  function initVoice() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert('이 브라우저에서는 음성 인식이 지원되지 않습니다. (Chrome 권장)');
-      return null;
-    }
-    const rec = new SpeechRecognition();
-    rec.lang = 'ko-KR';
-    rec.continuous = false;
-    rec.interimResults = false;
-
-    rec.onstart = () => {
-      recognizing = true;
-      updateVoiceUi();
-    };
-    rec.onend = () => {
-      recognizing = false;
-      updateVoiceUi();
-    };
-    rec.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      const input = document.getElementById('search-keyword');
-      input.value = text;
-      applyFilter();
-    };
-    rec.onerror = (event) => {
-      console.error('Voice error', event);
-      alert('음성 인식 중 오류가 발생했습니다: ' + event.error);
-    };
-    return rec;
-  }
-
-  function toggleVoiceSearch() {
-    if (!recognition) {
-      recognition = initVoice();
-      if (!recognition) return;
-    }
-    if (recognizing) {
-      recognition.stop();
-    } else {
-      recognition.start();
+  // 전체 새로고침 (나라장터 다시 수집 + 외부소스 수집)
+  async function refreshAll() {
+    const btn = document.getElementById("btnRefresh");
+    btn.classList.add("loading");
+    try {
+      setGlobalLoading(true, "나라장터 API 재조회 및 AI 필터링 중입니다...");
+      const res = await fetch(SCRIPT_URL + "?action=updateAll");
+      const data = await res.json();
+      console.log("updateAll", data);
+      await loadData();
+    } catch (e) {
+      console.error(e);
+      alert("새로고침 중 오류가 발생했습니다.");
+    } finally {
+      btn.classList.remove("loading");
+      setGlobalLoading(false);
     }
   }
 
-  function updateVoiceUi() {
-    const el = document.getElementById('voice-status');
-    if (!el) return;
-    el.textContent = recognizing ? '🎙…' : '🎙';
+  // 외부 웹 수집
+  async function externalUpdate() {
+    const btn = document.getElementById("btnExternal");
+    btn.classList.add("loading");
+    try {
+      setGlobalLoading(true, "외부 검색 소스에서 공고 문서를 수집 중입니다...");
+      const res = await fetch(SCRIPT_URL + "?action=external_update");
+      const data = await res.json();
+      alert(
+        `외부 공고 소스를 다시 확인했습니다.\n전체 신규 수집 : ${
+          data.added || 0
+        }건`
+      );
+      await loadData();
+    } catch (e) {
+      console.error(e);
+      alert("외부웹 수집 중 오류가 발생했습니다.");
+    } finally {
+      btn.classList.remove("loading");
+      setGlobalLoading(false);
+    }
   }
 
-  // ---------- 필터 ----------
-  function applyFilter() {
-    const kw = document.getElementById('search-keyword').value.trim();
-    const region = document.getElementById('region-filter').value.trim();
-    const list = document.getElementById('list');
+  // 통계 UI 반영
+  function updateStatsUI(stats, items) {
+    const totalRaw =
+      stats.totalCountRaw ||
+      stats.totalItemsFromApi ||
+      0;
+    const filtered = stats.totalKept || items.length || 0;
+    const ai = stats.totalAiCalls || 0;
+    const api = stats.totalApiCalls || 0;
 
-    const filtered = allData.filter(item => {
-      if (region && (!item.region || item.region.indexOf(region) === -1)) return false;
+    document.getElementById("statTotalRaw").textContent =
+      totalRaw.toLocaleString("ko-KR");
+    document.getElementById("statFiltered").textContent =
+      filtered.toLocaleString("ko-KR");
+    document.getElementById("statAi").textContent =
+      ai.toLocaleString("ko-KR");
+    document.getElementById("statApi").textContent =
+      api.toLocaleString("ko-KR");
 
-      const aiText = (item.aiResult || '');
-      let relevanceFlag = 'mid';
-      if (/\[.*관련성\s*상.*\]/.test(aiText) || /관련성 상/.test(aiText)) relevanceFlag = 'high';
-      if (/\[.*관련성\s*하.*\]/.test(aiText) || /관련성 하/.test(aiText)) relevanceFlag = 'low';
+    const periodLabel = document.getElementById("statPeriod");
+    if (periodLabel) {
+      const days = stats.daysBack || 7;
+      periodLabel.textContent = `Period: Last ${days} days`;
+    }
 
-      if (filterMode === 'high' && relevanceFlag !== 'high') return false;
-      if (filterMode === 'mid' && relevanceFlag === 'low') return false;
+    const lastUpdateEl = document.getElementById("statLastUpdate");
+    if (lastUpdateEl) {
+      const t =
+        stats.finishedAtText ||
+        stats.startedAtText ||
+        "-";
+      lastUpdateEl.textContent = `Last Update: ${t}`;
+    }
 
-      if (kw) {
-        const blob = (item.title + ' ' + (item.client || '') + ' ' +
-                      (item.agency || '') + ' ' + aiText)
-          .toLowerCase();
-        if (blob.indexOf(kw.toLowerCase()) === -1) return false;
-      }
-      return true;
+    // 도넛 중심 값 = 현재 리스트 건수
+    document.getElementById("donutMain").textContent =
+      (items.length || 0).toLocaleString("ko-KR");
+
+    // 관련성 상 + 중 비율로 도넛 회전 속도 조절 (가벼운 시각 효과)
+    let highOrMid = 0;
+    items.forEach((it) => {
+      const rel = getRelevance(it.aiResult || "");
+      if (rel === "상" || rel === "중") highOrMid++;
     });
-
-    renderList(filtered);
+    const ratio =
+      items.length > 0 ? highOrMid / items.length : 0;
+    const ring = document.getElementById("donutRing");
+    const base = 10; // 기본 10초
+    const speed = Math.max(4, base - ratio * 6); // 비율 높을수록 빠르게
+    ring.style.animationDuration = speed + "s";
   }
 
-  function setFilterMode(mode) {
-    filterMode = mode;
-    document.querySelectorAll('.chip').forEach(chip => {
-      chip.classList.toggle('active', chip.dataset.mode === mode);
-    });
-    applyFilter();
-  }
-
-  // ---------- 카드 렌더링 ----------
-  function renderList(data) {
-    const list = document.getElementById('list');
-    if (!data.length) {
-      list.innerHTML = '<div style="font-size:12px; color:#b2bec3;">조건에 맞는 공고가 없습니다.</div>';
+  // 리스트 렌더링
+  function renderBidList(items) {
+    const container = document.getElementById("bidList");
+    container.innerHTML = "";
+    if (!items || items.length === 0) {
+      container.innerHTML =
+        '<div style="padding:12px 4px;font-size:12px;color:var(--text-soft);">표시할 공고가 없습니다.</div>';
+      document.getElementById("resultCount").textContent = "0";
       return;
     }
 
-    list.innerHTML = '';
-    data.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'card';
+    items.forEach((item) => {
+      const rel = getRelevance(item.aiResult || "");
+      const card = document.createElement("article");
+      card.className = "bid-card";
+      card.dataset.relevance = rel;
+      card.dataset.region = item.region || "";
+      card.dataset.rowIndex = item.rowIndex;
 
-      const aiText = item.aiResult || '';
-      let relTagClass = 'yellow';
-      if (/관련성 상/.test(aiText) || /\[.*상.*\]/.test(aiText)) relTagClass = 'green';
-      if (/관련성 하/.test(aiText) || /\[.*하.*\]/.test(aiText)) relTagClass = 'red';
+      const statusClass =
+        item.status === "수동등록" ? "manual" : "";
 
-      const isManual = (item.status === '수동등록') || (item.client === '직접등록');
-
-      const manager = item.clientManager || '-';
-      const servicePeriod = item.servicePeriod || '';
-      const serviceAmount = item.serviceAmount || '';
-      const projectBudget = item.projectBudget || '';
-      const extraLines = [];
-
-      if (servicePeriod || serviceAmount || projectBudget) {
-        extraLines.push(
-          '기간: ' + (servicePeriod || '정보 없음')
-          + ' / 용역금액: ' + (serviceAmount || '정보 없음')
-          + ' / 사업비: ' + (projectBudget || '정보 없음')
-        );
-      }
-      if (manager && manager !== '-') {
-        extraLines.push('담당자: ' + manager);
-      }
-
-      card.innerHTML = `
-        <div class="card-header">
-          <div>
-            <div class="card-title">
-              [${item.no}] ${item.title}
+      const html = `
+        <div class="bid-card-inner">
+          <div class="bid-top-row">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="badge-region">${
+                item.region || "지역미상"
+              }</span>
+              <span class="bid-no">#${item.no || "-"}</span>
             </div>
-            <div class="card-sub">
-              ${(item.client || '-') + ' / ' + (item.agency || '-')}
-              <span class="tag ${relTagClass}">관련성 추정</span>
+            <span class="badge-status ${statusClass}">
+              ${item.status || "공고중"}
+            </span>
+          </div>
+          <h3 class="bid-title">${escapeHtml(
+            item.title || ""
+          )}</h3>
+          <div class="bid-subline">
+            <span>발주처: ${escapeHtml(
+              item.client || "-"
+            )}</span>
+            <span>수요기관: ${escapeHtml(
+              item.agency || "-"
+            )}</span>
+            ${
+              item.clientManager
+                ? `<span>담당: ${escapeHtml(
+                    item.clientManager
+                  )}</span>`
+                : ""
+            }
+            ${
+              item.expectedTon
+                ? `<span>규모: ${escapeHtml(
+                    item.expectedTon
+                  )}</span>`
+                : ""
+            }
+          </div>
+
+          <div class="bid-meta-grid">
+            <div class="bid-meta-item">
+              <span class="meta-label">용역기간</span>
+              <span class="meta-value">${
+                item.servicePeriod || "-"
+              }</span>
+            </div>
+            <div class="bid-meta-item">
+              <span class="meta-label">용역금액</span>
+              <span class="meta-value">${
+                item.serviceAmount || "-"
+              }</span>
+            </div>
+            <div class="bid-meta-item">
+              <span class="meta-label">사업비</span>
+              <span class="meta-value">${
+                item.projectBudget || "-"
+              }</span>
             </div>
           </div>
-          <div class="status-label">
-            <span class="status-dot"></span>
-            <span>${item.status || (isManual ? '수동등록' : '공고중')}</span>
+
+          <div class="ai-result-box">
+            <div class="ai-result-icon">✨</div>
+            <div class="ai-result-text">
+              <strong>${rel ? `[${rel}] ` : ""}</strong>
+              <span>${escapeHtml(
+                stripBracketPrefix(item.aiResult || "")
+              )}</span>
+            </div>
           </div>
-        </div>
-        ${extraLines.length ? `<div class="card-extra">${extraLines.join('\n')}</div>` : ''}
-        <div class="card-body">${(aiText || 'AI 분석 대기중')}</div>
-        <div class="card-footer">
-          <div class="card-footer-left">
-            공고일 ${item.date || '-'} · 마감 ${item.deadline || '-'}
-            ${item.expectedTon ? ' · 예상 ' + item.expectedTon : ''}
-          </div>
-          <div class="card-footer-right">
-            <button class="btn btn-secondary btn-detail">2차 분석</button>
-            ${item.deadline ? `<button class="btn btn-outline btn-calendar">${item.calendarId ? '캘린더 수정' : '캘린더 등록'}</button>` : ''}
-            ${isManual ? '' : `<a class="btn btn-outline" href="${item.link || '#'}" target="_blank">나라장터 열기</a>`}
-            ${isManual ? `<button class="btn btn-outline btn-delete">삭제</button>` : ''}
+
+          <div class="bid-footer-row">
+            <div class="bid-dates">
+              <span>공고일: ${
+                item.date || "-"
+              }</span>
+              <span>마감: ${
+                item.deadline || "-"
+              }</span>
+            </div>
+            <div class="bid-buttons">
+              <button class="btn btn-ghost btn-small btn-deep">
+                2차 상세분석
+              </button>
+              <button class="btn btn-ghost btn-small btn-calendar">
+                <span class="icon">📅</span> 등록
+              </button>
+              ${
+                item.link && item.link !== "#"
+                  ? `<a class="btn btn-ghost btn-small btn-link" href="${item.link}" target="_blank" rel="noreferrer">
+                      <span class="icon">🔗</span> 원문
+                    </a>`
+                  : ""
+              }
+            </div>
           </div>
         </div>
       `;
+      card.innerHTML = html;
+      container.appendChild(card);
 
-      const detailBtn = card.querySelector('.btn-detail');
-      detailBtn.addEventListener('click', () => openDetailModal(item));
+      // 버튼 이벤트
+      const deepBtn = card.querySelector(".btn-deep");
+      const calBtn = card.querySelector(".btn-calendar");
 
-      const deleteBtn = card.querySelector('.btn-delete');
-      if (deleteBtn) {
-        deleteBtn.addEventListener('click', () => deleteRow(item));
-      }
-
-      const calBtn = card.querySelector('.btn-calendar');
-      if (calBtn) {
-        calBtn.addEventListener('click', () => addCalendar(item, calBtn));
-      }
-
-      list.appendChild(card);
-    });
-  }
-
-  // ---------- 외부 공고 스마트 등록 모달 ----------
-  function openAddModal() {
-    document.getElementById('file-urls').value = '';
-    document.getElementById('paste-area').value = '';
-    document.getElementById('add-modal-backdrop').classList.add('show');
-  }
-  function closeAddModal() {
-    document.getElementById('add-modal-backdrop').classList.remove('show');
-  }
-
-  async function processSmartAdd() {
-    const fileUrlsRaw = document.getElementById('file-urls').value.trim();
-    const text = document.getElementById('paste-area').value.trim();
-
-    if (!fileUrlsRaw && !text) {
-      alert('첨부파일 URL 이나 내용을 하나 이상 입력해 주세요.');
-      return;
-    }
-
-    const btn = document.getElementById('btn-smart-save');
-    btn.disabled = true;
-    btn.innerText = '🧠 AI 분석 및 저장 중...';
-
-    try {
-      const res = await fetch(API_BASE, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'smart_add',
-          fileUrl: fileUrlsRaw,
-          text: text
-        })
-      });
-      const json = await res.json();
-
-      if (json.result !== 'success') {
-        alert('처리 실패: ' + (json.message || '알 수 없는 오류'));
-        return;
-      }
-
-      let msg = '✅ 저장 완료\n[' + (json.storedTitle || '제목 없음') + ']';
-      if (json.estimatedTon) msg += '\n예상톤수: ' + json.estimatedTon + '톤';
-      if (json.fileNote) msg += '\n첨부파일: ' + json.fileNote;
-      if (json.aiError) msg += '\n(참고: AI 분석 오류=' + json.aiError + ')';
-      alert(msg);
-
-      closeAddModal();
-      setTimeout(loadData, 1200);
-
-    } catch (e) {
-      console.error(e);
-      alert('처리 실패: ' + e.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerText = '✨ AI 분석 및 저장';
-    }
-  }
-
-  // ---------- 수동 등록 삭제 ----------
-  async function deleteRow(item) {
-    if (!item.rowIndex) {
-      alert('행 정보(rowIndex)를 찾을 수 없습니다.');
-      return;
-    }
-    if (!confirm('해당 수동 등록 항목을 삭제할까요?\n\n[' + (item.title || '') + ']')) {
-      return;
-    }
-
-    try {
-      const url = API_BASE +
-        '?action=deleteRow&rowIndex=' + encodeURIComponent(item.rowIndex);
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.result !== 'success') {
-        alert('삭제 실패: ' + (json.message || '알 수 없는 오류'));
-        return;
-      }
-      alert('삭제되었습니다.');
-      allData = allData.filter(d => d.rowIndex !== item.rowIndex);
-      applyFilter();
-    } catch (e) {
-      console.error(e);
-      alert('삭제 중 오류: ' + e.message);
-    }
-  }
-
-  // ---------- 외부웹 수집 트리거 ----------
-  async function runExternalUpdate() {
-    try {
-      const res = await fetch(API_BASE + '?action=external_update');
-      const json = await res.json();
-      if (json.result === 'success') {
-        const added = json.added || 0;
-        alert(
-          '외부 공고 소스를 다시 확인했습니다.\n' +
-          '전체 신규 수집 : ' + added + '건\n\n' +
-          '※ 설명 : 스크립트 내부 "외부공고소스" 시트에\n' +
-          '(사용=Y) 로 표시된 Google/Naver 검색결과 페이지 URL들을\n' +
-          '기준으로 들어가서, 그 안의 PDF/HWP/문서 링크를 찾아 자동 수집합니다.'
-        );
-        if (added > 0) loadData();
-      } else {
-        alert('외부 수집 실패: ' + (json.message || '알 수 없는 오류'));
-      }
-    } catch (e) {
-      alert('외부 수집 중 오류: ' + e.message);
-    }
-  }
-
-  // ---------- 구글 캘린더 등록 ----------
-  async function addCalendar(item, btnEl) {
-    if (!item.rowIndex) {
-      alert('행 정보(rowIndex)를 찾을 수 없습니다.');
-      return;
-    }
-    if (!item.deadline) {
-      alert('마감일 정보가 없어 캘린더에 등록할 수 없습니다.');
-      return;
-    }
-    const originalLabel = btnEl.innerText;
-    btnEl.disabled = true;
-    btnEl.innerText = '캘린더 연동 중...';
-
-    try {
-      const url = API_BASE +
-        '?action=calendar_add&rowIndex=' + encodeURIComponent(item.rowIndex);
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.result === 'success') {
-        item.calendarId = json.calendarId || '';
-        btnEl.innerText = '캘린더 수정';
-        const whenText = json.eventStartText || '';
-        alert(
-          '구글 캘린더에 마감 일정을 등록했습니다.' +
-          (whenText ? '\n(' + whenText + ' 시작)' : '')
-        );
-      } else {
-        btnEl.innerText = originalLabel;
-        alert('캘린더 등록 실패: ' + (json.message || '알 수 없는 오류'));
-      }
-    } catch (e) {
-      console.error(e);
-      btnEl.innerText = originalLabel;
-      alert('캘린더 연동 중 오류: ' + e.message);
-    } finally {
-      btnEl.disabled = false;
-    }
-  }
-
-  // ---------- 2차 심화 분석 모달 ----------
-  function openDetailModal(item) {
-    const backdrop = document.getElementById('detail-modal-backdrop');
-    const content = document.getElementById('detail-content');
-    const loading = document.getElementById('detail-loading');
-
-    document.getElementById('detail-title').innerText =
-      '[' + item.no + '] ' + item.title;
-    document.getElementById('detail-sub').innerText =
-      (item.client || '-') + ' / ' + (item.agency || '-');
-
-    document.getElementById('detail-first-summary').innerText =
-      item.aiResult || '(1차 요약 없음)';
-
-    document.getElementById('detail-link').href = item.link || '#';
-
-    content.style.display = 'none';
-    loading.style.display = 'block';
-    backdrop.classList.add('show');
-
-    fetch(API_BASE +
-      '?action=deepAnalyze' +
-      '&no=' + encodeURIComponent(item.no) +
-      '&link=' + encodeURIComponent(item.link || '') +
-      '&title=' + encodeURIComponent(item.title || '') +
-      '&client=' + encodeURIComponent(item.client || '') +
-      '&agency=' + encodeURIComponent(item.agency || '')
-    )
-      .then(res => res.json())
-      .then(data => {
-        loading.style.display = 'none';
-        content.style.display = 'block';
-
-        const deep = data.deep || {};
-        document.getElementById('pill-relevance').innerText =
-          '관련성: ' + (deep.relevance || '-');
-        document.getElementById('pill-facility').innerText =
-          '시설유형: ' + (deep.facilityType || '-');
-        document.getElementById('pill-ton').innerText =
-          '예상톤수: ' + (deep.estimatedTon || '정보없음');
-        document.getElementById('pill-risk').innerText =
-          '리스크: ' + (deep.riskLevel || '-');
-
-        document.getElementById('detail-summary2').innerText =
-          deep.summary2 || '(심화 요약 없음)';
-
-        const ul = document.getElementById('detail-checkpoints');
-        ul.innerHTML = '';
-        (deep.checkPoints || []).forEach(cp => {
-          const li = document.createElement('li');
-          li.textContent = cp;
-          ul.appendChild(li);
-        });
-        if (!ul.children.length) {
-          const li = document.createElement('li');
-          li.textContent = '특별히 추출된 체크포인트가 없습니다.';
-          ul.appendChild(li);
-        }
-
-        const ulAtt = document.getElementById('detail-attachments');
-        ulAtt.innerHTML = '';
-        (data.attachments || []).forEach(name => {
-          const li = document.createElement('li');
-          li.textContent = name;
-          ulAtt.appendChild(li);
-        });
-        if (!ulAtt.children.length) {
-          const li = document.createElement('li');
-          li.textContent = '추출된 첨부파일 이름이 없습니다.';
-          ulAtt.appendChild(li);
-        }
-
-        document.getElementById('detail-suggestion').innerText =
-          deep.suggestion || '(전략 메모 없음)';
-      })
-      .catch(err => {
-        console.error(err);
-        loading.style.display = 'none';
-        content.style.display = 'block';
-        document.getElementById('detail-summary2').innerText =
-          '2차 분석 중 오류가 발생했습니다: ' + err.message;
-      });
-  }
-
-  function closeDetailModal() {
-    document.getElementById('detail-modal-backdrop').classList.remove('show');
-  }
-
-  // ---------- 캘린더 로그인 / 로그아웃 (UI용, 실제 권한은 Apps Script에서 한번 승인 필요) ----------
-  function initCalendarAuthUi() {
-    const btn = document.getElementById('btn-calendar-auth');
-    if (!btn) return;
-    const flag = localStorage.getItem('hksuan_calendar_authed') === '1';
-    btn.textContent = flag ? '로그아웃' : '로그인';
-  }
-
-  function toggleCalendarAuth() {
-    const flag = localStorage.getItem('hksuan_calendar_authed') === '1';
-    if (!flag) {
-      // 로그인 시도: Apps Script 쪽 calendar_auth 액션 호출
-      window.open(
-        API_BASE + '?action=calendar_auth',
-        '_blank',
-        'width=560,height=600'
+      deepBtn.addEventListener("click", () =>
+        handleDeepAnalyze(item, card, deepBtn)
       );
-      localStorage.setItem('hksuan_calendar_authed', '1');
-    } else {
-      // 프론트단 UI 기준 로그아웃 (실제 구글 계정 로그아웃과는 별개)
-      localStorage.removeItem('hksuan_calendar_authed');
-    }
-    initCalendarAuthUi();
+      calBtn.addEventListener("click", () =>
+        handleCalendarAdd(item, calBtn)
+      );
+    });
+
+    document.getElementById("resultCount").textContent =
+      items.length.toString();
   }
 
-  // 최초 로딩
-  initCalendarAuthUi();
-  loadData();
+  function stripBracketPrefix(text) {
+    // "[기타공공시설] [중]" 같은 프리픽스는 이미 서버에서 구성했으므로 그대로 보여주되
+    // 여기서는 첫 괄호를 relevance 판단에만 쓰고 나머지는 그대로 둡니다.
+    return text;
+  }
+
+  function getRelevance(aiResult) {
+    const m = aiResult.match(/\[([상중하])\]/);
+    return m ? m[1] : "";
+  }
+
+  function applyFilters() {
+    const q = (
+      document.getElementById("searchInput").value || ""
+    )
+      .toLowerCase()
+      .trim();
+    const region =
+      document.getElementById("filterRegion").value || "";
+
+    const filtered = allItems.filter((item) => {
+      const rel = getRelevance(item.aiResult || "");
+      if (activeRelFilter === "high" && rel !== "상") return false;
+      if (
+        activeRelFilter === "mid" &&
+        !(rel === "상" || rel === "중")
+      )
+        return false;
+
+      if (region && !(item.region || "").includes(region))
+        return false;
+
+      if (!q) return true;
+      const blob =
+        (item.title || "") +
+        " " +
+        (item.client || "") +
+        " " +
+        (item.agency || "") +
+        " " +
+        (item.aiResult || "");
+      return blob.toLowerCase().includes(q);
+    });
+
+    renderBidList(filtered);
+  }
+
+  // 2차 상세분석
+  async function handleDeepAnalyze(item, cardEl, btnEl) {
+    if (!item.no) {
+      alert("공고번호가 없어 2차 분석을 수행할 수 없습니다.");
+      return;
+    }
+    btnEl.classList.add("loading");
+    try {
+      setGlobalLoading(true, "2차 심화 분석을 수행 중입니다...");
+      const params = new URLSearchParams({
+        action: "deepAnalyze",
+        no: item.no,
+        link: item.link || "",
+        title: item.title || "",
+        client: item.client || "",
+        agency: item.agency || "",
+      });
+      const res = await fetch(`${SCRIPT_URL}?${params.toString()}`);
+      const data = await res.json();
+
+      console.log("deepAnalyze", data);
+
+      // 카드 내부에 추가 표시(체크 포인트 등)
+      if (data.deep && data.deep.summary2) {
+        alert(
+          `2차 분석 결과 (관련성: ${
+            data.deep.relevance || "중"
+          })\n\n${data.deep.summary2}`
+        );
+      } else {
+        alert("2차 분석 결과를 가져오지 못했습니다.");
+      }
+
+      // 시트의 용역기간/금액/사업비가 갱신되었을 수 있으므로 전체 재조회
+      await loadData();
+    } catch (e) {
+      console.error(e);
+      alert("2차 분석 중 오류가 발생했습니다.");
+    } finally {
+      btnEl.classList.remove("loading");
+      setGlobalLoading(false);
+    }
+  }
+
+  // 캘린더 등록
+  async function handleCalendarAdd(item, btnEl) {
+    if (!item.rowIndex) {
+      alert("행 번호 정보가 없어 캘린더 등록을 할 수 없습니다.");
+      return;
+    }
+    btnEl.classList.add("loading");
+    try {
+      setGlobalLoading(true, "캘린더에 일정을 등록하는 중입니다...");
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "calendar_add",
+          rowIndex: item.rowIndex,
+        }),
+      });
+      const data = await res.json();
+      if (data.result === "success") {
+        alert("캘린더에 일정이 등록되었습니다.");
+        document
+          .getElementById("loginStatusDot")
+          .classList.add("connected");
+        document.getElementById(
+          "loginStatusText"
+        ).textContent = "캘린더 연동 완료";
+      } else {
+        alert("캘린더 등록 실패: " + (data.message || ""));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("캘린더 등록 중 오류가 발생했습니다.");
+    } finally {
+      btnEl.classList.remove("loading");
+      setGlobalLoading(false);
+    }
+  }
+
+  // 캘린더 권한 팝업 열기
+  function openCalendarAuth() {
+    const url = SCRIPT_URL + "?action=calendar_auth";
+    const w = 520;
+    const h = 620;
+    const left = window.screenX + (window.outerWidth - w) / 2;
+    const top = window.screenY + (window.outerHeight - h) / 2;
+    window.open(
+      url,
+      "calendarAuth",
+      `width=${w},height=${h},left=${left},top=${top}`
+    );
+    // 사용자가 승인하면 이후 calendar_add 호출 시 자동으로 동작
+  }
+
+  // 스마트 등록 모달 열고/닫기
+  function openSmartModal() {
+    document
+      .getElementById("smartModalBackdrop")
+      .classList.add("active");
+  }
+
+  function closeSmartModal() {
+    document
+      .getElementById("smartModalBackdrop")
+      .classList.remove("active");
+  }
+
+  // 스마트 등록 submit
+  async function handleSmartSubmit(e) {
+    e.preventDefault();
+    const text =
+      document.getElementById("smartText").value || "";
+    const url = document.getElementById("smartUrl").value || "";
+
+    if (!text && !url) {
+      alert("본문 텍스트 또는 첨부파일 URL 중 하나는 입력해 주세요.");
+      return;
+    }
+
+    const btn =
+      document.querySelector("#smartForm button[type=submit]");
+    btn.classList.add("loading");
+
+    try {
+      setGlobalLoading(true, "AI가 공고 정보를 분석·추출하는 중입니다...");
+      const res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "smart_add",
+          text: text,
+          fileUrl: url,
+        }),
+      });
+      const data = await res.json();
+      console.log("smart_add", data);
+
+      if (data.result === "success") {
+        alert(
+          `저장 완료: ${data.storedTitle || ""}\n(시설유형: ${
+            data.facilityType || "-"
+          }, 예상톤수: ${data.estimatedTon || "-"}톤)`
+        );
+        closeSmartModal();
+        document.getElementById("smartText").value = "";
+        document.getElementById("smartUrl").value = "";
+        await loadData();
+      } else {
+        alert("저장 실패: " + (data.message || ""));
+      }
+    } catch (e2) {
+      console.error(e2);
+      alert("스마트 등록 중 오류가 발생했습니다.");
+    } finally {
+      btn.classList.remove("loading");
+      setGlobalLoading(false);
+    }
+  }
+
+  // HTML 이스케이프
+  function escapeHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
 </script>
 </body>
 </html>
-
-
