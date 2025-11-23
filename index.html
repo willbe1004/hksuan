@@ -21,7 +21,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 8px;
     }
     header h1 {
       font-size: 20px;
@@ -67,12 +67,67 @@
       opacity: 0.6;
       cursor: default;
     }
+
+    /* === 상단 통계바 === */
+    .stats-bar {
+      font-size: 11px;
+      color: #b2bec3;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #111722;
+      border: 1px solid #1f2933;
+      display: none;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .stats-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .stats-chip-label {
+      color: #95a5a6;
+    }
+
     .filters {
       display: flex;
       gap: 8px;
       margin-bottom: 12px;
     }
-    .filters input,
+
+    /* 검색 + 음성 버튼 래퍼 */
+    .search-with-voice {
+      display: flex;
+      align-items: center;
+      background: #1e272e;
+      border-radius: 999px;
+      border: 1px solid #2f3640;
+      padding-right: 4px;
+      flex: 1;
+    }
+    .search-with-voice input {
+      border: none;
+      background: transparent;
+      color: #ecf0f1;
+      padding: 8px 10px 8px 12px;
+      font-size: 12px;
+      flex: 1;
+      outline: none;
+    }
+    .btn-icon {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px 6px;
+      color: #dfe6e9;
+    }
+    .btn-icon:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
     .filters select {
       background: #1e272e;
       border-radius: 999px;
@@ -80,12 +135,10 @@
       color: #ecf0f1;
       padding: 8px 12px;
       font-size: 12px;
-      flex: 1;
-    }
-    .filters select {
       max-width: 140px;
-      flex: 0;
+      flex: 0 0 140px;
     }
+
     .chip-group {
       display: flex;
       gap: 6px;
@@ -290,8 +343,18 @@
     </div>
   </header>
 
+  <!-- 실행 통계 표시 바 -->
+  <div id="stats-bar" class="stats-bar"></div>
+
   <div class="filters">
-    <input id="search-keyword" placeholder="예: 학교 개축, 리노베이션, 서울시" oninput="applyFilter()">
+    <div class="search-with-voice">
+      <input id="search-keyword"
+             placeholder="예: 학교 개축, 리노베이션, 서울시"
+             oninput="applyFilter()">
+      <button class="btn-icon" type="button" onclick="toggleVoiceSearch()" title="음성 검색">
+        <span id="voice-status">🎙</span>
+      </button>
+    </div>
     <select id="region-filter" onchange="applyFilter()">
       <option value="">전체 지역</option>
       <option>서울</option>
@@ -393,6 +456,9 @@
 
   let allData = [];
   let filterMode = 'all'; // all | high | mid
+  let recognition = null;
+  let recognizing = false;
+  let lastStats = null;
 
   async function loadData() {
     const list = document.getElementById('list');
@@ -400,11 +466,101 @@
     try {
       const res = await fetch(API_BASE);
       const json = await res.json();
-      allData = json || [];
+
+      // 서버가 배열만 주는 예전 버전도 하위호환
+      if (Array.isArray(json)) {
+        allData = json;
+        lastStats = null;
+      } else {
+        allData = json.items || [];
+        lastStats = json.stats || null;
+      }
+      renderStats(lastStats);
       applyFilter();
     } catch (e) {
       console.error(e);
       list.innerHTML = '<div style="font-size:12px; color:#e17055;">데이터 로딩 실패: ' + e.message + '</div>';
+    }
+  }
+
+  function renderStats(stats) {
+    const bar = document.getElementById('stats-bar');
+    if (!bar) return;
+    if (!stats) {
+      bar.style.display = 'none';
+      bar.innerHTML = '';
+      return;
+    }
+    const finished = stats.finishedAtText || stats.startedAtText || '';
+    const daysBack = stats.daysBack || '?';
+    const apiCalls = stats.totalApiCalls || 0;
+    const unique = stats.totalUnique || 0;
+    const kept = stats.rowsWritten || stats.totalKept || 0;
+    const aiCalls = stats.totalAiCalls || 0;
+
+    bar.style.display = 'flex';
+    bar.innerHTML = `
+      <div class="stats-chip"><span class="stats-chip-label">최근 업데이트:</span> ${finished}</div>
+      <div class="stats-chip"><span class="stats-chip-label">조회기간:</span> 최근 ${daysBack}일</div>
+      <div class="stats-chip"><span class="stats-chip-label">API호출:</span> ${apiCalls}회</div>
+      <div class="stats-chip"><span class="stats-chip-label">수집공고:</span> ${unique}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">필터통과:</span> ${kept}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">AI요약:</span> ${aiCalls}건</div>
+    `;
+  }
+
+  // ===== 음성 검색 =====
+  function initVoice() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('이 브라우저에서는 음성 인식이 지원되지 않습니다. (Chrome 권장)');
+      return null;
+    }
+    const rec = new SpeechRecognition();
+    rec.lang = 'ko-KR';
+    rec.continuous = false;
+    rec.interimResults = false;
+
+    rec.onstart = () => {
+      recognizing = true;
+      updateVoiceUi();
+    };
+    rec.onend = () => {
+      recognizing = false;
+      updateVoiceUi();
+    };
+    rec.onresult = (event) => {
+      const text = event.results[0][0].transcript;
+      const input = document.getElementById('search-keyword');
+      input.value = text;
+      applyFilter();
+    };
+    rec.onerror = (event) => {
+      console.error('Voice error', event);
+      alert('음성 인식 중 오류가 발생했습니다: ' + event.error);
+    };
+    return rec;
+  }
+
+  function toggleVoiceSearch() {
+    if (!recognition) {
+      recognition = initVoice();
+      if (!recognition) return;
+    }
+    if (recognizing) {
+      recognition.stop();
+    } else {
+      recognition.start();
+    }
+  }
+
+  function updateVoiceUi() {
+    const el = document.getElementById('voice-status');
+    if (!el) return;
+    if (recognizing) {
+      el.textContent = '🎙…';
+    } else {
+      el.textContent = '🎙';
     }
   }
 
@@ -486,6 +642,7 @@
           </div>
           <div class="card-footer-right">
             <button class="btn btn-secondary btn-detail">2차 분석</button>
+            ${item.deadline ? `<button class="btn btn-outline btn-calendar">${item.calendarId ? '캘린더 수정' : '캘린더 등록'}</button>` : ''}
             ${isManual ? '' : `<a class="btn btn-outline" href="${item.link || '#'}" target="_blank">나라장터 열기</a>`}
             ${isManual ? `<button class="btn btn-outline btn-delete">삭제</button>` : ''}
           </div>
@@ -498,6 +655,11 @@
       const deleteBtn = card.querySelector('.btn-delete');
       if (deleteBtn) {
         deleteBtn.addEventListener('click', () => deleteRow(item));
+      }
+
+      const calBtn = card.querySelector('.btn-calendar');
+      if (calBtn) {
+        calBtn.addEventListener('click', () => addCalendar(item, calBtn));
       }
 
       list.appendChild(card);
@@ -528,11 +690,16 @@
     btn.innerText = '🧠 AI 분석 및 저장 중...';
 
     try {
-      const url = API_BASE +
-        '?action=smart_add&fileUrl=' + encodeURIComponent(fileUrlsRaw) +
-        '&text=' + encodeURIComponent(text);
-
-      const res = await fetch(url);
+      // ★ 변경: GET → POST(JSON) 으로 전송 (긴 텍스트 대비)
+      const res = await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'smart_add',
+          fileUrl: fileUrlsRaw,
+          text: text
+        })
+      });
       const json = await res.json();
 
       if (json.result !== 'success') {
@@ -542,6 +709,7 @@
 
       let msg = '✅ 저장 완료\n[' + (json.storedTitle || '') + ']';
       if (json.estimatedTon) msg += '\n예상톤수: ' + json.estimatedTon + '톤';
+      if (json.fileNote) msg += '\n첨부파일: ' + json.fileNote;
       if (json.aiError) msg += '\n(참고: AI 분석 오류=' + json.aiError + ')';
       alert(msg);
 
@@ -598,6 +766,40 @@
       }
     } catch (e) {
       alert('외부 수집 중 오류: ' + e.message);
+    }
+  }
+
+  // ---------- 구글 캘린더 등록 ----------
+  async function addCalendar(item, btnEl) {
+    if (!item.deadline) {
+      alert('마감일 정보가 없어 캘린더에 등록할 수 없습니다.');
+      return;
+    }
+    const originalLabel = btnEl.innerText;
+    btnEl.disabled = true;
+    btnEl.innerText = '캘린더 연동 중...';
+
+    try {
+      const url = API_BASE +
+        '?action=calendar_add&rowIndex=' + encodeURIComponent(item.rowIndex);
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.result === 'success') {
+        item.calendarId = json.calendarId || '';
+        btnEl.innerText = '캘린더 수정';
+        const whenText = json.eventStartText || '';
+        alert('구글 캘린더에 마감 일정을 등록했습니다.' +
+          (whenText ? '\n(' + whenText + ' 시작)' : ''));
+      } else {
+        btnEl.innerText = originalLabel;
+        alert('캘린더 등록 실패: ' + (json.message || '알 수 없는 오류'));
+      }
+    } catch (e) {
+      console.error(e);
+      btnEl.innerText = originalLabel;
+      alert('캘린더 연동 중 오류: ' + e.message);
+    } finally {
+      btnEl.disabled = false;
     }
   }
 
