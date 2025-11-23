@@ -190,8 +190,6 @@
       border-radius: 999px;
       background: #55efc4;
     }
-
-    /* 모달 공통 */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -287,8 +285,7 @@
     </div>
     <div class="right">
       <button class="btn btn-outline" onclick="loadData()">새로고침</button>
-      <!-- 필요하면 외부웹 수집 트리거 추가 -->
-      <!-- <button class="btn btn-outline" onclick="runExternalUpdate()">외부웹 수집</button> -->
+      <button class="btn btn-outline" onclick="runExternalUpdate()">외부웹 수집</button>
       <button class="btn btn-primary" onclick="openAddModal()">+ 외부 공고 스마트 등록</button>
     </div>
   </header>
@@ -318,9 +315,7 @@
     <div class="chip" data-mode="mid" onclick="setFilterMode('mid')">관련성 중 이상</div>
   </div>
 
-  <div id="list" class="list">
-    <!-- 카드 목록 -->
-  </div>
+  <div id="list" class="list"></div>
 </div>
 
 <!-- 외부 공고 스마트 등록 모달 -->
@@ -393,7 +388,7 @@
 </div>
 
 <script>
-  // ★★★ 본인의 Apps Script WebApp URL 입력 ★★★
+  // ★★★ 본인의 Apps Script WebApp URL ★★★
   const API_BASE = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
 
   let allData = [];
@@ -423,7 +418,7 @@
 
       const aiText = (item.aiResult || '');
       let relevanceFlag = 'mid';
-      if (/\[.*관련성\s*상.*\]/.test(aiText) || /상]/.test(aiText)) relevanceFlag = 'high';
+      if (/\[.*관련성\s*상.*\]/.test(aiText) || /관련성 상/.test(aiText)) relevanceFlag = 'high';
       if (/\[.*관련성\s*하.*\]/.test(aiText) || /관련성 하/.test(aiText)) relevanceFlag = 'low';
 
       if (filterMode === 'high' && relevanceFlag !== 'high') return false;
@@ -545,11 +540,10 @@
         return;
       }
 
-      alert(
-        '✅ 저장 완료\n' +
-        '[' + (json.storedTitle || '') + ']\n' +
-        (json.estimatedTon ? '예상톤수: ' + json.estimatedTon + '톤' : '')
-      );
+      let msg = '✅ 저장 완료\n[' + (json.storedTitle || '') + ']';
+      if (json.estimatedTon) msg += '\n예상톤수: ' + json.estimatedTon + '톤';
+      if (json.aiError) msg += '\n(참고: AI 분석 오류=' + json.aiError + ')';
+      alert(msg);
 
       closeAddModal();
       setTimeout(loadData, 1000);
@@ -583,7 +577,6 @@
         return;
       }
       alert('삭제되었습니다.');
-      // 로컬 데이터에서도 제거 후 재렌더
       allData = allData.filter(d => d.rowIndex !== item.rowIndex);
       applyFilter();
     } catch (e) {
@@ -592,7 +585,7 @@
     }
   }
 
-  // ---------- (옵션) 외부웹 수집 트리거 ----------
+  // ---------- 외부웹 수집 트리거 ----------
   async function runExternalUpdate() {
     try {
       const res = await fetch(API_BASE + '?action=external_update');
