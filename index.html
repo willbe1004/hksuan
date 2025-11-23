@@ -39,6 +39,8 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
     .btn {
       padding: 8px 14px;
@@ -49,6 +51,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      white-space: nowrap;
     }
     .btn-primary {
       background: #0984e3;
@@ -94,6 +97,7 @@
       display: flex;
       gap: 8px;
       margin-bottom: 12px;
+      flex-wrap: wrap;
     }
 
     /* 검색 + 음성 버튼 래퍼 */
@@ -105,6 +109,7 @@
       border: 1px solid #2f3640;
       padding-right: 4px;
       flex: 1;
+      min-width: 220px;
     }
     .search-with-voice input {
       border: none;
@@ -183,27 +188,6 @@
       color: #95a5a6;
       margin-top: 2px;
     }
-    .tag {
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid #636e72;
-      color: #dfe6e9;
-      display: inline-block;
-      margin-left: 4px;
-    }
-    .tag.green {
-      border-color: #00b894;
-      color: #00cec9;
-    }
-    .tag.yellow {
-      border-color: #fdcb6e;
-      color: #ffeaa7;
-    }
-    .tag.red {
-      border-color: #e17055;
-      color: #fab1a0;
-    }
     .card-body {
       font-size: 11px;
       color: #dfe6e9;
@@ -216,6 +200,7 @@
       align-items: center;
       gap: 6px;
       margin-top: 4px;
+      flex-wrap: wrap;
     }
     .card-footer-left {
       font-size: 10px;
@@ -329,29 +314,39 @@
       margin-right: 4px;
     }
 
-    /* 📅 캘린더 섹션 */
+    /* === 캘린더 섹션 === */
     .calendar-section {
-      margin-top: 16px;
-    }
-    .calendar-card {
-      background: #111822;
+      margin-top: 20px;
+      padding: 12px 14px 16px;
       border-radius: 12px;
-      padding: 10px 12px 8px;
+      background: #0f1722;
       border: 1px solid #1f2933;
     }
-    .calendar-card h2 {
-      font-size: 12px;
-      margin: 0 0 6px;
+    .calendar-section h2 {
+      font-size: 13px;
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       color: #dfe6e9;
     }
-    .calendar-frame-wrapper {
-      border-radius: 8px;
+    .calendar-embed-wrapper {
+      border-radius: 10px;
       overflow: hidden;
-      background: #ffffff;
+      border: 1px solid #2f3640;
     }
-    .calendar-frame-wrapper iframe {
+    .calendar-embed-wrapper iframe {
       width: 100%;
+      height: 480px;
       border: 0;
+      /* 🔹 구글 캘린더를 다크톤에 맞게 반전 */
+      filter: invert(0.88) hue-rotate(180deg);
+      transform-origin: center center;
+    }
+    @media (max-width: 768px) {
+      .calendar-embed-wrapper iframe {
+        height: 420px;
+      }
     }
   </style>
 </head>
@@ -362,6 +357,7 @@
       <h1>한국수안 AI 입찰관리 <span class="badge">AI 저류조 필터 v2</span></h1>
     </div>
     <div class="right">
+      <button class="btn btn-outline" onclick="openCalendarAuth()" id="btn-calendar-auth">캘린더 연동</button>
       <button class="btn btn-outline" onclick="loadData()">새로고침</button>
       <button class="btn btn-outline" onclick="runExternalUpdate()">외부웹 수집</button>
       <button class="btn btn-primary" onclick="openAddModal()">+ 외부 공고 스마트 등록</button>
@@ -405,17 +401,15 @@
 
   <div id="list" class="list"></div>
 
-  <!-- 📅 구글 캘린더 embed -->
+  <!-- 입찰 마감 캘린더 -->
   <div class="calendar-section">
-    <div class="calendar-card">
-      <h2>📅 입찰 마감 캘린더 (Google Calendar)</h2>
-      <div class="calendar-frame-wrapper">
-        <iframe src="https://calendar.google.com/calendar/embed?src=d51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04%40group.calendar.google.com&ctz=Asia%2FSeoul"
-                style="border:0"
-                height="500"
-                frameborder="0"
-                scrolling="no"></iframe>
-      </div>
+    <h2>📅 입찰 마감 캘린더</h2>
+    <div class="calendar-embed-wrapper">
+      <iframe
+        src="https://calendar.google.com/calendar/embed?src=d51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04%40group.calendar.google.com&ctz=Asia%2FSeoul"
+        frameborder="0"
+        scrolling="no">
+      </iframe>
     </div>
   </div>
 </div>
@@ -473,6 +467,9 @@
       </div>
       <div id="detail-summary2" style="font-size:11px; color:#dfe6e9; white-space:pre-line;"></div>
 
+      <div class="section-title">사업/금액/담당자</div>
+      <div id="detail-meta" style="font-size:11px; color:#b2bec3; white-space:pre-line;"></div>
+
       <div class="section-title">체크 포인트</div>
       <ul id="detail-checkpoints" class="small-list"></ul>
 
@@ -498,6 +495,7 @@
   let recognition = null;
   let recognizing = false;
   let lastStats = null;
+  let calendarLinked = false;
 
   async function loadData() {
     const list = document.getElementById('list');
@@ -536,19 +534,17 @@
     const unique = stats.totalUnique || 0;
     const kept = stats.rowsWritten || stats.totalKept || 0;
     const aiCalls = stats.totalAiCalls || 0;
-    const rawTotalCount = stats.totalCountSum || 0; // 나라장터 totalCount 합산(키워드별 합, 중복포함)
+    const rawTotal = stats.rawTotalCount || 0;
 
     bar.style.display = 'flex';
     bar.innerHTML = `
       <div class="stats-chip"><span class="stats-chip-label">최근 업데이트:</span> ${finished}</div>
       <div class="stats-chip"><span class="stats-chip-label">조회기간:</span> 최근 ${daysBack}일</div>
+      <div class="stats-chip"><span class="stats-chip-label">전체 공고수:</span> ${rawTotal}건</div>
       <div class="stats-chip"><span class="stats-chip-label">API호출:</span> ${apiCalls}회</div>
-      <div class="stats-chip"><span class="stats-chip-label">수집공고(중복제거):</span> ${unique}건</div>
-      <div class="stats-chip"><span class="stats-chip-label">필터통과:</span> ${kept}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">필터 전 유니크:</span> ${unique}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">필터 통과:</span> ${kept}건</div>
       <div class="stats-chip"><span class="stats-chip-label">AI요약:</span> ${aiCalls}건</div>
-      <div class="stats-chip" title="나라장터가 각 키워드에 대해 리턴한 totalCount의 합 (중복포함)입니다. 실제 unique 공고 수와는 다를 수 있습니다.">
-        <span class="stats-chip-label">원시 totalCount(중복포함):</span> ${rawTotalCount}건
-      </div>
     `;
   }
 
@@ -657,6 +653,17 @@
       const aiText = item.aiResult || '';
       const isManual = (item.status === '수동등록') || (item.client === '직접등록');
 
+      // 카드 하단 메타 정보 (공고일/마감/기간/금액/사업비/톤수/담당자)
+      const metaPieces = [];
+      if (item.date) metaPieces.push('공고일 ' + item.date);
+      if (item.deadline) metaPieces.push('마감 ' + item.deadline);
+      if (item.servicePeriod) metaPieces.push('기간 ' + item.servicePeriod);
+      if (item.serviceAmount) metaPieces.push('금액 ' + item.serviceAmount);
+      if (item.projectBudget) metaPieces.push('사업비 ' + item.projectBudget);
+      if (item.expectedTon) metaPieces.push('예상 ' + item.expectedTon);
+      if (item.clientManager) metaPieces.push('담당 ' + item.clientManager);
+      const metaText = metaPieces.join(' · ');
+
       card.innerHTML = `
         <div class="card-header">
           <div>
@@ -675,8 +682,7 @@
         <div class="card-body">${(aiText || 'AI 분석 대기중')}</div>
         <div class="card-footer">
           <div class="card-footer-left">
-            공고일 ${item.date || '-'} · 마감 ${item.deadline || '-'}
-            ${item.expectedTon ? ' · 예상 ' + item.expectedTon : ''}
+            ${metaText || '-'}
           </div>
           <div class="card-footer-right">
             <button class="btn btn-secondary btn-detail">2차 분석</button>
@@ -728,15 +734,15 @@
     btn.innerText = '🧠 AI 분석 및 저장 중...';
 
     try {
-      // POST(JSON) → doPost → handleSmartAdd
+      // 🔹 JSON 대신 FormData로 POST → Apps Script doPost(e.parameter) 경로 사용
+      const form = new FormData();
+      form.append('action', 'smart_add');
+      form.append('fileUrl', fileUrlsRaw);
+      form.append('text', text);
+
       const res = await fetch(API_BASE, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'smart_add',
-          fileUrl: fileUrlsRaw,
-          text: text
-        })
+        body: form
       });
       const json = await res.json();
 
@@ -797,16 +803,7 @@
       const res = await fetch(API_BASE + '?action=external_update');
       const json = await res.json();
       if (json.result === 'success') {
-        const added = json.added || 0;
-        const logs = json.logs || [];
-        let msg = '외부 공고 소스를 다시 확인했습니다.\n';
-        if (logs.length) {
-          msg += logs.map(l => '- ' + l).join('\n');
-        } else {
-          msg += '(사용=Y 로 표시된 외부공고소스 행이 없습니다.)';
-        }
-        msg += '\n\n전체 신규 수집: ' + added + '건';
-        alert(msg);
+        alert('외부 공고 소스를 다시 확인했습니다.\n(사용=Y 로 표시된 외부공고소스 행 기준)\n전체 신규 수집 : ' + (json.added || 0) + '건');
         loadData();
       } else {
         alert('외부 수집 실패: ' + (json.message || '알 수 없는 오류'));
@@ -848,6 +845,17 @@
     } finally {
       btnEl.disabled = false;
     }
+  }
+
+  // ---------- 캘린더 인증(로그인) 버튼 ----------
+  function openCalendarAuth() {
+    window.open(API_BASE + '?action=calendar_auth', '_blank');
+    calendarLinked = true;
+    const btn = document.getElementById('btn-calendar-auth');
+    if (btn) {
+      btn.textContent = '캘린더 연동됨(재인증)';
+    }
+    alert('새 창에서 구글 권한 허용 창이 뜨면 승인해 주세요.\n완료 후 이 창으로 돌아와 캘린더 등록을 사용하시면 됩니다.');
   }
 
   // ---------- 2차 심화 분석 모달 ----------
@@ -895,6 +903,21 @@
 
         document.getElementById('detail-summary2').innerText =
           deep.summary2 || '(심화 요약 없음)';
+
+        // 사업/금액/담당자
+        const metaLines = [];
+        const sp = deep.servicePeriod || item.servicePeriod;
+        const sa = deep.serviceAmount || item.serviceAmount;
+        const pb = deep.projectBudget || item.projectBudget;
+        const mgr = deep.clientManager || item.clientManager;
+
+        if (sp) metaLines.push('용역기간: ' + sp);
+        if (sa) metaLines.push('용역금액: ' + sa);
+        if (pb) metaLines.push('사업비: ' + pb);
+        if (mgr) metaLines.push('담당자: ' + mgr);
+
+        document.getElementById('detail-meta').innerText =
+          metaLines.length ? metaLines.join('\n') : '추출된 정보가 없습니다.';
 
         const ul = document.getElementById('detail-checkpoints');
         ul.innerHTML = '';
