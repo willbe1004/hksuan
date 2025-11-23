@@ -328,6 +328,31 @@
       background: #1e272e;
       margin-right: 4px;
     }
+
+    /* 📅 캘린더 섹션 */
+    .calendar-section {
+      margin-top: 16px;
+    }
+    .calendar-card {
+      background: #111822;
+      border-radius: 12px;
+      padding: 10px 12px 8px;
+      border: 1px solid #1f2933;
+    }
+    .calendar-card h2 {
+      font-size: 12px;
+      margin: 0 0 6px;
+      color: #dfe6e9;
+    }
+    .calendar-frame-wrapper {
+      border-radius: 8px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+    .calendar-frame-wrapper iframe {
+      width: 100%;
+      border: 0;
+    }
   </style>
 </head>
 <body>
@@ -379,6 +404,20 @@
   </div>
 
   <div id="list" class="list"></div>
+
+  <!-- 📅 구글 캘린더 embed -->
+  <div class="calendar-section">
+    <div class="calendar-card">
+      <h2>📅 입찰 마감 캘린더 (Google Calendar)</h2>
+      <div class="calendar-frame-wrapper">
+        <iframe src="https://calendar.google.com/calendar/embed?src=d51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04%40group.calendar.google.com&ctz=Asia%2FSeoul"
+                style="border:0"
+                height="500"
+                frameborder="0"
+                scrolling="no"></iframe>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- 외부 공고 스마트 등록 모달 -->
@@ -451,7 +490,7 @@
 </div>
 
 <script>
-  // ★★★ 본인의 Apps Script WebApp URL 로 교체 필수 ★★★
+  // ★★★ 본인의 Apps Script WebApp URL ★★★
   const API_BASE = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
 
   let allData = [];
@@ -497,15 +536,19 @@
     const unique = stats.totalUnique || 0;
     const kept = stats.rowsWritten || stats.totalKept || 0;
     const aiCalls = stats.totalAiCalls || 0;
+    const rawTotalCount = stats.totalCountSum || 0; // 나라장터 totalCount 합산(키워드별 합, 중복포함)
 
     bar.style.display = 'flex';
     bar.innerHTML = `
       <div class="stats-chip"><span class="stats-chip-label">최근 업데이트:</span> ${finished}</div>
       <div class="stats-chip"><span class="stats-chip-label">조회기간:</span> 최근 ${daysBack}일</div>
       <div class="stats-chip"><span class="stats-chip-label">API호출:</span> ${apiCalls}회</div>
-      <div class="stats-chip"><span class="stats-chip-label">수집공고:</span> ${unique}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">수집공고(중복제거):</span> ${unique}건</div>
       <div class="stats-chip"><span class="stats-chip-label">필터통과:</span> ${kept}건</div>
       <div class="stats-chip"><span class="stats-chip-label">AI요약:</span> ${aiCalls}건</div>
+      <div class="stats-chip" title="나라장터가 각 키워드에 대해 리턴한 totalCount의 합 (중복포함)입니다. 실제 unique 공고 수와는 다를 수 있습니다.">
+        <span class="stats-chip-label">원시 totalCount(중복포함):</span> ${rawTotalCount}건
+      </div>
     `;
   }
 
@@ -612,10 +655,6 @@
       card.className = 'card';
 
       const aiText = item.aiResult || '';
-      let relTagClass = 'yellow';
-      if (/관련성 상/.test(aiText) || /\[.*상.*\]/.test(aiText)) relTagClass = 'green';
-      if (/관련성 하/.test(aiText) || /\[.*하.*\]/.test(aiText)) relTagClass = 'red';
-
       const isManual = (item.status === '수동등록') || (item.client === '직접등록');
 
       card.innerHTML = `
@@ -626,7 +665,6 @@
             </div>
             <div class="card-sub">
               ${item.client || '-'} / ${item.agency || '-'}
-              <span class="tag ${relTagClass}">관련성 추정</span>
             </div>
           </div>
           <div class="status-label">
@@ -690,7 +728,7 @@
     btn.innerText = '🧠 AI 분석 및 저장 중...';
 
     try {
-      // ★ GET → POST(JSON) 전송: 긴 텍스트 대비
+      // POST(JSON) → doPost → handleSmartAdd
       const res = await fetch(API_BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -759,7 +797,16 @@
       const res = await fetch(API_BASE + '?action=external_update');
       const json = await res.json();
       if (json.result === 'success') {
-        alert('외부 웹 소스에서 신규 ' + (json.added || 0) + '건 수집했습니다.');
+        const added = json.added || 0;
+        const logs = json.logs || [];
+        let msg = '외부 공고 소스를 다시 확인했습니다.\n';
+        if (logs.length) {
+          msg += logs.map(l => '- ' + l).join('\n');
+        } else {
+          msg += '(사용=Y 로 표시된 외부공고소스 행이 없습니다.)';
+        }
+        msg += '\n\n전체 신규 수집: ' + added + '건';
+        alert(msg);
         loadData();
       } else {
         alert('외부 수집 실패: ' + (json.message || '알 수 없는 오류'));
