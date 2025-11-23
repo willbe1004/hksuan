@@ -451,7 +451,7 @@
 </div>
 
 <script>
-  // ★★★ 본인의 Apps Script WebApp URL ★★★
+  // ★★★ 본인의 Apps Script WebApp URL 로 교체 필수 ★★★
   const API_BASE = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
 
   let allData = [];
@@ -690,7 +690,7 @@
     btn.innerText = '🧠 AI 분석 및 저장 중...';
 
     try {
-      // ★ 변경: GET → POST(JSON) 으로 전송 (긴 텍스트 대비)
+      // ★ GET → POST(JSON) 전송: 긴 텍스트 대비
       const res = await fetch(API_BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
