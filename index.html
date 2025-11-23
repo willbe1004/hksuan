@@ -22,8 +22,7 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 8px;
-      flex-wrap: wrap;
-      gap: 8px;
+      gap: 12px;
     }
     header h1 {
       font-size: 20px;
@@ -52,6 +51,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      white-space: nowrap;
     }
     .btn-primary {
       background: #0984e3;
@@ -64,10 +64,6 @@
     }
     .btn-secondary {
       background: #2d3436;
-      color: #ecf0f1;
-    }
-    .btn-danger {
-      background: #c0392b;
       color: #ecf0f1;
     }
     .btn:disabled {
@@ -192,16 +188,43 @@
       color: #95a5a6;
       margin-top: 2px;
     }
+    .tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #636e72;
+      color: #dfe6e9;
+      display: inline-block;
+      margin-left: 4px;
+    }
+    .tag.green {
+      border-color: #00b894;
+      color: #00cec9;
+    }
+    .tag.yellow {
+      border-color: #fdcb6e;
+      color: #ffeaa7;
+    }
+    .tag.red {
+      border-color: #e17055;
+      color: #fab1a0;
+    }
     .card-body {
       font-size: 11px;
       color: #dfe6e9;
       margin: 6px 0 8px;
       white-space: pre-line;
     }
+    .card-extra {
+      font-size: 10px;
+      color: #b2bec3;
+      margin-bottom: 4px;
+      white-space: pre-line;
+    }
     .card-footer {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       gap: 6px;
       margin-top: 4px;
       flex-wrap: wrap;
@@ -209,7 +232,6 @@
     .card-footer-left {
       font-size: 10px;
       color: #95a5a6;
-      line-height: 1.4;
     }
     .card-footer-right {
       display: flex;
@@ -233,7 +255,6 @@
       border-radius: 999px;
       background: #55efc4;
     }
-
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -320,27 +341,43 @@
       margin-right: 4px;
     }
 
-    /* 캘린더 영역 */
-    .calendar-wrapper {
-      margin-top: 18px;
-      padding: 10px 12px 12px;
-      border-radius: 16px;
-      background: #050b10;
-      border: 1px solid #1f2933;
+    /* 캘린더 섹션 */
+    .calendar-section {
+      margin-top: 16px;
+      padding-top: 10px;
+      border-top: 1px solid #1f2933;
     }
-    .calendar-title {
-      font-size: 13px;
-      margin: 0 0 8px;
-      color: #dfe6e9;
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #b2bec3;
     }
-    .calendar-frame {
-      width: 100%;
-      height: 480px;
-      border: 0;
+    .calendar-header span {
+      font-size: 11px;
+      color: #636e72;
+    }
+    .calendar-frame-wrapper {
       border-radius: 12px;
-      background: #050b10;
-      /* 다크모드에 어울리도록 색 반전 */
-      filter: invert(0.9) hue-rotate(180deg) contrast(0.98);
+      overflow: hidden;
+      border: 1px solid #1f2933;
+      background: #0b1824;
+    }
+    .calendar-frame-wrapper iframe {
+      width: 100%;
+      height: 420px;
+      border: 0;
+      /* 라이트 테마 캘린더를 다크톤에 맞추기 위한 필터 */
+      filter: invert(1) hue-rotate(180deg) contrast(0.9) brightness(0.9);
+    }
+
+    @media (max-width: 768px) {
+      .app { padding: 12px 12px 32px; }
+      .calendar-frame-wrapper iframe {
+        height: 380px;
+      }
     }
   </style>
 </head>
@@ -395,14 +432,19 @@
 
   <div id="list" class="list"></div>
 
-  <!-- 구글 캘린더 섹션 -->
-  <div class="calendar-wrapper">
-    <h2 class="calendar-title">입찰 마감 캘린더 (연동 캘린더)</h2>
-    <iframe
-      class="calendar-frame"
-      src="https://calendar.google.com/calendar/embed?src=d51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04%40group.calendar.google.com&ctz=Asia%2FSeoul"
-      frameborder="0"
-      scrolling="no"></iframe>
+  <!-- 구글 캘린더 영역 -->
+  <div class="calendar-section">
+    <div class="calendar-header">
+      <div>📅 입찰 마감 일정 캘린더</div>
+      <span>※ Dark 모드에 맞춰 색감만 보정된 Google Calendar 입니다.</span>
+    </div>
+    <div class="calendar-frame-wrapper">
+      <iframe
+        src="https://calendar.google.com/calendar/embed?src=d51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04%40group.calendar.google.com&ctz=Asia%2FSeoul"
+        frameborder="0"
+        scrolling="no">
+      </iframe>
+    </div>
   </div>
 </div>
 
@@ -462,9 +504,6 @@
       <div class="section-title">체크 포인트</div>
       <ul id="detail-checkpoints" class="small-list"></ul>
 
-      <div class="section-title">기간 / 금액 / 사업비 / 담당자</div>
-      <ul id="detail-meta" class="small-list"></ul>
-
       <div class="section-title">첨부파일 이름 (나라장터 기준)</div>
       <ul id="detail-attachments" class="small-list"></ul>
 
@@ -479,7 +518,7 @@
 </div>
 
 <script>
-  // ★★★ 본인의 Apps Script WebApp URL ★★★
+  // ★★★ 본인의 Apps Script WebApp URL 로 바꿔 주세요 ★★★
   const API_BASE = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
 
   let allData = [];
@@ -487,8 +526,44 @@
   let recognition = null;
   let recognizing = false;
   let lastStats = null;
-  let calendarLinked = false; // 단순 UI용 상태 (localStorage 로 유지)
 
+  // ---------- 통계 렌더링 ----------
+  function renderStats(stats) {
+    const bar = document.getElementById('stats-bar');
+    if (!bar) return;
+    if (!stats) {
+      bar.style.display = 'none';
+      bar.innerHTML = '';
+      return;
+    }
+    const finished = stats.finishedAtText || stats.startedAtText || '';
+    const daysBack = stats.daysBack || '?';
+    const apiCalls = stats.totalApiCalls || 0;
+
+    // 원시 전체 공고수(중복 포함): totalCountRaw 또는 totalCount 또는 totalItemsFromApi
+    const rawTotal =
+      stats.totalCountRaw ||
+      stats.totalCount ||
+      stats.totalItemsFromApi ||
+      0;
+
+    const unique = stats.totalUnique || 0;
+    const kept = stats.rowsWritten || stats.totalKept || 0;
+    const aiCalls = stats.totalAiCalls || 0;
+
+    bar.style.display = 'flex';
+    bar.innerHTML = `
+      <div class="stats-chip"><span class="stats-chip-label">최근 업데이트:</span> ${finished}</div>
+      <div class="stats-chip"><span class="stats-chip-label">조회기간:</span> 최근 ${daysBack}일</div>
+      <div class="stats-chip"><span class="stats-chip-label">전체 공고수(원시):</span> ${rawTotal}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">키워드 중복 제거:</span> ${unique}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">필터 통과 공고:</span> ${kept}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">AI 요약 생성:</span> ${aiCalls}건</div>
+      <div class="stats-chip"><span class="stats-chip-label">API 호출:</span> ${apiCalls}회</div>
+    `;
+  }
+
+  // ---------- 데이터 로딩 ----------
   async function loadData() {
     const list = document.getElementById('list');
     list.innerHTML = '<div style="font-size:12px; color:#b2bec3;">데이터를 불러오는 중입니다...</div>';
@@ -510,34 +585,6 @@
       console.error(e);
       list.innerHTML = '<div style="font-size:12px; color:#e17055;">데이터 로딩 실패: ' + e.message + '</div>';
     }
-  }
-
-  function renderStats(stats) {
-    const bar = document.getElementById('stats-bar');
-    if (!bar) return;
-    if (!stats) {
-      bar.style.display = 'none';
-      bar.innerHTML = '';
-      return;
-    }
-    const finished = stats.finishedAtText || stats.startedAtText || '';
-    const daysBack = stats.daysBack || '?';
-    const apiCalls = stats.totalApiCalls || 0;
-    const unique = stats.totalUnique || 0;
-    const kept = stats.rowsWritten || stats.totalKept || 0;
-    const aiCalls = stats.totalAiCalls || 0;
-    const rawTotal = stats.rawTotalCount || 0;
-
-    bar.style.display = 'flex';
-    bar.innerHTML = `
-      <div class="stats-chip"><span class="stats-chip-label">최근 업데이트:</span> ${finished}</div>
-      <div class="stats-chip"><span class="stats-chip-label">조회기간:</span> 최근 ${daysBack}일</div>
-      <div class="stats-chip"><span class="stats-chip-label">전체 공고수(원시):</span> ${rawTotal}건</div>
-      <div class="stats-chip"><span class="stats-chip-label">Unique 공고(필터전):</span> ${unique}건</div>
-      <div class="stats-chip"><span class="stats-chip-label">필터 통과:</span> ${kept}건</div>
-      <div class="stats-chip"><span class="stats-chip-label">AI요약 수행:</span> ${aiCalls}건</div>
-      <div class="stats-chip"><span class="stats-chip-label">API호출:</span> ${apiCalls}회</div>
-    `;
   }
 
   // ===== 음성 검색 =====
@@ -588,13 +635,10 @@
   function updateVoiceUi() {
     const el = document.getElementById('voice-status');
     if (!el) return;
-    if (recognizing) {
-      el.textContent = '🎙…';
-    } else {
-      el.textContent = '🎙';
-    }
+    el.textContent = recognizing ? '🎙…' : '🎙';
   }
 
+  // ---------- 필터 ----------
   function applyFilter() {
     const kw = document.getElementById('search-keyword').value.trim();
     const region = document.getElementById('region-filter').value.trim();
@@ -612,7 +656,8 @@
       if (filterMode === 'mid' && relevanceFlag === 'low') return false;
 
       if (kw) {
-        const blob = (item.title + ' ' + item.client + ' ' + item.agency + ' ' + aiText)
+        const blob = (item.title + ' ' + (item.client || '') + ' ' +
+                      (item.agency || '') + ' ' + aiText)
           .toLowerCase();
         if (blob.indexOf(kw.toLowerCase()) === -1) return false;
       }
@@ -630,6 +675,7 @@
     applyFilter();
   }
 
+  // ---------- 카드 렌더링 ----------
   function renderList(data) {
     const list = document.getElementById('list');
     if (!data.length) {
@@ -643,20 +689,28 @@
       card.className = 'card';
 
       const aiText = item.aiResult || '';
+      let relTagClass = 'yellow';
+      if (/관련성 상/.test(aiText) || /\[.*상.*\]/.test(aiText)) relTagClass = 'green';
+      if (/관련성 하/.test(aiText) || /\[.*하.*\]/.test(aiText)) relTagClass = 'red';
+
       const isManual = (item.status === '수동등록') || (item.client === '직접등록');
 
-      // 메타 라인 구성
-      const baseLineParts = [];
-      baseLineParts.push('공고일 ' + (item.date || '-'));
-      baseLineParts.push('마감 ' + (item.deadline || '-'));
-      if (item.expectedTon) baseLineParts.push('예상 ' + item.expectedTon);
-      const baseLine = baseLineParts.join(' · ');
+      const manager = item.clientManager || '-';
+      const servicePeriod = item.servicePeriod || '';
+      const serviceAmount = item.serviceAmount || '';
+      const projectBudget = item.projectBudget || '';
+      const extraLines = [];
 
-      const metaLineParts = [];
-      if (item.servicePeriod) metaLineParts.push('기간: ' + item.servicePeriod);
-      if (item.serviceAmount) metaLineParts.push('용역금액: ' + item.serviceAmount);
-      if (item.projectBudget) metaLineParts.push('사업비: ' + item.projectBudget);
-      const metaLine = metaLineParts.join(' · ');
+      if (servicePeriod || serviceAmount || projectBudget) {
+        extraLines.push(
+          '기간: ' + (servicePeriod || '정보 없음')
+          + ' / 용역금액: ' + (serviceAmount || '정보 없음')
+          + ' / 사업비: ' + (projectBudget || '정보 없음')
+        );
+      }
+      if (manager && manager !== '-') {
+        extraLines.push('담당자: ' + manager);
+      }
 
       card.innerHTML = `
         <div class="card-header">
@@ -665,8 +719,8 @@
               [${item.no}] ${item.title}
             </div>
             <div class="card-sub">
-              ${item.client || '-'} / ${item.agency || '-'}
-              ${item.clientManager ? ' · 담당: ' + item.clientManager : ''}
+              ${(item.client || '-') + ' / ' + (item.agency || '-')}
+              <span class="tag ${relTagClass}">관련성 추정</span>
             </div>
           </div>
           <div class="status-label">
@@ -674,11 +728,12 @@
             <span>${item.status || (isManual ? '수동등록' : '공고중')}</span>
           </div>
         </div>
+        ${extraLines.length ? `<div class="card-extra">${extraLines.join('\n')}</div>` : ''}
         <div class="card-body">${(aiText || 'AI 분석 대기중')}</div>
         <div class="card-footer">
           <div class="card-footer-left">
-            ${baseLine}
-            ${metaLine ? '<br>' + metaLine : ''}
+            공고일 ${item.date || '-'} · 마감 ${item.deadline || '-'}
+            ${item.expectedTon ? ' · 예상 ' + item.expectedTon : ''}
           </div>
           <div class="card-footer-right">
             <button class="btn btn-secondary btn-detail">2차 분석</button>
@@ -706,50 +761,6 @@
     });
   }
 
-  // ---------- 캘린더 로그인/로그아웃 UI ----------
-  function loadCalendarLinkedState() {
-    try {
-      calendarLinked = localStorage.getItem('khsuan_calendarLinked') === '1';
-    } catch (e) {
-      calendarLinked = false;
-    }
-    updateCalendarAuthUi();
-  }
-
-  function updateCalendarAuthUi() {
-    const btn = document.getElementById('btn-calendar-auth');
-    if (!btn) return;
-    if (calendarLinked) {
-      btn.textContent = '캘린더 로그아웃';
-      btn.classList.remove('btn-outline');
-      btn.classList.add('btn-danger');
-    } else {
-      btn.textContent = '캘린더 로그인';
-      btn.classList.remove('btn-danger');
-      btn.classList.add('btn-outline');
-    }
-  }
-
-  function toggleCalendarAuth() {
-    if (!calendarLinked) {
-      // 로그인 플로우: 권한 승인용 팝업 호출
-      window.open(API_BASE + '?action=calendar_auth', '_blank', 'width=600,height=600');
-      calendarLinked = true;
-      try {
-        localStorage.setItem('khsuan_calendarLinked', '1');
-      } catch (e) {}
-      updateCalendarAuthUi();
-    } else {
-      // UI 상의 로그아웃 (실제 권한 해지는 계정 보안 설정에서 처리 필요)
-      calendarLinked = false;
-      try {
-        localStorage.removeItem('khsuan_calendarLinked');
-      } catch (e) {}
-      updateCalendarAuthUi();
-      alert('캘린더 연동 상태를 초기화했습니다.\n실제 구글 계정 권한 해지는 계정 보안 설정에서 하실 수 있습니다.');
-    }
-  }
-
   // ---------- 외부 공고 스마트 등록 모달 ----------
   function openAddModal() {
     document.getElementById('file-urls').value = '';
@@ -774,7 +785,6 @@
     btn.innerText = '🧠 AI 분석 및 저장 중...';
 
     try {
-      // GET → POST(JSON) 으로 전송 (긴 텍스트 대비)
       const res = await fetch(API_BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -791,14 +801,14 @@
         return;
       }
 
-      let msg = '✅ 저장 완료\n[' + (json.storedTitle || '') + ']';
+      let msg = '✅ 저장 완료\n[' + (json.storedTitle || '제목 없음') + ']';
       if (json.estimatedTon) msg += '\n예상톤수: ' + json.estimatedTon + '톤';
       if (json.fileNote) msg += '\n첨부파일: ' + json.fileNote;
       if (json.aiError) msg += '\n(참고: AI 분석 오류=' + json.aiError + ')';
       alert(msg);
 
       closeAddModal();
-      setTimeout(loadData, 1000);
+      setTimeout(loadData, 1200);
 
     } catch (e) {
       console.error(e);
@@ -843,14 +853,15 @@
       const res = await fetch(API_BASE + '?action=external_update');
       const json = await res.json();
       if (json.result === 'success') {
+        const added = json.added || 0;
         alert(
           '외부 공고 소스를 다시 확인했습니다.\n' +
-          '전체 신규 수집 : ' + (json.added || 0) + '건\n\n' +
-          '※ 설명: 스크립트 내부 "외부공고소스" 시트에\n' +
-          '   (사용=Y) 로 표시된 Google/Naver 검색 결과 페이지 URL들을\n' +
-          '   기준으로 문서 링크를 수집합니다.'
+          '전체 신규 수집 : ' + added + '건\n\n' +
+          '※ 설명 : 스크립트 내부 "외부공고소스" 시트에\n' +
+          '(사용=Y) 로 표시된 Google/Naver 검색결과 페이지 URL들을\n' +
+          '기준으로 들어가서, 그 안의 PDF/HWP/문서 링크를 찾아 자동 수집합니다.'
         );
-        loadData();
+        if (added > 0) loadData();
       } else {
         alert('외부 수집 실패: ' + (json.message || '알 수 없는 오류'));
       }
@@ -861,15 +872,14 @@
 
   // ---------- 구글 캘린더 등록 ----------
   async function addCalendar(item, btnEl) {
+    if (!item.rowIndex) {
+      alert('행 정보(rowIndex)를 찾을 수 없습니다.');
+      return;
+    }
     if (!item.deadline) {
       alert('마감일 정보가 없어 캘린더에 등록할 수 없습니다.');
       return;
     }
-    if (!calendarLinked) {
-      alert('먼저 상단의 "캘린더 로그인" 버튼을 눌러\n구글 캘린더 권한을 승인해 주세요.');
-      return;
-    }
-
     const originalLabel = btnEl.innerText;
     btnEl.disabled = true;
     btnEl.innerText = '캘린더 연동 중...';
@@ -883,8 +893,10 @@
         item.calendarId = json.calendarId || '';
         btnEl.innerText = '캘린더 수정';
         const whenText = json.eventStartText || '';
-        alert('구글 캘린더에 마감 일정을 등록했습니다.' +
-          (whenText ? '\n(' + whenText + ' 시작)' : ''));
+        alert(
+          '구글 캘린더에 마감 일정을 등록했습니다.' +
+          (whenText ? '\n(' + whenText + ' 시작)' : '')
+        );
       } else {
         btnEl.innerText = originalLabel;
         alert('캘린더 등록 실패: ' + (json.message || '알 수 없는 오류'));
@@ -957,38 +969,6 @@
           ul.appendChild(li);
         }
 
-        const metaUl = document.getElementById('detail-meta');
-        metaUl.innerHTML = '';
-        const sp = deep.servicePeriod || item.servicePeriod || '';
-        const sa = deep.serviceAmount || item.serviceAmount || '';
-        const pb = deep.projectBudget || item.projectBudget || '';
-        const cm = deep.clientManager || item.clientManager || '';
-        if (sp) {
-          const li = document.createElement('li');
-          li.textContent = '기간: ' + sp;
-          metaUl.appendChild(li);
-        }
-        if (sa) {
-          const li = document.createElement('li');
-          li.textContent = '용역금액: ' + sa;
-          metaUl.appendChild(li);
-        }
-        if (pb) {
-          const li = document.createElement('li');
-          li.textContent = '사업비: ' + pb;
-          metaUl.appendChild(li);
-        }
-        if (cm) {
-          const li = document.createElement('li');
-          li.textContent = '담당자: ' + cm;
-          metaUl.appendChild(li);
-        }
-        if (!metaUl.children.length) {
-          const li = document.createElement('li');
-          li.textContent = '추출된 기간·금액·사업비·담당자 정보가 없습니다.';
-          metaUl.appendChild(li);
-        }
-
         const ulAtt = document.getElementById('detail-attachments');
         ulAtt.innerHTML = '';
         (data.attachments || []).forEach(name => {
@@ -1018,8 +998,33 @@
     document.getElementById('detail-modal-backdrop').classList.remove('show');
   }
 
-  // 초기 실행
-  loadCalendarLinkedState();
+  // ---------- 캘린더 로그인 / 로그아웃 (UI용, 실제 권한은 Apps Script에서 한번 승인 필요) ----------
+  function initCalendarAuthUi() {
+    const btn = document.getElementById('btn-calendar-auth');
+    if (!btn) return;
+    const flag = localStorage.getItem('hksuan_calendar_authed') === '1';
+    btn.textContent = flag ? '캘린더 로그아웃' : '캘린더 로그인';
+  }
+
+  function toggleCalendarAuth() {
+    const flag = localStorage.getItem('hksuan_calendar_authed') === '1';
+    if (!flag) {
+      // 로그인 시도: Apps Script 쪽 calendar_auth 액션 호출
+      window.open(
+        API_BASE + '?action=calendar_auth',
+        '_blank',
+        'width=560,height=600'
+      );
+      localStorage.setItem('hksuan_calendar_authed', '1');
+    } else {
+      // 프론트단 UI 기준 로그아웃 (실제 구글 계정 로그아웃과는 별개)
+      localStorage.removeItem('hksuan_calendar_authed');
+    }
+    initCalendarAuthUi();
+  }
+
+  // 최초 로딩
+  initCalendarAuthUi();
   loadData();
 </script>
 </body>
