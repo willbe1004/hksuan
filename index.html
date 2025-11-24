@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <title>한국수안 AI 입찰관리</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- ✅ Google Identity Services 추가 -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --bg-main: #050b16;
@@ -1130,30 +1132,29 @@
 
     /* ====== 커스텀 스크롤바 (검색결과 패널용) ====== */
 
-/* 크롬·엣지·사파리용 */
-.bid-list-panel {
-  scrollbar-width: thin; /* 파이어폭스용 */
-  scrollbar-color: rgba(0, 200, 150, 0.6) rgba(6, 14, 26, 0.9);
-}
+    .bid-list-panel {
+      scrollbar-width: thin; /* 파이어폭스용 */
+      scrollbar-color: rgba(0, 200, 150, 0.6) rgba(6, 14, 26, 0.9);
+    }
 
-.bid-list-panel::-webkit-scrollbar {
-  width: 8px;
-}
+    .bid-list-panel::-webkit-scrollbar {
+      width: 8px;
+    }
 
-.bid-list-panel::-webkit-scrollbar-track {
-  background: rgba(4, 10, 20, 0.9);
-  border-radius: 999px;
-}
+    .bid-list-panel::-webkit-scrollbar-track {
+      background: rgba(4, 10, 20, 0.9);
+      border-radius: 999px;
+    }
 
-.bid-list-panel::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #00c896, #00e0b0);
-  border-radius: 999px;
-  box-shadow: 0 0 14px rgba(0, 200, 150, 0.7);
-}
+    .bid-list-panel::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #00c896, #00e0b0);
+      border-radius: 999px;
+      box-shadow: 0 0 14px rgba(0, 200, 150, 0.7);
+    }
 
-.bid-list-panel::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #00e0b0, #ffb83f);
-}
+    .bid-list-panel::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #00e0b0, #ffb83f);
+    }
   </style>
 </head>
 <body>
@@ -1455,14 +1456,60 @@
   const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec";
 
-
   let allItems = [];
   let activeRelFilter = "all";
+
+  // ✅ Google OAuth 토큰 클라이언트
+  let tokenClient = null;
+  let accessToken = null;
 
   document.addEventListener("DOMContentLoaded", () => {
     bindUI();
     loadData();
   });
+
+  // ✅ Google 로그인 (UI용)
+  function initGoogle() {
+    const btn = document.getElementById("btnLogin");
+    const label = document.getElementById("btnLoginLabel");
+    const statusDot = document.getElementById("loginStatusDot");
+    const statusText = document.getElementById("loginStatusText");
+
+    if (!btn) return;
+
+    if (!window.google || !google.accounts || !google.accounts.oauth2) {
+      console.error("Google Identity Services 로드 전입니다.");
+      return;
+    }
+
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: "1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com",
+      scope: "https://www.googleapis.com/auth/calendar.events",
+      callback: (resp) => {
+        if (resp.error) {
+          console.error("로그인 실패:", resp);
+          alert("구글 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+          return;
+        }
+        if (resp.access_token) {
+          accessToken = resp.access_token;
+          if (label) label.textContent = "✅ 로그인됨";
+          btn.disabled = true;
+          if (statusDot) statusDot.classList.add("connected");
+          if (statusText) statusText.textContent = "캘린더 연동됨";
+        }
+      }
+    });
+
+    // 버튼 클릭 시 토큰 요청
+    btn.onclick = () => {
+      if (!tokenClient) return;
+      tokenClient.requestAccessToken();
+    };
+  }
+
+  // ✅ window load 시점에 Google 로그인 초기화 (GIS 스크립트 로딩 이후)
+  window.addEventListener("load", initGoogle);
 
   function bindUI() {
     document.getElementById("btnRefresh").addEventListener("click", () => {
@@ -1473,9 +1520,10 @@
       externalUpdate();
     });
 
-    document.getElementById("btnLogin").addEventListener("click", () => {
-      openCalendarAuth();
-    });
+    // ⛔ 기존 openCalendarAuth() 호출은 제거 (이제 GIS로 로그인)
+    // document.getElementById("btnLogin").addEventListener("click", () => {
+    //   openCalendarAuth();
+    // });
 
     document
       .getElementById("searchInput")
@@ -1763,9 +1811,9 @@
   }
 
   function stripBracketPrefix(text) {
-  const s = String(text || "");
-  return s.replace(/^\[[상중하]\]\s*/, "");  // 앞의 [상]/[중]/[하] 제거
-}
+    const s = String(text || "");
+    return s.replace(/^\[[상중하]\]\s*/, "");  // 앞의 [상]/[중]/[하] 제거
+  }
 
   function getRelevance(aiResult) {
     const m = aiResult.match(/\[([상중하])\]/);
@@ -2065,7 +2113,7 @@
     }
   }
 
-  // 캘린더 권한 팝업 열기
+  // (참고용) 이전 팝업 방식은 남겨두되 현재는 사용하지 않음
   function openCalendarAuth() {
     const url = SCRIPT_URL + "?action=calendar_auth";
     const w = 520;
@@ -2077,7 +2125,6 @@
       "calendarAuth",
       `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`
     );
-    // 실제 OAuth 동의 화면은 Apps Script 쪽 설정/배포 상태에 따라 표시됩니다.
   }
 
   // 스마트 등록 모달 열고/닫기
@@ -2098,7 +2145,8 @@
     e.preventDefault();
     const text =
       document.getElementById("smartText").value || "";
-    const url = document.getElementById("smartUrl").value || "";
+    const url =
+      document.getElementById("smartUrl").value || "";
 
     if (!text && !url) {
       alert("본문 텍스트 또는 첨부파일 URL 중 하나는 입력해 주세요.");
@@ -2156,9 +2204,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
