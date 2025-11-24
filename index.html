@@ -1735,8 +1735,9 @@
   }
 
   function stripBracketPrefix(text) {
-    return text;
-  }
+  const s = String(text || "");
+  return s.replace(/^\[[상중하]\]\s*/, "");  // 앞의 [상]/[중]/[하] 제거
+}
 
   function getRelevance(aiResult) {
     const m = aiResult.match(/\[([상중하])\]/);
@@ -2127,5 +2128,6 @@
 </script>
 </body>
 </html>
+
 
 
