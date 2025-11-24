@@ -309,7 +309,11 @@
       border-top-color: var(--accent);
       border-right-color: var(--accent);
       box-shadow: 0 0 40px rgba(255, 184, 63, 0.45);
-      animation: donut-spin 10s linear infinite;
+      /* 기본은 정지 상태, .animate 클래스가 붙을 때만 1회 회전 */
+    }
+
+    .donut-ring.animate {
+      animation: donut-spin 1.2s ease-out 1;
     }
 
     .donut-center {
@@ -864,6 +868,105 @@
       color: var(--text-soft);
     }
 
+    /* ✅ 2차 분석 상세 모달 ----------------------------------------------- */
+
+    .deep-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2500;
+      backdrop-filter: blur(4px);
+    }
+
+    .deep-modal-overlay.active {
+      display: flex;
+    }
+
+    .deep-modal {
+      width: min(720px, 94vw);
+      max-height: 80vh;
+      border-radius: 20px;
+      background: radial-gradient(circle at top, #231523, #09030f);
+      border: 1px solid rgba(255, 163, 214, 0.35);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.95);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 22px 16px;
+      color: #ffe9f5;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .deep-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .deep-modal-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .deep-modal-meta {
+      font-size: 11px;
+      color: #f7c2ff;
+      opacity: 0.85;
+      margin-bottom: 6px;
+    }
+
+    .deep-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+      font-size: 13px;
+      color: #ffeefb;
+    }
+
+    .deep-section {
+      margin-bottom: 10px;
+    }
+
+    .deep-section-title {
+      font-size: 11px;
+      color: #ffbfe3;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    .deep-section-body {
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    .deep-section-body ul {
+      margin: 4px 0 0;
+      padding-left: 18px;
+    }
+
+    .deep-section-body li {
+      margin-bottom: 2px;
+    }
+
+    .deep-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 10px;
+      gap: 8px;
+    }
+
+    @media (max-width: 720px) {
+      .deep-modal {
+        padding: 16px 16px 14px;
+      }
+    }
+
     /* 반응형 ------------------------------------------------------------- */
 
     @media (max-width: 1020px) {
@@ -928,11 +1031,19 @@
       0% {
         transform: rotate(0deg);
       }
-      40% {
-        transform: rotate(320deg);
-      }
       100% {
         transform: rotate(360deg);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
     }
   </style>
@@ -1148,6 +1259,23 @@
   </div>
 </div>
 
+<!-- ✅ 2차 상세 분석 모달 -->
+<div id="deepModalOverlay" class="deep-modal-overlay">
+  <div class="deep-modal">
+    <div class="deep-modal-header">
+      <div id="deepModalTitle" class="deep-modal-title">2차 분석 결과</div>
+      <button type="button" class="btn btn-ghost btn-small" onclick="closeDeepModal()">닫기</button>
+    </div>
+    <div id="deepModalMeta" class="deep-modal-meta"></div>
+    <div class="deep-modal-body">
+      <div id="deepModalContent"></div>
+    </div>
+    <div class="deep-modal-footer">
+      <button type="button" class="btn btn-primary btn-small" onclick="closeDeepModal()">확인</button>
+    </div>
+  </div>
+</div>
+
 <!-- 전역 로딩 -->
 <div id="globalLoading" class="loading-overlay">
   <div class="loading-box">
@@ -1166,6 +1294,7 @@
 
   let allItems = [];
   let activeRelFilter = "all";
+  let donutTimer = null;
 
   document.addEventListener("DOMContentLoaded", () => {
     bindUI();
@@ -1333,18 +1462,8 @@
     document.getElementById("donutMain").textContent =
       (items.length || 0).toLocaleString("ko-KR");
 
-    // 관련성 상 + 중 비율로 도넛 회전 속도 조절 (가벼운 시각 효과)
-    let highOrMid = 0;
-    items.forEach((it) => {
-      const rel = getRelevance(it.aiResult || "");
-      if (rel === "상" || rel === "중") highOrMid++;
-    });
-    const ratio =
-      items.length > 0 ? highOrMid / items.length : 0;
-    const ring = document.getElementById("donutRing");
-    const base = 10; // 기본 10초
-    const speed = Math.max(4, base - ratio * 6); // 비율 높을수록 빠르게
-    ring.style.animationDuration = speed + "s";
+    // 조회가 끝난 시점에만 한 번 회전하고 멈추도록 처리
+    triggerDonutAnimation();
   }
 
   // 리스트 렌더링
@@ -1373,9 +1492,7 @@
         <div class="bid-card-inner">
           <div class="bid-top-row">
             <div style="display:flex;align-items:center;gap:6px;">
-              <span class="badge-region">${
-                item.region || "지역미상"
-              }</span>
+              <span class="badge-region">${item.region || "지역미상"}</span>
               <span class="bid-no">#${item.no || "-"}</span>
             </div>
             <span class="badge-status ${statusClass}">
@@ -1486,8 +1603,6 @@
   }
 
   function stripBracketPrefix(text) {
-    // "[기타공공시설] [중]" 같은 프리픽스는 이미 서버에서 구성했으므로 그대로 보여주되
-    // 여기서는 첫 괄호를 relevance 판단에만 쓰고 나머지는 그대로 둡니다.
     return text;
   }
 
@@ -1554,13 +1669,8 @@
 
       console.log("deepAnalyze", data);
 
-      // 카드 내부에 추가 표시(체크 포인트 등)
-      if (data.deep && data.deep.summary2) {
-        alert(
-          `2차 분석 결과 (관련성: ${
-            data.deep.relevance || "중"
-          })\n\n${data.deep.summary2}`
-        );
+      if (data.deep) {
+        openDeepModal(data);
       } else {
         alert("2차 분석 결과를 가져오지 못했습니다.");
       }
@@ -1626,7 +1736,6 @@
       "calendarAuth",
       `width=${w},height=${h},left=${left},top=${top}`
     );
-    // 사용자가 승인하면 이후 calendar_add 호출 시 자동으로 동작
   }
 
   // 스마트 등록 모달 열고/닫기
@@ -1647,7 +1756,8 @@
     e.preventDefault();
     const text =
       document.getElementById("smartText").value || "";
-    const url = document.getElementById("smartUrl").value || "";
+    const url =
+      document.getElementById("smartUrl").value || "";
 
     if (!text && !url) {
       alert("본문 텍스트 또는 첨부파일 URL 중 하나는 입력해 주세요.");
@@ -1694,6 +1804,110 @@
     }
   }
 
+  // ✅ 2차 상세 분석 모달 열기/닫기
+  function openDeepModal(data) {
+    const overlay = document.getElementById("deepModalOverlay");
+    if (!overlay) return;
+
+    const deep = data.deep || {};
+    const titleEl = document.getElementById("deepModalTitle");
+    const metaEl = document.getElementById("deepModalMeta");
+    const contentEl = document.getElementById("deepModalContent");
+
+    titleEl.textContent = data.title || "2차 분석 결과";
+
+    const tags = [];
+    if (deep.relevance) tags.push(`관련성: ${deep.relevance}`);
+    if (deep.facilityType) tags.push(`시설유형: ${deep.facilityType}`);
+    if (deep.estimatedTon) tags.push(`예상톤수: ${deep.estimatedTon}톤`);
+    if (deep.riskLevel) tags.push(`리스크: ${deep.riskLevel}`);
+    metaEl.textContent = tags.join(" · ");
+
+    let html = "";
+
+    if (deep.summary2) {
+      html += `
+        <div class="deep-section">
+          <div class="deep-section-title">요약</div>
+          <div class="deep-section-body">${escapeHtml(deep.summary2)}</div>
+        </div>`;
+    }
+
+    if (deep.servicePeriod || deep.serviceAmount || deep.projectBudget) {
+      html += `
+        <div class="deep-section">
+          <div class="deep-section-title">기간 · 금액 정보</div>
+          <div class="deep-section-body">
+            <ul>
+              ${
+                deep.servicePeriod
+                  ? `<li><strong>용역기간:</strong> ${escapeHtml(deep.servicePeriod)}</li>`
+                  : ""
+              }
+              ${
+                deep.serviceAmount
+                  ? `<li><strong>용역금액:</strong> ${escapeHtml(deep.serviceAmount)}</li>`
+                  : ""
+              }
+              ${
+                deep.projectBudget
+                  ? `<li><strong>사업비:</strong> ${escapeHtml(deep.projectBudget)}</li>`
+                  : ""
+              }
+            </ul>
+          </div>
+        </div>`;
+    }
+
+    if (Array.isArray(deep.checkPoints) && deep.checkPoints.length) {
+      const listItems = deep.checkPoints
+        .map((cp) => `<li>${escapeHtml(cp)}</li>`)
+        .join("");
+      html += `
+        <div class="deep-section">
+          <div class="deep-section-title">체크 포인트</div>
+          <div class="deep-section-body">
+            <ul>${listItems}</ul>
+          </div>
+        </div>`;
+    }
+
+    if (deep.suggestion) {
+      html += `
+        <div class="deep-section">
+          <div class="deep-section-title">제안</div>
+          <div class="deep-section-body">${escapeHtml(deep.suggestion)}</div>
+        </div>`;
+    }
+
+    if (!html) {
+      html = `<div class="deep-section-body">상세 분석 내용이 없습니다.</div>`;
+    }
+
+    contentEl.innerHTML = html;
+    overlay.classList.add("active");
+  }
+
+  function closeDeepModal() {
+    const overlay = document.getElementById("deepModalOverlay");
+    if (!overlay) return;
+    overlay.classList.remove("active");
+  }
+
+  // 도넛 1회 회전 후 멈춤
+  function triggerDonutAnimation() {
+    const ring = document.getElementById("donutRing");
+    if (!ring) return;
+    ring.classList.remove("animate");
+    // reflow 강제 후 다시 적용
+    void ring.offsetWidth;
+    ring.classList.add("animate");
+    if (donutTimer) clearTimeout(donutTimer);
+    donutTimer = setTimeout(() => {
+      ring.classList.remove("animate");
+    }, 1500);
+  }
+
   // HTML 이스케이프
   function escapeHtml(str) {
     return String(str || "")
@@ -1705,4 +1919,3 @@
 </script>
 </body>
 </html>
-
