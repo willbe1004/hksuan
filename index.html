@@ -1574,14 +1574,12 @@
 
   // 통계 UI 반영
   function updateStatsUI(stats, items) {
-    // totalCountRaw가 키워드당 반복 합산이라면, API 호출 횟수로 나눈 평균값을 사용
+    // ★ totalCountRaw를 그대로 표시 (예: 432)
     let totalRaw = 0;
-    if (stats.totalCountRaw && stats.totalApiCalls) {
-      totalRaw = Math.round(stats.totalCountRaw / stats.totalApiCalls);
+    if (stats.totalCountRaw) {
+      totalRaw = stats.totalCountRaw;
     } else if (stats.totalItemsFromApi) {
       totalRaw = stats.totalItemsFromApi;
-    } else {
-      totalRaw = 0;
     }
 
     const filtered = stats.totalKept || items.length || 0;
@@ -1589,7 +1587,7 @@
     const api = stats.totalApiCalls || 0;
 
     document.getElementById("statTotalRaw").textContent =
-      totalRaw.toLocaleString("ko-KR");
+      (totalRaw || 0).toLocaleString("ko-KR");
     document.getElementById("statFiltered").textContent =
       filtered.toLocaleString("ko-KR");
     document.getElementById("statAi").textContent =
@@ -1878,19 +1876,35 @@
     }
     document.getElementById("deepPeriod").textContent = periodText;
 
+    // ★ 용역금액 표시 로직 보강
     const rawAmount =
       deepData.serviceAmount || deep.serviceAmount || listItem.serviceAmount || "";
     let amountText = rawAmount;
-    if (!amountText) {
-      if (!isNaN(ton) && ton > 0) {
-        const estAmount = ton * 400000; // 1톤당 40만원
+
+    // 예상톤수는 deep.estimatedTon 우선, 없으면 카드에 표시된 예상톤수에서 추출
+    let estTon = 0;
+    if (deep.estimatedTon) {
+      estTon = parseInt(String(deep.estimatedTon).replace(/[^0-9]/g, ""), 10) || 0;
+    }
+    if (!estTon && listItem.expectedTon) {
+      estTon = parseInt(String(listItem.expectedTon).replace(/[^0-9]/g, ""), 10) || 0;
+    }
+
+    if (
+      !amountText ||
+      amountText === "-" ||
+      /미표기|정보 없음/.test(amountText)
+    ) {
+      if (estTon && !isNaN(estTon)) {
+        const estAmount = estTon * 400000; // 1톤당 40만원
         amountText =
           `약 ${estAmount.toLocaleString("ko-KR")}원 ` +
-          `(톤당 40만원 × ${ton.toLocaleString("ko-KR")}톤 기준 추정)`;
+          `(톤당 40만원 × ${estTon.toLocaleString("ko-KR")}톤 기준 추정)`;
       } else {
         amountText = "미표기 (공고 및 첨부에서 금액 정보를 찾지 못함)";
       }
     }
+
     document.getElementById("deepAmount").textContent = amountText;
 
     const rawBudget =
@@ -2034,8 +2048,7 @@
       "calendarAuth",
       `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`
     );
-    // ※ 여기서는 단순히 Apps Script 웹앱의 calendar_auth 페이지만 열어 줍니다.
-    //   실제 OAuth 동의 화면은 Apps Script 쪽 설정/배포 상태에 따라 표시됩니다.
+    // 실제 OAuth 동의 화면은 Apps Script 쪽 설정/배포 상태에 따라 표시됩니다.
   }
 
   // 스마트 등록 모달 열고/닫기
@@ -2114,3 +2127,4 @@
 </script>
 </body>
 </html>
+
