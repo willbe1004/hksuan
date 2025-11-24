@@ -52,18 +52,21 @@
       justify-content: space-between;
       gap: 16px;
       margin-bottom: 18px;
+      flex-wrap: wrap;
     }
 
     .app-title-block {
       display: flex;
       flex-direction: column;
       gap: 6px;
+      min-width: 220px;
     }
 
     .app-title-main {
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     .app-title-main h1 {
@@ -89,6 +92,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
     }
 
     .app-subtitle span.dot {
@@ -103,6 +107,9 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      flex: 1;
     }
 
     .btn {
@@ -121,6 +128,7 @@
       transition: background var(--transition-fast), transform var(--transition-fast),
         box-shadow var(--transition-fast), border-color var(--transition-fast),
         color var(--transition-fast);
+      white-space: nowrap;
     }
 
     .btn span.icon {
@@ -271,7 +279,6 @@
     .period-label {
       font-size: 11px;
       color: var(--text-soft);
-      margin-left: auto;
     }
 
     /* 도넛 그래프 -------------------------------------------------------- */
@@ -309,11 +316,8 @@
       border-top-color: var(--accent);
       border-right-color: var(--accent);
       box-shadow: 0 0 40px rgba(255, 184, 63, 0.45);
-      animation: none;
-    }
-
-    .donut-ring.animate {
-      animation: donut-spin 1.1s ease-out;
+      animation: donut-spin 10s linear infinite;
+      animation-play-state: paused; /* 기본은 정지, 로딩 중에만 동작 */
     }
 
     .donut-center {
@@ -471,12 +475,15 @@
       margin-bottom: 6px;
       font-size: 12px;
       color: var(--text-soft);
+      gap: 6px;
+      flex-wrap: wrap;
     }
 
     .panel-header-left {
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
     }
 
     .pill-count {
@@ -491,6 +498,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
     }
 
     .mini-dot {
@@ -537,6 +545,7 @@
       justify-content: space-between;
       gap: 6px;
       margin-bottom: 2px;
+      flex-wrap: wrap;
     }
 
     .badge-region {
@@ -560,6 +569,7 @@
       background: rgba(2, 36, 25, 0.9);
       color: #b5ffe5;
       border: 1px solid rgba(0, 200, 150, 0.7);
+      white-space: nowrap;
     }
 
     .badge-status.manual {
@@ -585,6 +595,31 @@
 
     .bid-subline span {
       white-space: nowrap;
+    }
+
+    .meta-label {
+      font-size: 10px;
+      color: #7f92b2;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .meta-value {
+      font-size: 11px;
+      color: #d5e1ff;
+    }
+
+    .bid-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px 12px;
+      margin: 4px 0 5px;
+    }
+
+    .bid-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
     }
 
     .ai-result-box {
@@ -666,12 +701,15 @@
       font-size: 12px;
       color: var(--text-soft);
       margin-bottom: 2px;
+      gap: 6px;
+      flex-wrap: wrap;
     }
 
     .calendar-header-left {
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
     }
 
     .calendar-tag {
@@ -697,7 +735,7 @@
       filter: saturate(1.15) contrast(1.02);
     }
 
-    /* 모달 공통 ----------------------------------------------------------- */
+    /* 공용 모달 백드롭 --------------------------------------------------- */
 
     .modal-backdrop {
       position: fixed;
@@ -707,12 +745,14 @@
       align-items: center;
       justify-content: center;
       z-index: 2000;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(3px);
     }
 
     .modal-backdrop.active {
       display: flex;
     }
+
+    /* 스마트 등록 모달 --------------------------------------------------- */
 
     .modal {
       width: min(680px, 92vw);
@@ -794,108 +834,167 @@
       box-shadow: 0 0 0 1px rgba(0, 200, 150, 0.32);
     }
 
-    /* 2차 분석 모달 전용 -------------------------------------------------- */
+    /* 2차 심화 분석 모달 ------------------------------------------------- */
 
-    .modal-deep {
-      width: min(720px, 96vw);
+    .deep-modal {
+      width: min(880px, 96vw);
+      max-height: 84vh;
+      border-radius: 22px;
+      background: radial-gradient(circle at top, #131b2b, #050811);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 24px 68px rgba(0, 0, 0, 0.95);
+      display: flex;
+      flex-direction: column;
+      color: var(--text-main);
     }
 
-    .deep-title-main {
+    .deep-modal-header {
+      padding: 18px 22px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .deep-modal-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .deep-modal-title {
       font-size: 16px;
       font-weight: 600;
-      margin-bottom: 4px;
     }
 
-    .deep-tags-row {
+    .deep-badges {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      font-size: 10px;
+      margin-top: 4px;
     }
 
-    .deep-tag {
-      padding: 3px 8px;
+    .deep-badge {
+      padding: 3px 9px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: rgba(7, 16, 30, 0.95);
+      font-size: 11px;
+      background: rgba(8, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       color: var(--text-soft);
     }
 
-    .deep-tag.accent {
+    .deep-badge.primary {
       border-color: rgba(0, 200, 150, 0.7);
-      color: #b8fff0;
-      background: rgba(0, 200, 150, 0.16);
+      color: #bff8ea;
+      background: rgba(0, 200, 150, 0.1);
     }
 
-    .deep-tag.risk-high {
+    .deep-badge.warn {
+      border-color: rgba(255, 184, 63, 0.7);
+      color: #ffe7b4;
+      background: rgba(255, 184, 63, 0.1);
+    }
+
+    .deep-badge.danger {
       border-color: rgba(255, 92, 122, 0.7);
-      color: #ffc4d1;
-      background: rgba(255, 92, 122, 0.16);
+      color: #ffd0da;
+      background: rgba(255, 92, 122, 0.12);
     }
 
-    .deep-section {
-      margin-top: 10px;
+    .deep-modal-close-btn {
+      border-radius: 999px;
+      padding: 6px 13px;
+      font-size: 12px;
+    }
+
+    .deep-modal-body {
+      padding: 12px 22px 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
 
     .deep-section-title {
-      font-size: 11px;
-      color: #a4b6d6;
+      font-size: 12px;
+      font-weight: 600;
+      color: #b8c5e4;
       margin-bottom: 4px;
     }
 
-    .deep-section-body {
-      font-size: 12px;
-      line-height: 1.55;
-      color: #e3ecff;
-      white-space: pre-wrap;
+    .deep-summary-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-main);
     }
 
-    .deep-meta-grid {
+    .deep-grid-3 {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px 12px;
-      margin-top: 4px;
+      gap: 10px 18px;
+      font-size: 12px;
     }
 
-    .deep-meta-item {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
+    .deep-grid-item-label {
       font-size: 11px;
+      color: var(--text-soft);
+      margin-bottom: 2px;
     }
 
-    .deep-meta-label {
-      color: #7f92b2;
-    }
-
-    .deep-meta-value {
+    .deep-grid-item-value {
+      font-size: 13px;
       color: #f4f7ff;
     }
 
-    .deep-list {
-      margin: 4px 0 0;
-      padding-left: 18px;
+    .deep-checkpoints {
       font-size: 12px;
-      color: #d6e0ff;
+      padding-left: 18px;
+      margin: 4px 0 0;
     }
 
-    .deep-list li {
+    .deep-checkpoints li {
+      margin-bottom: 2px;
+    }
+
+    .deep-attachments-box {
+      font-size: 12px;
+      border-radius: 12px;
+      padding: 9px 10px 8px;
+      background: rgba(4, 15, 30, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .deep-attachments-list {
+      margin: 4px 0 0;
+      padding-left: 18px;
+    }
+
+    .deep-attachments-list li {
       margin-bottom: 3px;
     }
 
-    .deep-attachments-note {
-      font-size: 10px;
-      color: var(--text-soft);
-      margin-top: 4px;
+    .deep-attachments-list a {
+      color: #c6e4ff;
+      text-decoration: none;
+    }
+
+    .deep-attachments-list a:hover {
+      text-decoration: underline;
     }
 
     .deep-footer {
+      padding: 10px 22px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
       font-size: 11px;
+      color: var(--text-soft);
+      flex-wrap: wrap;
     }
-
-    /* 스마트 등록 모달 --------------------------------------------------- */
-
-    /* (공통 modal 스타일 재사용) */
 
     /* 전역 로딩 --------------------------------------------------------- */
 
@@ -963,15 +1062,14 @@
       }
     }
 
-    @media (max-width: 720px) {
+    @media (max-width: 768px) {
       .app-header {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
       }
 
       .header-actions {
-        align-self: stretch;
-        justify-content: space-between;
+        justify-content: flex-start;
       }
 
       .summary-row {
@@ -979,8 +1077,8 @@
       }
 
       .donut-card {
-        order: -1;
         max-width: none;
+        order: -1;
       }
 
       .controls-bar {
@@ -988,18 +1086,25 @@
         align-items: stretch;
       }
 
-      .panel-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-      }
-
       .calendar-frame iframe {
         height: 360px;
       }
 
-      .deep-meta-grid {
+      .deep-grid-3 {
         grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .app-title-main h1 {
+        font-size: 18px;
+      }
+
+      .deep-modal-header,
+      .deep-modal-body,
+      .deep-footer {
+        padding-left: 16px;
+        padding-right: 16px;
       }
     }
 
@@ -1014,6 +1119,9 @@
     @keyframes donut-spin {
       0% {
         transform: rotate(0deg);
+      }
+      40% {
+        transform: rotate(320deg);
       }
       100% {
         transform: rotate(360deg);
@@ -1177,72 +1285,13 @@
       </header>
 
       <div class="calendar-frame">
+        <!-- 캘린더 ID는 이미 Apps Script에서 사용 중이므로 iframe만 UI용으로 유지 -->
         <iframe
           src="https://calendar.google.com/calendar/embed?src=d51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04%40group.calendar.google.com&ctz=Asia%2FSeoul&bgcolor=%23050915&mode=MONTH&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&showTz=0"
         ></iframe>
       </div>
     </aside>
   </section>
-</div>
-
-<!-- 2차 분석 모달 -->
-<div id="deepModalBackdrop" class="modal-backdrop">
-  <div class="modal modal-deep">
-    <div class="modal-header">
-      <div>
-        <div id="deepTitle" class="deep-title-main"></div>
-        <div id="deepTagsRow" class="deep-tags-row"></div>
-      </div>
-      <button id="btnDeepClose" class="btn btn-ghost btn-small">닫기</button>
-    </div>
-    <div class="modal-body">
-      <div class="deep-section">
-        <div class="deep-section-title">요약</div>
-        <div id="deepSummary" class="deep-section-body"></div>
-      </div>
-
-      <div class="deep-section">
-        <div class="deep-section-title">금액·기간 (AI 추정 포함)</div>
-        <div class="deep-meta-grid">
-          <div class="deep-meta-item">
-            <span class="deep-meta-label">용역기간 / 공사기간</span>
-            <span id="deepServicePeriod" class="deep-meta-value">-</span>
-          </div>
-          <div class="deep-meta-item">
-            <span class="deep-meta-label">용역(계약) 금액</span>
-            <span id="deepServiceAmount" class="deep-meta-value">-</span>
-          </div>
-          <div class="deep-meta-item">
-            <span class="deep-meta-label">총 사업비</span>
-            <span id="deepProjectBudget" class="deep-meta-value">-</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="deep-section">
-        <div class="deep-section-title">체크 포인트</div>
-        <ul id="deepCheckPoints" class="deep-list"></ul>
-      </div>
-
-      <div class="deep-section">
-        <div class="deep-section-title">첨부파일</div>
-        <ul id="deepAttachments" class="deep-list"></ul>
-        <div class="deep-attachments-note">
-          ※ 파일명 클릭 시 나라장터 원문 페이지로 이동합니다.  
-          원문 페이지에서 동일 파일명을 찾아 다운로드하실 수 있습니다.
-        </div>
-      </div>
-
-      <div class="deep-section">
-        <div class="deep-section-title">한국수안 대응 제안</div>
-        <div id="deepSuggestion" class="deep-section-body"></div>
-      </div>
-    </div>
-    <div class="modal-footer deep-footer">
-      <span id="deepMetaLine"></span>
-      <button id="btnDeepOk" class="btn btn-primary btn-small">확인</button>
-    </div>
-  </div>
 </div>
 
 <!-- 스마트 등록 모달 -->
@@ -1288,6 +1337,78 @@
         </div>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- 2차 심화 분석 모달 -->
+<div id="deepModalBackdrop" class="modal-backdrop">
+  <div class="deep-modal">
+    <div class="deep-modal-header">
+      <div class="deep-modal-title-row">
+        <div>
+          <div id="deepTitle" class="deep-modal-title">공고명</div>
+          <div id="deepBadges" class="deep-badges"></div>
+        </div>
+        <button id="deepCloseBtn" class="btn btn-ghost deep-modal-close-btn">닫기</button>
+      </div>
+      <div id="deepMetaLine" style="font-size:11px;color:var(--text-soft);margin-top:4px;"></div>
+    </div>
+
+    <div class="deep-modal-body">
+      <section>
+        <div class="deep-section-title">요약</div>
+        <div id="deepSummary" class="deep-summary-text"></div>
+      </section>
+
+      <section>
+        <div class="deep-section-title">금액/기간 (AI 추정 포함)</div>
+        <div class="deep-grid-3">
+          <div>
+            <div class="deep-grid-item-label">용역기간 / 공사기간</div>
+            <div id="deepPeriod" class="deep-grid-item-value">-</div>
+          </div>
+          <div>
+            <div class="deep-grid-item-label">용역(계약) 금액</div>
+            <div id="deepAmount" class="deep-grid-item-value">-</div>
+          </div>
+          <div>
+            <div class="deep-grid-item-label">총 사업비</div>
+            <div id="deepBudget" class="deep-grid-item-value">-</div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="deep-section-title">체크 포인트</div>
+        <ul id="deepCheckpoints" class="deep-checkpoints"></ul>
+      </section>
+
+      <section>
+        <div class="deep-section-title">첨부파일</div>
+        <div class="deep-attachments-box">
+          <div id="deepAttachmentsEmpty">첨부파일 정보를 찾지 못했습니다.</div>
+          <ul id="deepAttachmentsList" class="deep-attachments-list"></ul>
+          <div id="deepAttachmentsNote" style="margin-top:4px;font-size:11px;color:var(--text-soft);display:none;">
+            ※ 나라장터 원문 페이지에서 동일 파일명을 찾아 다운로드하실 수 있습니다.
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="deep-section-title">한국수안 대응 제안</div>
+        <div id="deepSuggestion" class="deep-summary-text"></div>
+      </section>
+
+      <section>
+        <div class="deep-section-title">공고번호 / 원문 링크</div>
+        <div id="deepFooterInfo" style="font-size:11px;color:var(--text-soft);"></div>
+      </section>
+    </div>
+
+    <div class="deep-footer">
+      <div id="deepRisk" style="font-weight:500;"></div>
+      <button id="deepOkBtn" class="btn btn-primary btn-small">확인</button>
+    </div>
   </div>
 </div>
 
@@ -1366,27 +1487,27 @@
       .getElementById("smartForm")
       .addEventListener("submit", handleSmartSubmit);
 
-    // 2차 분석 모달
-    document
-      .getElementById("btnDeepClose")
-      .addEventListener("click", closeDeepModal);
-    document
-      .getElementById("btnDeepOk")
-      .addEventListener("click", closeDeepModal);
+    // 2차 심화 분석 모달
     document
       .getElementById("deepModalBackdrop")
       .addEventListener("click", (e) => {
         if (e.target.id === "deepModalBackdrop") closeDeepModal();
       });
+    document.getElementById("deepCloseBtn").addEventListener("click", closeDeepModal);
+    document.getElementById("deepOkBtn").addEventListener("click", closeDeepModal);
   }
 
-  // 전역 로딩 오버레이
+  // 전역 로딩 오버레이 + 도넛 애니메이션 제어
   function setGlobalLoading(on, message) {
     const overlay = document.getElementById("globalLoading");
     const text = document.getElementById("globalLoadingText");
+    const ring = document.getElementById("donutRing");
     if (!overlay) return;
     overlay.classList.toggle("active", !!on);
     if (message && text) text.textContent = message;
+    if (ring) {
+      ring.style.animationPlayState = on ? "running" : "paused";
+    }
   }
 
   // 데이터 로드
@@ -1398,6 +1519,7 @@
 
       allItems = data.items || [];
       updateStatsUI(data.stats || {}, allItems);
+      renderBidList(allItems);
       applyFilters(); // 검색/필터 반영
 
     } catch (e) {
@@ -1452,10 +1574,16 @@
 
   // 통계 UI 반영
   function updateStatsUI(stats, items) {
-    const totalRaw =
-      stats.totalCountRaw ||
-      stats.totalItemsFromApi ||
-      0;
+    // totalCountRaw가 키워드당 반복 합산이라면, API 호출 횟수로 나눈 평균값을 사용
+    let totalRaw = 0;
+    if (stats.totalCountRaw && stats.totalApiCalls) {
+      totalRaw = Math.round(stats.totalCountRaw / stats.totalApiCalls);
+    } else if (stats.totalItemsFromApi) {
+      totalRaw = stats.totalItemsFromApi;
+    } else {
+      totalRaw = 0;
+    }
+
     const filtered = stats.totalKept || items.length || 0;
     const ai = stats.totalAiCalls || 0;
     const api = stats.totalApiCalls || 0;
@@ -1488,21 +1616,18 @@
     document.getElementById("donutMain").textContent =
       (items.length || 0).toLocaleString("ko-KR");
 
-    // 도넛: 조회 후 한 번만 부드럽게 회전하고 멈춤
+    // 관련성 상 + 중 비율로 도넛 회전 속도 조절 (가벼운 시각 효과)
+    let highOrMid = 0;
+    items.forEach((it) => {
+      const rel = getRelevance(it.aiResult || "");
+      if (rel === "상" || rel === "중") highOrMid++;
+    });
+    const ratio =
+      items.length > 0 ? highOrMid / items.length : 0;
     const ring = document.getElementById("donutRing");
-    if (ring) {
-      ring.classList.remove("animate");
-      // 강제 리플로우로 애니메이션 재시작
-      void ring.offsetWidth;
-      ring.classList.add("animate");
-      ring.addEventListener(
-        "animationend",
-        () => {
-          ring.classList.remove("animate");
-        },
-        { once: true }
-      );
-    }
+    const base = 10; // 기본 10초
+    const speed = Math.max(4, base - ratio * 6); // 비율 높을수록 빠르게
+    ring.style.animationDuration = speed + "s";
   }
 
   // 리스트 렌더링
@@ -1530,62 +1655,49 @@
       const html = `
         <div class="bid-card-inner">
           <div class="bid-top-row">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span class="badge-region">${escapeHtml(
-                item.region || "지역미상"
-              )}</span>
-              <span class="bid-no">#${escapeHtml(
-                item.no || "-"
-              )}</span>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span class="badge-region">${item.region || "지역미상"}</span>
+              <span class="bid-no">#${item.no || "-"}</span>
             </div>
             <span class="badge-status ${statusClass}">
-              ${escapeHtml(item.status || "공고중")}
+              ${item.status || "공고중"}
             </span>
           </div>
-          <h3 class="bid-title">${escapeHtml(
-            item.title || ""
-          )}</h3>
+          <h3 class="bid-title">${escapeHtml(item.title || "")}</h3>
           <div class="bid-subline">
-            <span>발주처: ${escapeHtml(
-              item.client || "-"
-            )}</span>
-            <span>수요기관: ${escapeHtml(
-              item.agency || "-"
-            )}</span>
-            ${
-              item.clientManager
-                ? `<span>담당: ${escapeHtml(
-                    item.clientManager
-                  )}</span>`
-                : ""
-            }
-            ${
-              item.expectedTon
-                ? `<span>규모: ${escapeHtml(
-                    item.expectedTon
-                  )}</span>`
-                : ""
-            }
+            <span>발주처: ${escapeHtml(item.client || "-")}</span>
+            <span>수요기관: ${escapeHtml(item.agency || "-")}</span>
+            ${item.clientManager ? `<span>담당: ${escapeHtml(item.clientManager)}</span>` : ""}
+            ${item.expectedTon ? `<span>규모: ${escapeHtml(item.expectedTon)}</span>` : ""}
+          </div>
+
+          <div class="bid-meta-grid">
+            <div class="bid-meta-item">
+              <span class="meta-label">용역기간</span>
+              <span class="meta-value">${item.servicePeriod || "-"}</span>
+            </div>
+            <div class="bid-meta-item">
+              <span class="meta-label">용역금액</span>
+              <span class="meta-value">${item.serviceAmount || "-"}</span>
+            </div>
+            <div class="bid-meta-item">
+              <span class="meta-label">사업비</span>
+              <span class="meta-value">${item.projectBudget || "-"}</span>
+            </div>
           </div>
 
           <div class="ai-result-box">
             <div class="ai-result-icon">✨</div>
             <div class="ai-result-text">
               <strong>${rel ? `[${rel}] ` : ""}</strong>
-              <span>${escapeHtml(
-                stripBracketPrefix(item.aiResult || "")
-              )}</span>
+              <span>${escapeHtml(stripBracketPrefix(item.aiResult || ""))}</span>
             </div>
           </div>
 
           <div class="bid-footer-row">
             <div class="bid-dates">
-              <span>공고일: ${
-                item.date || "-"
-              }</span>
-              <span>마감: ${
-                item.deadline || "-"
-              }</span>
+              <span>공고일: ${item.date || "-"}</span>
+              <span>마감: ${item.deadline || "-"}</span>
             </div>
             <div class="bid-buttons">
               <button class="btn btn-ghost btn-small btn-deep">
@@ -1690,8 +1802,7 @@
       const data = await res.json();
 
       console.log("deepAnalyze", data);
-
-      showDeepModal(data);
+      openDeepModal(item, data);
 
       // 시트의 용역기간/금액/사업비가 갱신되었을 수 있으므로 전체 재조회
       await loadData();
@@ -1704,130 +1815,173 @@
     }
   }
 
-  function showDeepModal(data) {
-    const deep = data.deep || {};
+  // 2차 모달 열기/닫기 --------------------------------------------------
+
+  function openDeepModal(listItem, deepData) {
     const backdrop = document.getElementById("deepModalBackdrop");
-    const titleEl = document.getElementById("deepTitle");
-    const tagsRow = document.getElementById("deepTagsRow");
-    const summaryEl = document.getElementById("deepSummary");
-    const spEl = document.getElementById("deepServicePeriod");
-    const saEl = document.getElementById("deepServiceAmount");
-    const pbEl = document.getElementById("deepProjectBudget");
-    const cpList = document.getElementById("deepCheckPoints");
-    const attList = document.getElementById("deepAttachments");
-    const suggEl = document.getElementById("deepSuggestion");
-    const metaLine = document.getElementById("deepMetaLine");
+    if (!backdrop) return;
 
-    titleEl.textContent = data.title || "(제목 없음)";
+    const { no, title, client, agency, link } = deepData;
+    const deep = deepData.deep || {};
 
-    // 태그들
-    tagsRow.innerHTML = "";
-    const rel = deep.relevance || "중";
-    const tagRel = document.createElement("span");
-    tagRel.className = "deep-tag accent";
-    tagRel.textContent = `관련성: ${rel}`;
-    tagsRow.appendChild(tagRel);
+    // 헤더
+    document.getElementById("deepTitle").textContent = title || listItem.title || "-";
+    document.getElementById("deepMetaLine").textContent =
+      `발주처: ${client || listItem.client || "-"} · 수요기관: ${agency || listItem.agency || "-"}`;
 
+    // 뱃지
+    const badgesEl = document.getElementById("deepBadges");
+    badgesEl.innerHTML = "";
+    const rel = deep.relevance || getRelevance(deepData.firstSummary || listItem.aiResult || "");
+    if (rel) {
+      const b = document.createElement("span");
+      b.className = "deep-badge primary";
+      b.textContent = `관련성: ${rel}`;
+      badgesEl.appendChild(b);
+    }
     if (deep.facilityType) {
-      const t = document.createElement("span");
-      t.className = "deep-tag";
-      t.textContent = `시설유형: ${deep.facilityType}`;
-      tagsRow.appendChild(t);
+      const b = document.createElement("span");
+      b.className = "deep-badge";
+      b.textContent = `시설유형: ${deep.facilityType}`;
+      badgesEl.appendChild(b);
     }
-
-    if (deep.estimatedTon) {
-      const t = document.createElement("span");
-      t.className = "deep-tag";
-      t.textContent = `예상 규모: ${deep.estimatedTon}톤`;
-      tagsRow.appendChild(t);
+    const ton = parseInt(deep.estimatedTon || "", 10);
+    if (!isNaN(ton) && ton > 0) {
+      const b = document.createElement("span");
+      b.className = "deep-badge warn";
+      b.textContent = `예상 규모: 약 ${ton.toLocaleString("ko-KR")}톤`;
+      badgesEl.appendChild(b);
     }
-
     if (deep.riskLevel) {
-      const t = document.createElement("span");
-      t.className =
-        "deep-tag " +
-        (deep.riskLevel === "높음" ? "risk-high" : "");
-      t.textContent = `리스크: ${deep.riskLevel}`;
-      tagsRow.appendChild(t);
+      const b = document.createElement("span");
+      b.className = deep.riskLevel === "높음" ? "deep-badge danger" : "deep-badge";
+      b.textContent = `리스크: ${deep.riskLevel}`;
+      badgesEl.appendChild(b);
     }
 
     // 요약
-    summaryEl.textContent =
+    const summaryText =
       deep.summary2 ||
-      "심화 요약 결과를 가져오지 못했습니다.";
+      deepData.firstSummary ||
+      listItem.aiResult ||
+      "요약 정보를 불러오지 못했습니다.";
+    document.getElementById("deepSummary").textContent = summaryText;
 
-    // 금액·기간 (deep 값 우선, 없으면 data.servicePeriod 등)
-    spEl.textContent =
-      deep.servicePeriod ||
-      data.servicePeriod ||
-      "-";
-    saEl.textContent =
-      deep.serviceAmount ||
-      data.serviceAmount ||
-      "-";
-    pbEl.textContent =
-      deep.projectBudget ||
-      data.projectBudget ||
-      "-";
+    // 금액/기간 추정 --------------------
+    const periodFromServer =
+      deepData.servicePeriod || deep.servicePeriod || listItem.servicePeriod || "";
+    let periodText = periodFromServer;
+    if (!periodText && listItem.date && listItem.deadline) {
+      periodText = `${listItem.date} ~ ${listItem.deadline} (입찰 기준, 용역기간은 별도 확인 필요)`;
+    } else if (!periodText) {
+      periodText = "미표기 (용역/공사 기간은 제안요청서 등에서 별도 확인 필요)";
+    }
+    document.getElementById("deepPeriod").textContent = periodText;
 
-    // 체크 포인트
-    cpList.innerHTML = "";
-    if (Array.isArray(deep.checkPoints) && deep.checkPoints.length) {
-      deep.checkPoints.forEach((p) => {
+    const rawAmount =
+      deepData.serviceAmount || deep.serviceAmount || listItem.serviceAmount || "";
+    let amountText = rawAmount;
+    if (!amountText) {
+      if (!isNaN(ton) && ton > 0) {
+        const estAmount = ton * 400000; // 1톤당 40만원
+        amountText =
+          `약 ${estAmount.toLocaleString("ko-KR")}원 ` +
+          `(톤당 40만원 × ${ton.toLocaleString("ko-KR")}톤 기준 추정)`;
+      } else {
+        amountText = "미표기 (공고 및 첨부에서 금액 정보를 찾지 못함)";
+      }
+    }
+    document.getElementById("deepAmount").textContent = amountText;
+
+    const rawBudget =
+      deepData.projectBudget || deep.projectBudget || listItem.projectBudget || "";
+    const budgetText = rawBudget || "미표기";
+    document.getElementById("deepBudget").textContent = budgetText;
+
+    // 체크포인트
+    const cpEl = document.getElementById("deepCheckpoints");
+    cpEl.innerHTML = "";
+    const cps = Array.isArray(deep.checkPoints) ? deep.checkPoints : [];
+    if (cps.length) {
+      cps.forEach((t) => {
         const li = document.createElement("li");
-        li.textContent = p;
-        cpList.appendChild(li);
+        li.textContent = t;
+        cpEl.appendChild(li);
       });
     } else {
       const li = document.createElement("li");
-      li.textContent = "별도 체크 포인트가 제공되지 않았습니다.";
-      cpList.appendChild(li);
+      li.textContent = "체크 포인트 정보를 불러오지 못했습니다.";
+      cpEl.appendChild(li);
     }
 
-    // 첨부파일 목록 (파일명 + 상세페이지 링크)
+    // 첨부파일 목록 ------------------------------------------------
+    const attEmpty = document.getElementById("deepAttachmentsEmpty");
+    const attList = document.getElementById("deepAttachmentsList");
+    const attNote = document.getElementById("deepAttachmentsNote");
     attList.innerHTML = "";
-    if (Array.isArray(data.attachments) && data.attachments.length) {
-      data.attachments.forEach((name) => {
+    const attachments = Array.isArray(deepData.attachments) ? deepData.attachments : [];
+    if (!attachments.length) {
+      attEmpty.style.display = "block";
+      attNote.style.display = "block";
+    } else {
+      attEmpty.style.display = "none";
+      let hasDirectUrl = false;
+      attachments.forEach((att) => {
+        let name = "";
+        let url = "";
+        if (typeof att === "string") {
+          name = att;
+          url = ""; // 스크립트에서 URL을 내려주지 않으면 이름만 표시
+        } else if (att && typeof att === "object") {
+          name = att.name || att.fileName || "";
+          url = att.url || "";
+        }
+        if (!name) return;
         const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.textContent = name;
-        a.href = data.link || "#";
-        a.target = "_blank";
-        a.rel = "noreferrer";
-        a.style.color = "#ffd48a";
-        a.style.textDecoration = "none";
-        a.addEventListener("mouseover", () => {
-          a.style.textDecoration = "underline";
-        });
-        a.addEventListener("mouseout", () => {
-          a.style.textDecoration = "none";
-        });
-        li.appendChild(a);
+        if (url) {
+          hasDirectUrl = true;
+          const a = document.createElement("a");
+          a.href = url;
+          a.target = "_blank";
+          a.rel = "noreferrer";
+          a.textContent = name;
+          li.appendChild(a);
+        } else {
+          li.textContent = name;
+        }
         attList.appendChild(li);
       });
-    } else {
-      const li = document.createElement("li");
-      li.textContent = "첨부파일 정보를 찾지 못했습니다.";
-      attList.appendChild(li);
+      attNote.style.display = hasDirectUrl ? "none" : "block";
     }
 
-    // 제안
-    suggEl.textContent =
+    // 대응 제안 / 리스크
+    document.getElementById("deepSuggestion").textContent =
       deep.suggestion ||
-      "별도의 제안 문구가 제공되지 않았습니다.";
+      "제안 문구가 제공되지 않았습니다. 공고 및 첨부파일을 직접 확인해 전략을 수립해 주세요.";
 
-    // 하단 메타
-    metaLine.textContent = `공고번호: ${data.no || "-"}  ·  발주처: ${
-      data.client || "-"
-    }  ·  수요기관: ${data.agency || "-"}`;
+    document.getElementById("deepRisk").textContent =
+      deep.riskLevel
+        ? `리스크 수준: ${deep.riskLevel} · 관련성: ${rel || "중"}`
+        : `관련성: ${rel || "중"}`;
+
+    // 하단 공고번호/링크
+    const footerInfo = document.getElementById("deepFooterInfo");
+    let footerHtml = `공고번호: ${no || listItem.no || "-"} / 지역: ${
+      listItem.region || "-"
+    }`;
+    if (link && link !== "#") {
+      footerHtml +=
+        ` · <a href="${link}" target="_blank" rel="noreferrer" style="color:#c6e4ff;text-decoration:none;">나라장터/원문 링크 열기</a>`;
+    }
+    footerInfo.innerHTML = footerHtml;
 
     backdrop.classList.add("active");
   }
 
   function closeDeepModal() {
-    document
-      .getElementById("deepModalBackdrop")
-      .classList.remove("active");
+    const backdrop = document.getElementById("deepModalBackdrop");
+    if (!backdrop) return;
+    backdrop.classList.remove("active");
   }
 
   // 캘린더 등록
@@ -1878,8 +2032,10 @@
     window.open(
       url,
       "calendarAuth",
-      `width=${w},height=${h},left=${left},top=${top}`
+      `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`
     );
+    // ※ 여기서는 단순히 Apps Script 웹앱의 calendar_auth 페이지만 열어 줍니다.
+    //   실제 OAuth 동의 화면은 Apps Script 쪽 설정/배포 상태에 따라 표시됩니다.
   }
 
   // 스마트 등록 모달 열고/닫기
