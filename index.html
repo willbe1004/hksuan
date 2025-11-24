@@ -1127,6 +1127,33 @@
         transform: rotate(360deg);
       }
     }
+
+    /* ====== 커스텀 스크롤바 (검색결과 패널용) ====== */
+
+/* 크롬·엣지·사파리용 */
+.bid-list-panel {
+  scrollbar-width: thin; /* 파이어폭스용 */
+  scrollbar-color: rgba(0, 200, 150, 0.6) rgba(6, 14, 26, 0.9);
+}
+
+.bid-list-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bid-list-panel::-webkit-scrollbar-track {
+  background: rgba(4, 10, 20, 0.9);
+  border-radius: 999px;
+}
+
+.bid-list-panel::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00c896, #00e0b0);
+  border-radius: 999px;
+  box-shadow: 0 0 14px rgba(0, 200, 150, 0.7);
+}
+
+.bid-list-panel::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #00e0b0, #ffb83f);
+}
   </style>
 </head>
 <body>
@@ -1136,11 +1163,11 @@
     <div class="app-title-block">
       <div class="app-title-main">
         <h1>한국수안 AI 입찰관리</h1>
-        <span class="badge-version">AI 저류조 필터 v2</span>
+        <span class="badge-version">AI 분석 필터 v2</span>
       </div>
       <div class="app-subtitle">
         <span class="dot"></span>
-        <span>나라장터·외부공고에서 저류조/우수·침수방지 관련 입찰만 자동 선별</span>
+        <span>나라장터·외부공고에서 저류조/우수·침수방지 관련 입찰 자동 선별</span>
       </div>
     </div>
 
@@ -2128,6 +2155,7 @@
 </script>
 </body>
 </html>
+
 
 
 
