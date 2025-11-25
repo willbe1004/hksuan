@@ -1315,8 +1315,10 @@
       <div class="calendar-frame">
         <!-- 캘린더 ID는 이미 Apps Script에서 사용 중이므로 iframe만 UI용으로 유지 -->
         <iframe
+          id="calendarIframe"
           src="https://calendar.google.com/calendar/embed?src=d51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04%40group.calendar.google.com&ctz=Asia%2FSeoul&bgcolor=%23050915&mode=MONTH&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&showTz=0"
-        ></iframe>
+          ></iframe>
+
       </div>
     </aside>
   </section>
@@ -1469,10 +1471,6 @@
   let filterMode = 'all'; 
   let tokenClient = null;
   let accessToken = null;
-
-  // Calendar iframe 초기화
-  document.getElementById('calendarIframe').src =
-    `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(TARGET_CALENDAR_ID)}&ctz=Asia%2FSeoul&bgcolor=%23050915&mode=MONTH&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&showTz=0`;
 
   window.addEventListener('load', () => {
     bindUI();
@@ -1877,7 +1875,8 @@
       alert("✅ 캘린더 등록 성공!");
       // iframe 새로고침
       const iframe = document.getElementById('calendarIframe');
-      iframe.src = iframe.src;
+      if (iframe) {
+        iframe.src = iframe.src;
     } catch (e) {
       alert("캘린더 등록 실패: " + e.message);
     }
@@ -1989,3 +1988,4 @@
 </script>
 </body>
 </html>
+
