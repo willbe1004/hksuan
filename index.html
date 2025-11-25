@@ -1452,748 +1452,533 @@
 </div>
 
 <script>
-  // ★ 반드시 본인 Apps Script 웹앱 URL로 변경해 주세요.
-  const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec";
+  // ★★★ 본인의 Apps Script WebApp URL ★★★
+  const API_BASE = 'https://script.google.com/macros/s/AKfycbxi0Bfdty9LuMJyxCGTqTkyJQJrevz3AqRunbhNmePCh68tta-Fu8w1Lw4E_DROWB99zw/exec';
 
-  let allItems = [];
-  let activeRelFilter = "all";
+  // ★★★ 본인의 Google Client ID ★★★
+  const CLIENT_ID = '1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com';
+  
+  // ★★★ 타겟 캘린더 ID ★★★
+  const TARGET_CALENDAR_ID = 'd51a10e0014dcbd83e98d0da91cda4f52f629c19652c15fc693ee4529bbbab04@group.calendar.google.com';
 
-  // ✅ Google OAuth 토큰 클라이언트
+  // 토큰 보관용 localStorage 키
+  const STORAGE_KEY_TOKEN = 'koreasuan_calendar_token';
+  const STORAGE_KEY_EXP   = 'koreasuan_calendar_token_exp';
+
+  let allData = [];
+  let filterMode = 'all'; 
   let tokenClient = null;
   let accessToken = null;
 
-  document.addEventListener("DOMContentLoaded", () => {
+  // Calendar iframe 초기화
+  document.getElementById('calendarIframe').src =
+    `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(TARGET_CALENDAR_ID)}&ctz=Asia%2FSeoul&bgcolor=%23050915&mode=MONTH&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&showTz=0`;
+
+  window.addEventListener('load', () => {
     bindUI();
     loadData();
+    initGoogle();
   });
 
-  // ✅ Google 로그인 (UI용)
+  // ---------------- Google 로그인/로그아웃 & UI ----------------
+
+  function updateLoginUI(connected) {
+    const btn  = document.getElementById("btnLogin");
+    const lbl  = document.getElementById("btnLoginLabel");
+    const dot  = document.getElementById("loginStatusDot");
+    const text = document.getElementById("loginStatusText");
+    if (!btn || !lbl || !dot || !text) return;
+
+    if (connected) {
+      lbl.textContent = "로그아웃";
+      btn.disabled = false;
+      dot.classList.add("connected");
+      text.textContent = "캘린더 연동됨";
+    } else {
+      lbl.textContent = "로그인";
+      btn.disabled = false;
+      dot.classList.remove("connected");
+      text.textContent = "캘린더 미연동";
+    }
+  }
+
+  function saveToken(token, expiresInSec) {
+    if (!token) {
+      localStorage.removeItem(STORAGE_KEY_TOKEN);
+      localStorage.removeItem(STORAGE_KEY_EXP);
+      return;
+    }
+    const exp = Date.now() + (expiresInSec || 3600) * 1000;
+    localStorage.setItem(STORAGE_KEY_TOKEN, token);
+    localStorage.setItem(STORAGE_KEY_EXP, String(exp));
+  }
+
+  function loadSavedTokenIfValid() {
+    const t   = localStorage.getItem(STORAGE_KEY_TOKEN);
+    const exp = parseInt(localStorage.getItem(STORAGE_KEY_EXP) || '0', 10);
+    if (t && exp && exp > Date.now()) {
+      accessToken = t;
+      updateLoginUI(true);
+    } else {
+      accessToken = null;
+      saveToken(null);
+      updateLoginUI(false);
+    }
+  }
+
   function initGoogle() {
-    const btn = document.getElementById("btnLogin");
-    const label = document.getElementById("btnLoginLabel");
-    const statusDot = document.getElementById("loginStatusDot");
-    const statusText = document.getElementById("loginStatusText");
-
-    if (!btn) return;
-
     if (!window.google || !google.accounts || !google.accounts.oauth2) {
-      console.error("Google Identity Services 로드 전입니다.");
+      // GSI 스크립트가 아직 안 올라왔을 때 대비
       return;
     }
 
+    // 기존 토큰 복구 (새로고침 후에도 유지)
+    loadSavedTokenIfValid();
+
     tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: "1049915608396-i3jn8jrm24bc9mkagdtokk3rfa3li513.apps.googleusercontent.com",
-      scope: "https://www.googleapis.com/auth/calendar.events",
+      client_id: CLIENT_ID,
+      scope: 'https://www.googleapis.com/auth/calendar.events',
       callback: (resp) => {
         if (resp.error) {
-          console.error("로그인 실패:", resp);
-          alert("구글 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+          alert("로그인 실패: " + resp.error);
           return;
         }
         if (resp.access_token) {
           accessToken = resp.access_token;
-          if (label) label.textContent = "✅ 로그인됨";
-          btn.disabled = true;
-          if (statusDot) statusDot.classList.add("connected");
-          if (statusText) statusText.textContent = "캘린더 연동됨";
+          saveToken(resp.access_token, resp.expires_in);
+          updateLoginUI(true);
         }
       }
     });
 
-    // 버튼 클릭 시 토큰 요청
-    btn.onclick = () => {
-      if (!tokenClient) return;
-      tokenClient.requestAccessToken();
+    const btnLogin = document.getElementById("btnLogin");
+    btnLogin.onclick = () => {
+      // 이미 로그인 상태면 → 로그아웃
+      if (accessToken) {
+        const tokenToRevoke = accessToken;
+        accessToken = null;
+        saveToken(null);
+        updateLoginUI(false);
+        if (google.accounts.oauth2.revoke) {
+          google.accounts.oauth2.revoke(tokenToRevoke, () => {});
+        }
+        return;
+      }
+      // 로그인 시도
+      tokenClient.requestAccessToken({ prompt: '' });
     };
   }
 
-  // ✅ window load 시점에 Google 로그인 초기화 (GIS 스크립트 로딩 이후)
-  window.addEventListener("load", initGoogle);
+  // ---------------- 공통 UI & 데이터 로드 ----------------
 
   function bindUI() {
-    document.getElementById("btnRefresh").addEventListener("click", () => {
-      refreshAll();
-    });
+    document.getElementById("btnRefresh").addEventListener("click", refreshAll);
+    document.getElementById("btnExternal").addEventListener("click", externalUpdate);
+    document.getElementById("searchInput").addEventListener("input", applyFilter);
+    document.getElementById("filterRegion").addEventListener("change", applyFilter);
 
-    document.getElementById("btnExternal").addEventListener("click", () => {
-      externalUpdate();
-    });
-
-    // ⛔ 기존 openCalendarAuth() 호출은 제거 (이제 GIS로 로그인)
-    // document.getElementById("btnLogin").addEventListener("click", () => {
-    //   openCalendarAuth();
-    // });
-
-    document
-      .getElementById("searchInput")
-      .addEventListener("input", applyFilters);
-    document
-      .getElementById("filterRegion")
-      .addEventListener("change", applyFilters);
-
-    document.querySelectorAll(".chip").forEach((chip) => {
+    // chip: data-rel 사용하도록 수정
+    document.querySelectorAll(".chip").forEach(chip => {
       chip.addEventListener("click", () => {
-        document
-          .querySelectorAll(".chip")
-          .forEach((c) => c.classList.remove("active"));
+        document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
         chip.classList.add("active");
-        activeRelFilter = chip.dataset.rel || "all";
-        applyFilters();
+        filterMode = chip.dataset.rel || 'all';
+        applyFilter();
       });
     });
 
-    // 스마트 등록 모달
-    document
-      .getElementById("btnSmartAddOpen")
-      .addEventListener("click", openSmartModal);
-    document
-      .getElementById("btnSmartClose")
-      .addEventListener("click", closeSmartModal);
-    document
-      .getElementById("btnSmartCancel")
-      .addEventListener("click", closeSmartModal);
-    document
-      .getElementById("smartModalBackdrop")
-      .addEventListener("click", (e) => {
-        if (e.target.id === "smartModalBackdrop") closeSmartModal();
-      });
+    // 모달 관련
+    document.getElementById("btnSmartAddOpen").addEventListener("click", openSmartModal);
+    document.getElementById("btnSmartClose").addEventListener("click", closeSmartModal);
+    document.getElementById("btnSmartCancel").addEventListener("click", closeSmartModal);
+    document.getElementById("smartModalBackdrop").addEventListener("click", e => {
+      if (e.target.id === 'smartModalBackdrop') closeSmartModal();
+    });
+    document.getElementById("smartForm").addEventListener("submit", handleSmartSubmit);
 
-    document
-      .getElementById("smartForm")
-      .addEventListener("submit", handleSmartSubmit);
-
-    // 2차 심화 분석 모달
-    document
-      .getElementById("deepModalBackdrop")
-      .addEventListener("click", (e) => {
-        if (e.target.id === "deepModalBackdrop") closeDeepModal();
-      });
+    // Deep modal
+    document.getElementById("deepModalBackdrop").addEventListener("click", e => {
+      if (e.target.id === 'deepModalBackdrop') closeDeepModal();
+    });
     document.getElementById("deepCloseBtn").addEventListener("click", closeDeepModal);
     document.getElementById("deepOkBtn").addEventListener("click", closeDeepModal);
   }
 
-  // 전역 로딩 오버레이 + 도넛 애니메이션 제어
-  function setGlobalLoading(on, message) {
-    const overlay = document.getElementById("globalLoading");
-    const text = document.getElementById("globalLoadingText");
+  function setGlobalLoading(on, msg) {
+    const ol = document.getElementById("globalLoading");
+    const txt = document.getElementById("globalLoadingText");
     const ring = document.getElementById("donutRing");
-    if (!overlay) return;
-    overlay.classList.toggle("active", !!on);
-    if (message && text) text.textContent = message;
-    if (ring) {
-      ring.style.animationPlayState = on ? "running" : "paused";
-    }
+    if (!ol) return;
+    ol.classList.toggle("active", !!on);
+    if (msg) txt.textContent = msg;
+    if (ring) ring.style.animationPlayState = on ? "running" : "paused";
   }
 
-  // 데이터 로드
   async function loadData() {
+    const list = document.getElementById('bidList');
+    list.innerHTML = '<div style="font-size:12px; color:#b2bec3; padding:20px;">데이터를 불러오는 중...</div>';
     try {
-      setGlobalLoading(true, "입찰 데이터를 불러오는 중입니다...");
-      const res = await fetch(SCRIPT_URL);
-      const data = await res.json();
-
-      allItems = data.items || [];
-      updateStatsUI(data.stats || {}, allItems);
-      renderBidList(allItems);
-      applyFilters(); // 검색/필터 반영
-
+      const res = await fetch(API_BASE);
+      const json = await res.json();
+      allData = json.items || [];
+      updateStatsUI(json.stats || {}, allData);
+      applyFilter();
     } catch (e) {
-      console.error(e);
-      alert("데이터를 불러오는 중 오류가 발생했습니다.");
-    } finally {
-      setGlobalLoading(false);
+      list.innerHTML = '<div style="font-size:12px; color:#e17055; padding:20px;">로드 실패: ' + e.message + '</div>';
     }
   }
 
-  // 전체 새로고침 (나라장터 다시 수집 + 외부소스 수집)
   async function refreshAll() {
     const btn = document.getElementById("btnRefresh");
     btn.classList.add("loading");
     try {
-      setGlobalLoading(true, "나라장터 API 재조회 및 AI 필터링 중입니다...");
-      const res = await fetch(SCRIPT_URL + "?action=updateAll");
-      const data = await res.json();
-      console.log("updateAll", data);
+      setGlobalLoading(true, "나라장터 API 재조회 및 AI 필터링 중...");
+      await fetch(API_BASE + "?action=updateAll");
       await loadData();
     } catch (e) {
-      console.error(e);
-      alert("새로고침 중 오류가 발생했습니다.");
+      alert("오류: " + e.message);
     } finally {
       btn.classList.remove("loading");
       setGlobalLoading(false);
     }
   }
 
-  // 외부 웹 수집
   async function externalUpdate() {
     const btn = document.getElementById("btnExternal");
     btn.classList.add("loading");
     try {
-      setGlobalLoading(true, "외부 검색 소스에서 공고 문서를 수집 중입니다...");
-      const res = await fetch(SCRIPT_URL + "?action=external_update");
-      const data = await res.json();
-      alert(
-        `외부 공고 소스를 다시 확인했습니다.\n전체 신규 수집 : ${
-          data.added || 0
-        }건`
-      );
+      setGlobalLoading(true, "외부 소스 수집 중...");
+      const res = await fetch(API_BASE + "?action=external_update");
+      const json = await res.json();
+      alert(`신규 ${json.added}건 수집 완료`);
       await loadData();
     } catch (e) {
-      console.error(e);
-      alert("외부웹 수집 중 오류가 발생했습니다.");
+      alert("오류: " + e.message);
     } finally {
       btn.classList.remove("loading");
       setGlobalLoading(false);
     }
   }
 
-  // 통계 UI 반영
   function updateStatsUI(stats, items) {
-    // ★ totalCountRaw를 그대로 표시 (예: 432)
-    let totalRaw = 0;
-    if (stats.totalCountRaw) {
-      totalRaw = stats.totalCountRaw;
-    } else if (stats.totalItemsFromApi) {
-      totalRaw = stats.totalItemsFromApi;
-    }
-
-    const filtered = stats.totalKept || items.length || 0;
-    const ai = stats.totalAiCalls || 0;
-    const api = stats.totalApiCalls || 0;
-
-    document.getElementById("statTotalRaw").textContent =
-      (totalRaw || 0).toLocaleString("ko-KR");
-    document.getElementById("statFiltered").textContent =
-      filtered.toLocaleString("ko-KR");
-    document.getElementById("statAi").textContent =
-      ai.toLocaleString("ko-KR");
-    document.getElementById("statApi").textContent =
-      api.toLocaleString("ko-KR");
-
-    const periodLabel = document.getElementById("statPeriod");
-    if (periodLabel) {
-      const days = stats.daysBack || 7;
-      periodLabel.textContent = `Period: Last ${days} days`;
-    }
-
-    const lastUpdateEl = document.getElementById("statLastUpdate");
-    if (lastUpdateEl) {
-      const t =
-        stats.finishedAtText ||
-        stats.startedAtText ||
-        "-";
-      lastUpdateEl.textContent = `Last Update: ${t}`;
-    }
-
-    // 도넛 중심 값 = 현재 리스트 건수
-    document.getElementById("donutMain").textContent =
-      (items.length || 0).toLocaleString("ko-KR");
-
-    // 관련성 상 + 중 비율로 도넛 회전 속도 조절 (가벼운 시각 효과)
+    let totalRaw = stats.totalCountRaw || stats.totalItemsFromApi || 0;
+    document.getElementById("statTotalRaw").textContent = totalRaw.toLocaleString();
+    document.getElementById("statFiltered").textContent = (stats.totalKept || items.length || 0).toLocaleString();
+    document.getElementById("statAi").textContent = (stats.totalAiCalls || 0).toLocaleString();
+    document.getElementById("statApi").textContent = (stats.totalApiCalls || 0).toLocaleString();
+    if (document.getElementById("statPeriod"))
+      document.getElementById("statPeriod").textContent = `기간: 최근 ${stats.daysBack || 7}일`;
+    if (document.getElementById("statLastUpdate"))
+      document.getElementById("statLastUpdate").textContent = `Last: ${stats.finishedAtText || '-'}`;
+    
+    document.getElementById("donutMain").textContent = items.length.toLocaleString();
+    // Donut logic
     let highOrMid = 0;
-    items.forEach((it) => {
-      const rel = getRelevance(it.aiResult || "");
-      if (rel === "상" || rel === "중") highOrMid++;
-    });
-    const ratio =
-      items.length > 0 ? highOrMid / items.length : 0;
+    items.forEach(it => { if (/\[(상|중)\]/.test(it.aiResult)) highOrMid++; });
+    const ratio = items.length ? highOrMid / items.length : 0;
     const ring = document.getElementById("donutRing");
-    const base = 10; // 기본 10초
-    const speed = Math.max(4, base - ratio * 6); // 비율 높을수록 빠르게
-    ring.style.animationDuration = speed + "s";
+    if (ring) ring.style.animationDuration = Math.max(4, 10 - ratio * 6) + "s";
   }
 
-  // 리스트 렌더링
-  function renderBidList(items) {
-    const container = document.getElementById("bidList");
-    container.innerHTML = "";
-    if (!items || items.length === 0) {
-      container.innerHTML =
-        '<div style="padding:12px 4px;font-size:12px;color:var(--text-soft);">표시할 공고가 없습니다.</div>';
+  // ---------------- 마감일 필터링 ----------------
+
+  function isDeadlinePast(deadlineStr) {
+    if (!deadlineStr) return false;
+    // YYYY-MM-DD 또는 YYYY-MM-DD HH:mm, 구분자 -, /, .
+    const m = String(deadlineStr).match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+    if (!m) return false;
+    const y = parseInt(m[1], 10);
+    const mo = parseInt(m[2], 10) - 1;
+    const d = parseInt(m[3], 10);
+
+    const deadlineDate = new Date(y, mo, d);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // "당일 기준"이므로 날짜만 비교 (오늘 이전이면 숨김)
+    return deadlineDate < today;
+  }
+
+  function applyFilter() {
+    const kw     = document.getElementById('searchInput').value.trim().toLowerCase();
+    const region = document.getElementById('filterRegion').value.trim();
+    
+    const filtered = allData.filter(item => {
+      // ① 마감일 지난 공고 제거
+      if (isDeadlinePast(item.deadline)) return false;
+
+      // ② 지역 필터
+      if (region && (!item.region || item.region.indexOf(region) === -1)) return false;
+      
+      // ③ 관련성 필터
+      const aiText = item.aiResult || '';
+      let relFlag = 'low';
+      if (/\[.*상.*\]/.test(aiText) || /관련성 상/.test(aiText)) relFlag = 'high';
+      else if (/\[.*중.*\]/.test(aiText) || /관련성 중/.test(aiText)) relFlag = 'mid';
+      
+      if (filterMode === 'high' && relFlag !== 'high') return false;
+      if (filterMode === 'mid'  && relFlag === 'low')  return false;
+      
+      // ④ 키워드 검색
+      if (kw) {
+        const blob = (item.title + ' ' + item.client + ' ' + item.agency + ' ' + aiText).toLowerCase();
+        if (blob.indexOf(kw) === -1) return false;
+      }
+      return true;
+    });
+    renderList(filtered);
+  }
+
+  function renderList(data) {
+    const list = document.getElementById('bidList');
+    list.innerHTML = '';
+    if (!data.length) {
+      list.innerHTML = '<div style="padding:20px;color:#b2bec3;font-size:12px;">조건에 맞는 공고가 없습니다.</div>';
       document.getElementById("resultCount").textContent = "0";
       return;
     }
-
-    items.forEach((item) => {
-      const rel = getRelevance(item.aiResult || "");
-      const card = document.createElement("article");
-      card.className = "bid-card";
-      card.dataset.relevance = rel;
-      card.dataset.region = item.region || "";
-      card.dataset.rowIndex = item.rowIndex;
-
-      const statusClass =
-        item.status === "수동등록" ? "manual" : "";
+    document.getElementById("resultCount").textContent = data.length;
+    
+    data.forEach(item => {
+      const card = document.createElement('article');
+      card.className = 'bid-card';
+      
+      let relTagClass = 'yellow';
+      if (/\[.*상.*\]/.test(item.aiResult)) relTagClass = 'green';
+      else if (/\[.*하.*\]/.test(item.aiResult)) relTagClass = 'red';
+      
+      const isManual = item.status === '수동등록';
+      const statusHtml = `<span class="badge-status ${isManual ? 'manual' : ''}">${item.status || '공고중'}</span>`;
+      
+      // Calendar 버튼
+      const calBtnHtml =
+        `<button class="btn btn-ghost btn-small btn-calendar"
+                 onclick="addToCalendarClientSide('${escapeHtml(item.title)}',
+                                                 '${item.deadline}',
+                                                 '${escapeHtml(item.client)}',
+                                                 '${escapeHtml(item.link)}')">
+           <span class="icon">📅</span> 등록
+         </button>`;
 
       const html = `
         <div class="bid-card-inner">
           <div class="bid-top-row">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-              <span class="badge-region">${item.region || "지역미상"}</span>
-              <span class="bid-no">#${item.no || "-"}</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span class="badge-region">${item.region || '지역미상'}</span>
+              <span class="bid-no">#${item.no}</span>
             </div>
-            <span class="badge-status ${statusClass}">
-              ${item.status || "공고중"}
-            </span>
+            ${statusHtml}
           </div>
-          <h3 class="bid-title">${escapeHtml(item.title || "")}</h3>
+          <h3 class="bid-title">${escapeHtml(item.title)}</h3>
           <div class="bid-subline">
-            <span>발주처: ${escapeHtml(item.client || "-")}</span>
-            <span>수요기관: ${escapeHtml(item.agency || "-")}</span>
-            ${item.clientManager ? `<span>담당: ${escapeHtml(item.clientManager)}</span>` : ""}
-            ${item.expectedTon ? `<span>규모: ${escapeHtml(item.expectedTon)}</span>` : ""}
+            <span>${escapeHtml(item.client || '-')}</span>
+            <span>${escapeHtml(item.agency || '-')}</span>
+            <span class="tag ${relTagClass}">AI분석</span>
           </div>
-
           <div class="bid-meta-grid">
             <div class="bid-meta-item">
-              <span class="meta-label">용역기간</span>
-              <span class="meta-value">${item.servicePeriod || "-"}</span>
+              <span class="meta-label">금액</span>
+              <span class="meta-value">${item.serviceAmount || '-'}</span>
             </div>
             <div class="bid-meta-item">
-              <span class="meta-label">용역금액</span>
-              <span class="meta-value">${item.serviceAmount || "-"}</span>
+              <span class="meta-label">기간</span>
+              <span class="meta-value">${item.servicePeriod || '-'}</span>
             </div>
             <div class="bid-meta-item">
-              <span class="meta-label">사업비</span>
-              <span class="meta-value">${item.projectBudget || "-"}</span>
+              <span class="meta-label">마감</span>
+              <span class="meta-value meta-value-em">${item.deadline || '-'}</span>
             </div>
           </div>
-
           <div class="ai-result-box">
             <div class="ai-result-icon">✨</div>
-            <div class="ai-result-text">
-              <strong>${rel ? `[${rel}] ` : ""}</strong>
-              <span>${escapeHtml(stripBracketPrefix(item.aiResult || ""))}</span>
-            </div>
+            <div class="ai-result-text">${escapeHtml(item.aiResult || '')}</div>
           </div>
-
           <div class="bid-footer-row">
-            <div class="bid-dates">
-              <span>공고일: ${item.date || "-"}</span>
-              <span>마감: ${item.deadline || "-"}</span>
-            </div>
-            <div class="bid-buttons">
-              <button class="btn btn-ghost btn-small btn-deep">
-                2차 상세분석
-              </button>
-              <button class="btn btn-ghost btn-small btn-calendar">
-                <span class="icon">📅</span> 등록
-              </button>
-              ${
-                item.link && item.link !== "#"
-                  ? `<a class="btn btn-ghost btn-small btn-link" href="${item.link}" target="_blank" rel="noreferrer">
-                      <span class="icon">🔗</span> 원문
-                    </a>`
-                  : ""
-              }
-            </div>
+             <div class="bid-buttons">
+               <button class="btn btn-ghost btn-small btn-deep"
+                       onclick="handleDeepAnalyzeClient('${item.no}',
+                                                        '${item.link}',
+                                                        '${escapeHtml(item.title)}',
+                                                        '${escapeHtml(item.client)}',
+                                                        '${escapeHtml(item.agency)}')">
+                 2차 상세분석
+               </button>
+               ${calBtnHtml}
+               ${item.link && item.link !== '#' ? `<a href="${item.link}" target="_blank" class="btn btn-ghost btn-small">📄 원문</a>` : ''}
+               ${isManual ? `<button class="btn btn-ghost btn-small btn-danger" onclick="deleteRowClient('${item.rowIndex}')">삭제</button>` : ''}
+             </div>
           </div>
-        </div>
-      `;
+        </div>`;
       card.innerHTML = html;
-      container.appendChild(card);
-
-      // 버튼 이벤트
-      const deepBtn = card.querySelector(".btn-deep");
-      const calBtn = card.querySelector(".btn-calendar");
-
-      deepBtn.addEventListener("click", () =>
-        handleDeepAnalyze(item, card, deepBtn)
-      );
-      calBtn.addEventListener("click", () =>
-        handleCalendarAdd(item, calBtn)
-      );
+      list.appendChild(card);
     });
-
-    document.getElementById("resultCount").textContent =
-      items.length.toString();
   }
-
-  function stripBracketPrefix(text) {
-    const s = String(text || "");
-    return s.replace(/^\[[상중하]\]\s*/, "");  // 앞의 [상]/[중]/[하] 제거
-  }
-
-  function getRelevance(aiResult) {
-    const m = aiResult.match(/\[([상중하])\]/);
-    return m ? m[1] : "";
-  }
-
-  function applyFilters() {
-    const q = (
-      document.getElementById("searchInput").value || ""
-    )
-      .toLowerCase()
-      .trim();
-    const region =
-      document.getElementById("filterRegion").value || "";
-
-    const filtered = allItems.filter((item) => {
-      const rel = getRelevance(item.aiResult || "");
-      if (activeRelFilter === "high" && rel !== "상") return false;
-      if (
-        activeRelFilter === "mid" &&
-        !(rel === "상" || rel === "중")
-      )
-        return false;
-
-      if (region && !(item.region || "").includes(region))
-        return false;
-
-      if (!q) return true;
-      const blob =
-        (item.title || "") +
-        " " +
-        (item.client || "") +
-        " " +
-        (item.agency || "") +
-        " " +
-        (item.aiResult || "");
-      return blob.toLowerCase().includes(q);
-    });
-
-    renderBidList(filtered);
-  }
-
-  // 2차 상세분석
-  async function handleDeepAnalyze(item, cardEl, btnEl) {
-    if (!item.no) {
-      alert("공고번호가 없어 2차 분석을 수행할 수 없습니다.");
+  
+  // ---------------- Client-Side Actions ----------------
+  
+  // 1. Add to Calendar (Client Side)
+  async function addToCalendarClientSide(title, deadline, client, link) {
+    if (!accessToken) {
+      alert("구글 로그인이 필요합니다.");
       return;
     }
-    btnEl.classList.add("loading");
+    if (!deadline) {
+      alert("마감일 정보가 없습니다.");
+      return;
+    }
+    
+    // Parse deadline (YYYY-MM-DD HH:mm)
+    const parts = String(deadline).split(' ');
+    const dateParts = parts[0].split('-');
+    const timeParts = parts[1] ? parts[1].split(':') : [18, 0];
+    const end = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], timeParts[0], timeParts[1]);
+    const start = new Date(end.getTime() - 60 * 60 * 1000); // 1 hour before
+
+    const event = {
+      summary: `[입찰] ${title}`,
+      description: `발주처: ${client}\n링크: ${link}\n[한국수안 AI 입찰관리]`,
+      start: { dateTime: start.toISOString(), timeZone: 'Asia/Seoul' },
+      end:   { dateTime: end.toISOString(),   timeZone: 'Asia/Seoul' },
+      reminders: {
+        useDefault: false,
+        overrides: [
+          { method: 'popup', minutes: 60 },
+          { method: 'popup', minutes: 24 * 60 }
+        ]
+      }
+    };
+
     try {
-      setGlobalLoading(true, "2차 심화 분석을 수행 중입니다...");
-      const params = new URLSearchParams({
-        action: "deepAnalyze",
-        no: item.no,
-        link: item.link || "",
-        title: item.title || "",
-        client: item.client || "",
-        agency: item.agency || "",
-      });
-      const res = await fetch(`${SCRIPT_URL}?${params.toString()}`);
-      const data = await res.json();
+      const res = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(TARGET_CALENDAR_ID)}/events`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(event)
+        }
+      );
 
-      console.log("deepAnalyze", data);
-      openDeepModal(item, data);
+      if (!res.ok) {
+        const errText = await res.text();
+        // 토큰 만료 등
+        if (res.status === 401) {
+          accessToken = null;
+          saveToken(null);
+          updateLoginUI(false);
+          alert("로그인 세션이 만료되었습니다. 다시 로그인 후 시도해 주세요.\n\n상세: " + errText);
+          return;
+        }
+        throw new Error(errText);
+      }
 
-      // 시트의 용역기간/금액/사업비가 갱신되었을 수 있으므로 전체 재조회
-      await loadData();
+      alert("✅ 캘린더 등록 성공!");
+      // iframe 새로고침
+      const iframe = document.getElementById('calendarIframe');
+      iframe.src = iframe.src;
     } catch (e) {
-      console.error(e);
-      alert("2차 분석 중 오류가 발생했습니다.");
+      alert("캘린더 등록 실패: " + e.message);
+    }
+  }
+
+  // 2. Deep Analyze (Calls backend)
+  async function handleDeepAnalyzeClient(no, link, title, client, agency) {
+    setGlobalLoading(true, "2차 상세 분석 중...");
+    const params = new URLSearchParams({ action: 'deepAnalyze', no, link, title, client, agency });
+    try {
+      const res = await fetch(`${API_BASE}?${params.toString()}`);
+      const data = await res.json();
+      openDeepModalClient(data);
+    } catch (e) {
+      alert("분석 실패: " + e.message);
     } finally {
-      btnEl.classList.remove("loading");
       setGlobalLoading(false);
     }
   }
 
-  // 2차 모달 열기/닫기 --------------------------------------------------
-
-  function openDeepModal(listItem, deepData) {
-    const backdrop = document.getElementById("deepModalBackdrop");
-    if (!backdrop) return;
-
-    const { no, title, client, agency, link } = deepData;
-    const deep = deepData.deep || {};
-
-    // 헤더
-    document.getElementById("deepTitle").textContent = title || listItem.title || "-";
-    document.getElementById("deepMetaLine").textContent =
-      `발주처: ${client || listItem.client || "-"} · 수요기관: ${agency || listItem.agency || "-"}`;
-
-    // 뱃지
-    const badgesEl = document.getElementById("deepBadges");
-    badgesEl.innerHTML = "";
-    const rel = deep.relevance || getRelevance(deepData.firstSummary || listItem.aiResult || "");
-    if (rel) {
-      const b = document.createElement("span");
-      b.className = "deep-badge primary";
-      b.textContent = `관련성: ${rel}`;
-      badgesEl.appendChild(b);
-    }
-    if (deep.facilityType) {
-      const b = document.createElement("span");
-      b.className = "deep-badge";
-      b.textContent = `시설유형: ${deep.facilityType}`;
-      badgesEl.appendChild(b);
-    }
-    const ton = parseInt(deep.estimatedTon || "", 10);
-    if (!isNaN(ton) && ton > 0) {
-      const b = document.createElement("span");
-      b.className = "deep-badge warn";
-      b.textContent = `예상 규모: 약 ${ton.toLocaleString("ko-KR")}톤`;
-      badgesEl.appendChild(b);
-    }
-    if (deep.riskLevel) {
-      const b = document.createElement("span");
-      b.className = deep.riskLevel === "높음" ? "deep-badge danger" : "deep-badge";
-      b.textContent = `리스크: ${deep.riskLevel}`;
-      badgesEl.appendChild(b);
-    }
-
-    // 요약
-    const summaryText =
-      deep.summary2 ||
-      deepData.firstSummary ||
-      listItem.aiResult ||
-      "요약 정보를 불러오지 못했습니다.";
-    document.getElementById("deepSummary").textContent = summaryText;
-
-    // 금액/기간 추정 --------------------
-    const periodFromServer =
-      deepData.servicePeriod || deep.servicePeriod || listItem.servicePeriod || "";
-    let periodText = periodFromServer;
-    if (!periodText && listItem.date && listItem.deadline) {
-      periodText = `${listItem.date} ~ ${listItem.deadline} (입찰 기준, 용역기간은 별도 확인 필요)`;
-    } else if (!periodText) {
-      periodText = "미표기 (용역/공사 기간은 제안요청서 등에서 별도 확인 필요)";
-    }
-    document.getElementById("deepPeriod").textContent = periodText;
-
-    // ★ 용역금액 표시 로직 보강
-    const rawAmount =
-      deepData.serviceAmount || deep.serviceAmount || listItem.serviceAmount || "";
-    let amountText = rawAmount;
-
-    // 예상톤수는 deep.estimatedTon 우선, 없으면 카드에 표시된 예상톤수에서 추출
-    let estTon = 0;
-    if (deep.estimatedTon) {
-      estTon = parseInt(String(deep.estimatedTon).replace(/[^0-9]/g, ""), 10) || 0;
-    }
-    if (!estTon && listItem.expectedTon) {
-      estTon = parseInt(String(listItem.expectedTon).replace(/[^0-9]/g, ""), 10) || 0;
-    }
-
-    if (
-      !amountText ||
-      amountText === "-" ||
-      /미표기|정보 없음/.test(amountText)
-    ) {
-      if (estTon && !isNaN(estTon)) {
-        const estAmount = estTon * 400000; // 1톤당 40만원
-        amountText =
-          `약 ${estAmount.toLocaleString("ko-KR")}원 ` +
-          `(톤당 40만원 × ${estTon.toLocaleString("ko-KR")}톤 기준 추정)`;
-      } else {
-        amountText = "미표기 (공고 및 첨부에서 금액 정보를 찾지 못함)";
-      }
-    }
-
-    document.getElementById("deepAmount").textContent = amountText;
-
-    const rawBudget =
-      deepData.projectBudget || deep.projectBudget || listItem.projectBudget || "";
-    const budgetText = rawBudget || "미표기";
-    document.getElementById("deepBudget").textContent = budgetText;
-
-    // 체크포인트
-    const cpEl = document.getElementById("deepCheckpoints");
-    cpEl.innerHTML = "";
-    const cps = Array.isArray(deep.checkPoints) ? deep.checkPoints : [];
-    if (cps.length) {
-      cps.forEach((t) => {
-        const li = document.createElement("li");
-        li.textContent = t;
-        cpEl.appendChild(li);
-      });
-    } else {
-      const li = document.createElement("li");
-      li.textContent = "체크 포인트 정보를 불러오지 못했습니다.";
-      cpEl.appendChild(li);
-    }
-
-    // 첨부파일 목록 ------------------------------------------------
-    const attEmpty = document.getElementById("deepAttachmentsEmpty");
-    const attList = document.getElementById("deepAttachmentsList");
-    const attNote = document.getElementById("deepAttachmentsNote");
-    attList.innerHTML = "";
-    const attachments = Array.isArray(deepData.attachments) ? deepData.attachments : [];
-    if (!attachments.length) {
-      attEmpty.style.display = "block";
-      attNote.style.display = "block";
-    } else {
-      attEmpty.style.display = "none";
-      let hasDirectUrl = false;
-      attachments.forEach((att) => {
-        let name = "";
-        let url = "";
-        if (typeof att === "string") {
-          name = att;
-          url = ""; // 스크립트에서 URL을 내려주지 않으면 이름만 표시
-        } else if (att && typeof att === "object") {
-          name = att.name || att.fileName || "";
-          url = att.url || "";
-        }
-        if (!name) return;
-        const li = document.createElement("li");
-        if (url) {
-          hasDirectUrl = true;
-          const a = document.createElement("a");
-          a.href = url;
-          a.target = "_blank";
-          a.rel = "noreferrer";
-          a.textContent = name;
-          li.appendChild(a);
-        } else {
-          li.textContent = name;
-        }
-        attList.appendChild(li);
-      });
-      attNote.style.display = hasDirectUrl ? "none" : "block";
-    }
-
-    // 대응 제안 / 리스크
-    document.getElementById("deepSuggestion").textContent =
-      deep.suggestion ||
-      "제안 문구가 제공되지 않았습니다. 공고 및 첨부파일을 직접 확인해 전략을 수립해 주세요.";
-
-    document.getElementById("deepRisk").textContent =
-      deep.riskLevel
-        ? `리스크 수준: ${deep.riskLevel} · 관련성: ${rel || "중"}`
-        : `관련성: ${rel || "중"}`;
-
-    // 하단 공고번호/링크
-    const footerInfo = document.getElementById("deepFooterInfo");
-    let footerHtml = `공고번호: ${no || listItem.no || "-"} / 지역: ${
-      listItem.region || "-"
-    }`;
-    if (link && link !== "#") {
-      footerHtml +=
-        ` · <a href="${link}" target="_blank" rel="noreferrer" style="color:#c6e4ff;text-decoration:none;">나라장터/원문 링크 열기</a>`;
-    }
-    footerInfo.innerHTML = footerHtml;
-
-    backdrop.classList.add("active");
-  }
-
-  function closeDeepModal() {
-    const backdrop = document.getElementById("deepModalBackdrop");
-    if (!backdrop) return;
-    backdrop.classList.remove("active");
-  }
-
-  // 캘린더 등록
-  async function handleCalendarAdd(item, btnEl) {
-    if (!item.rowIndex) {
-      alert("행 번호 정보가 없어 캘린더 등록을 할 수 없습니다.");
-      return;
-    }
-    btnEl.classList.add("loading");
+  // 3. Delete Row (Calls backend)
+  async function deleteRowClient(rowIndex) {
+    if (!confirm("정말 삭제하시겠습니까?")) return;
     try {
-      setGlobalLoading(true, "캘린더에 일정을 등록하는 중입니다...");
-      const res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "calendar_add",
-          rowIndex: item.rowIndex,
-        }),
-      });
-      const data = await res.json();
-      if (data.result === "success") {
-        alert("캘린더에 일정이 등록되었습니다.");
-        document
-          .getElementById("loginStatusDot")
-          .classList.add("connected");
-        document.getElementById(
-          "loginStatusText"
-        ).textContent = "캘린더 연동 완료";
+      const res = await fetch(`${API_BASE}?action=deleteRow&rowIndex=${rowIndex}`);
+      const json = await res.json();
+      if (json.result === 'success') {
+        alert("삭제됨");
+        loadData();
       } else {
-        alert("캘린더 등록 실패: " + (data.message || ""));
+        alert("삭제 실패: " + json.message);
       }
     } catch (e) {
-      console.error(e);
-      alert("캘린더 등록 중 오류가 발생했습니다.");
-    } finally {
-      btnEl.classList.remove("loading");
-      setGlobalLoading(false);
+      alert("오류: " + e.message);
     }
   }
 
-  // (참고용) 이전 팝업 방식은 남겨두되 현재는 사용하지 않음
-  function openCalendarAuth() {
-    const url = SCRIPT_URL + "?action=calendar_auth";
-    const w = 520;
-    const h = 620;
-    const left = window.screenX + (window.outerWidth - w) / 2;
-    const top = window.screenY + (window.outerHeight - h) / 2;
-    window.open(
-      url,
-      "calendarAuth",
-      `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`
-    );
-  }
-
-  // 스마트 등록 모달 열고/닫기
-  function openSmartModal() {
-    document
-      .getElementById("smartModalBackdrop")
-      .classList.add("active");
-  }
-
-  function closeSmartModal() {
-    document
-      .getElementById("smartModalBackdrop")
-      .classList.remove("active");
-  }
-
-  // 스마트 등록 submit
+  // 4. Smart Add (Calls backend)
   async function handleSmartSubmit(e) {
     e.preventDefault();
-    const text =
-      document.getElementById("smartText").value || "";
-    const url =
-      document.getElementById("smartUrl").value || "";
-
+    const text = document.getElementById("smartText").value;
+    const url  = document.getElementById("smartUrl").value;
     if (!text && !url) {
-      alert("본문 텍스트 또는 첨부파일 URL 중 하나는 입력해 주세요.");
+      alert("입력해주세요.");
       return;
     }
-
-    const btn =
-      document.querySelector("#smartForm button[type=submit]");
-    btn.classList.add("loading");
-
+    
+    setGlobalLoading(true, "AI 분석 및 저장 중...");
     try {
-      setGlobalLoading(true, "AI가 공고 정보를 분석·추출하는 중입니다...");
-      const res = await fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "smart_add",
-          text: text,
-          fileUrl: url,
-        }),
+      const res = await fetch(API_BASE, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'smart_add', text, fileUrl: url })
       });
-      const data = await res.json();
-      console.log("smart_add", data);
-
-      if (data.result === "success") {
-        alert(
-          `저장 완료: ${data.storedTitle || ""}\n(시설유형: ${
-            data.facilityType || "-"
-          }, 예상톤수: ${data.estimatedTon || "-"}톤)`
-        );
+      const json = await res.json();
+      if (json.result === 'success') {
+        alert("저장 완료: " + json.title);
         closeSmartModal();
-        document.getElementById("smartText").value = "";
-        document.getElementById("smartUrl").value = "";
-        await loadData();
+        loadData();
       } else {
-        alert("저장 실패: " + (data.message || ""));
+        alert("실패: " + json.message);
       }
-    } catch (e2) {
-      console.error(e2);
-      alert("스마트 등록 중 오류가 발생했습니다.");
+    } catch (e) {
+      alert("오류: " + e.message);
     } finally {
-      btn.classList.remove("loading");
       setGlobalLoading(false);
     }
   }
 
-  // HTML 이스케이프
+  // Helper functions
+  function openSmartModal() { document.getElementById('smartModalBackdrop').classList.add('active'); }
+  function closeSmartModal() { document.getElementById('smartModalBackdrop').classList.remove('active'); }
+  function closeDeepModal()   { document.getElementById('deepModalBackdrop').classList.remove('active'); }
+  
+  function openDeepModalClient(data) {
+     const d = data.deep || {};
+     document.getElementById('deepTitle').textContent = data.title;
+     document.getElementById('deepSummary').textContent = d.summary2 || "내용 없음";
+     document.getElementById('deepPeriod').textContent = d.servicePeriod || '-';
+     document.getElementById('deepAmount').textContent = d.serviceAmount || '-';
+     document.getElementById('deepBudget').textContent = d.projectBudget || '-';
+     document.getElementById('deepSuggestion').textContent = d.suggestion || '-';
+
+     const ul = document.getElementById('deepCheckpoints');
+     ul.innerHTML = '';
+     (d.checkPoints || []).forEach(c => {
+       const li = document.createElement('li');
+       li.textContent = c;
+       ul.appendChild(li);
+     });
+
+     const ulAtt = document.getElementById('deepAttachmentsList');
+     ulAtt.innerHTML = '';
+     (data.attachments || []).forEach(a => {
+       const li = document.createElement('li');
+       li.textContent = a;
+       ulAtt.appendChild(li);
+     });
+
+     document.getElementById('deepModalBackdrop').classList.add('active');
+  }
+
   function escapeHtml(str) {
     return String(str || "")
       .replace(/&/g, "&amp;")
@@ -2204,3 +1989,4 @@
 </script>
 </body>
 </html>
+
