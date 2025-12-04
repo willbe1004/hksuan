@@ -1189,6 +1189,9 @@
       </div>
       <div id="statTotalRaw" class="summary-value">0</div>
       <div class="summary-sub">나라장터 기준 최근 7일 합계</div>
+      <div id="statTotalBreakdown" style="font-size:11px;margin-top:2px;">
+      나라장터 : 0 / 외부웹 : 0 / 스마트등록 : 0
+    </div>
     </article>
 
     <article class="summary-card">
@@ -1198,6 +1201,9 @@
       </div>
       <div id="statFiltered" class="summary-value">0</div>
       <div class="summary-sub">패턴 필터 후 남은 공고</div>
+      <div id="statFilteredBreakdown" style="font-size:11px;margin-top:2px;">
+      나라장터 : 0 / 외부웹 : 0 / 스마트등록 : 0
+    </div>
     </article>
 
     <article class="summary-card">
@@ -1207,6 +1213,9 @@
       </div>
       <div id="statAi" class="summary-value">0</div>
       <div class="summary-sub">Gemini 1차 요약 건수</div>
+      <div id="statAiBreakdown" style="font-size:11px;margin-top:2px;">
+      나라장터 : 0 / 외부웹 : 0 / 스마트등록 : 0
+    </div>
     </article>
 
     <article class="summary-card">
@@ -1215,9 +1224,10 @@
         <div class="summary-icon">📡</div>
       </div>
       <div id="statApi" class="summary-value">0</div>
-      <div class="summary-sub">
-        <span id="statPeriod" class="period-label">기간: 최근 7 일</span>
-      </div>
+      <div class="summary-sub">기간: 최근 7 일</div>
+      <div id="statSourceCounts" style="font-size:11px;margin-top:2px;">
+      나라장터 : 0 / 외부웹 : 0 / 스마트등록 : 0
+    </div>
     </article>
 
     <article class="donut-card">
@@ -1507,7 +1517,10 @@
   const text = document.getElementById('loginStatusText');
   if (!btn || !lbl || !dot || !text) return;
 
-  if (connected && accessToken) {
+  // "로그인 상태" 판단 (기존 로직 유지)
+  const isLoggedIn = !!(connected && accessToken);
+
+  if (isLoggedIn) {
     lbl.textContent = '로그아웃';
     btn.disabled = false;
     dot.classList.add('connected');
@@ -1520,7 +1533,14 @@
     dot.classList.remove('connected');
     text.textContent = '캘린더 미연동';
   }
+
+  // 🔹 여기서 로그인 전용 버튼들 숨기기/보이기
+  const loginOnlyEls = document.querySelectorAll('.login-only');
+  loginOnlyEls.forEach(el => {
+    el.style.display = isLoggedIn ? '' : 'none';
+  });
 }
+
 
   function saveToken(token, expiresInSec) {
     if (!token) {
@@ -1751,67 +1771,115 @@
 }
 
   function updateStatsUI(stats, items) {
-    const totalRaw = stats.totalCountRaw || stats.totalItemsFromApi || 0;
-    const elTotal   = document.getElementById('statTotalRaw');
-    const elFiltered = document.getElementById('statFiltered');
-    const elAi       = document.getElementById('statAi');
+  const apiRaw = stats.totalCountRaw || stats.totalItemsFromApi || stats.totalRaw || 0;
 
-    if (elTotal) elTotal.textContent = totalRaw.toLocaleString();
-    if (elFiltered)
-      elFiltered.textContent =
-        (stats.totalKept || items.length || 0).toLocaleString();
-    if (elAi) elAi.textContent = (stats.totalAiCalls || 0).toLocaleString();
+  const elTotal    = document.getElementById('statTotalRaw');
+  const elFiltered = document.getElementById('statFiltered');
+  const elAi       = document.getElementById('statAi');
 
-    if (document.getElementById('statPeriod')) {
-      document.getElementById('statPeriod').textContent =
-        `기간: 최근 ${stats.daysBack || 7}일`;
+  let keptApi = 0, keptExternal = 0, keptSmart = 0;
+  let aiApi   = 0, aiExternal   = 0, aiSmart   = 0;
+
+  items.forEach(it => {
+    const src   = detectSource(it);
+    const hasAi = !!(it.aiResult || it.aiSummary);
+
+    if (src === 'API') {
+      keptApi++;
+      if (hasAi) aiApi++;
+    } else if (src === 'SMART') {
+      keptSmart++;
+      if (hasAi) aiSmart++;
+    } else {
+      keptExternal++;
+      if (hasAi) aiExternal++;
     }
-    if (document.getElementById('statLastUpdate')) {
-      document.getElementById('statLastUpdate').textContent =
-        `Last: ${stats.finishedAtText || '-'}`;
-    }
+  });
 
-    // Donut 회전 속도
-    let highOrMid = 0;
-    items.forEach(it => {
-      if (/\[(상|중)\]/.test(it.aiResult || '')) highOrMid++;
-    });
-    const ratio = items.length ? highOrMid / items.length : 0;
-    const ring = document.getElementById('donutRing');
-    if (ring) {
-      ring.style.animationDuration = Math.max(4, 10 - ratio * 6) + 's';
-    }
+  const keptTotal = keptApi + keptExternal + keptSmart;
+  const aiTotal   = aiApi   + aiExternal   + aiSmart;
 
-    // 전체 통계 로그
-    let apiCount = 0, externalCount = 0;
-    items.forEach(it => {
-      if (detectSource(it) === 'API') apiCount++;
-      else externalCount++;
-    });
-    console.log(
-      `[전체 통계] 원본:${totalRaw} / 시트:${items.length} (API:${apiCount}, 외부:${externalCount}) ` +
-      `/ 필터통과:${stats.totalKept || items.length} / AI요약:${stats.totalAiCalls || 0}`
-    );
+  // 외부/스마트 raw 통계가 서버에서 안오면, 현재 시트 건수로 대체
+  const externalRaw = stats.externalRaw || keptExternal;
+  const smartRaw    = stats.smartRaw    || keptSmart;
+  const totalAllRaw = apiRaw + externalRaw + smartRaw;
+
+  if (elTotal)    elTotal.textContent    = totalAllRaw.toLocaleString();
+  if (elFiltered) elFiltered.textContent = keptTotal.toLocaleString();
+  if (elAi)       elAi.textContent       = aiTotal.toLocaleString();
+
+  // 기간 / 마지막 업데이트
+  const elPeriod = document.getElementById('statPeriod');
+  if (elPeriod) {
+    elPeriod.textContent = `기간: 최근 ${stats.daysBack || 7}일`;
   }
+  const elLast = document.getElementById('statLastUpdate');
+  if (elLast) {
+    elLast.textContent = `Last: ${stats.finishedAtText || '-'}`;
+  }
+
+  // 카드별 브레이크다운
+  const elTotalBr  = document.getElementById('statTotalBreakdown');
+  const elFiltBr   = document.getElementById('statFilteredBreakdown');
+  const elAiBr     = document.getElementById('statAiBreakdown');
+  const elReviewBr = document.getElementById('statSourceCounts');
+
+  if (elTotalBr) {
+    elTotalBr.textContent =
+      `나라장터 : ${apiRaw.toLocaleString()} / ` +
+      `외부웹 : ${externalRaw.toLocaleString()} / ` +
+      `스마트등록 : ${smartRaw.toLocaleString()}`;
+  }
+
+  if (elFiltBr) {
+    elFiltBr.textContent =
+      `나라장터 : ${keptApi.toLocaleString()} / ` +
+      `외부웹 : ${keptExternal.toLocaleString()} / ` +
+      `스마트등록 : ${keptSmart.toLocaleString()}`;
+  }
+
+  if (elAiBr) {
+    elAiBr.textContent =
+      `나라장터 : ${aiApi.toLocaleString()} / ` +
+      `외부웹 : ${aiExternal.toLocaleString()} / ` +
+      `스마트등록 : ${aiSmart.toLocaleString()}`;
+  }
+
+  if (elReviewBr) {
+    elReviewBr.innerHTML =
+      `나라장터 공고 수 : ${keptApi.toLocaleString()}<br>` +
+      `외부웹 수집 공고 수 : ${keptExternal.toLocaleString()}<br>` +
+      `공고 스마트 등록 공고 수 : ${keptSmart.toLocaleString()}`;
+  }
+
+  console.log(
+    `[전체 통계] API원본:${apiRaw} / 검토대상:${keptTotal}` +
+    ` (API:${keptApi}, 외부:${keptExternal}, SMART:${keptSmart})` +
+    ` / AI요약:${aiTotal}`
+  );
+}
+
 
   // 현재 화면에 보이는 건수 반영
   function updateVisibleCount(visibleItems) {
-    const n = visibleItems.length || 0;
-    const statApiEl   = document.getElementById('statApi');
-    const donutMainEl = document.getElementById('donutMain');
-    if (statApiEl) statApiEl.textContent = n.toLocaleString();
-    if (donutMainEl) donutMainEl.textContent = n.toLocaleString();
+  const n = visibleItems.length || 0;
+  const statApiEl   = document.getElementById('statApi');
+  const donutMainEl = document.getElementById('donutMain');
+  if (statApiEl)   statApiEl.textContent   = n.toLocaleString();
+  if (donutMainEl) donutMainEl.textContent = n.toLocaleString();
 
-    const resultBreakdownEl = document.getElementById('resultBreakdown');
-    if (resultBreakdownEl) {
-      let apiCount = 0, externalCount = 0;
-      visibleItems.forEach(it => {
-        if (detectSource(it) === 'API') apiCount++;
-        else externalCount++;
-      });
-      resultBreakdownEl.textContent = `연동 사이트 ${apiCount} / 외부 사이트 ${externalCount}`;
-    }
+  const resultBreakdownEl = document.getElementById('resultBreakdown');
+  if (resultBreakdownEl) {
+    let apiCount = 0, externalCount = 0;
+    visibleItems.forEach(it => {
+      if (detectSource(it) === 'API') apiCount++;
+      else externalCount++;  // SMART + EXTERNAL 모두 외부 쪽으로
+    });
+    resultBreakdownEl.textContent =
+      `API ${apiCount} / 외부 ${externalCount}`;
   }
+}
+
 
   // ---------------- 필터 적용 ----------------
 
@@ -1924,12 +1992,23 @@
         badgeRegion.textContent = region;
         leftTop.appendChild(badgeRegion);
       }
-      if (no) {
-        const bidNoSpan = document.createElement('span');
-        bidNoSpan.className = 'bid-no';
-        bidNoSpan.textContent = '#' + no;
-        leftTop.appendChild(bidNoSpan);
+      // 공고번호 표시
+      let displayNo = no;
+
+      // 나라장터가 아닌데 번호가 없거나 0 / 00 / 000 형태면 → "외부(번호없음)"로 표시
+      if (source !== 'API') {
+        if (!displayNo || /^0+$/.test(String(displayNo))) {
+          displayNo = '외부(번호없음)';
+        }
       }
+
+if (displayNo) {
+  const bidNoSpan = document.createElement('span');
+  bidNoSpan.className = 'bid-no';
+  bidNoSpan.textContent = '#' + displayNo;
+  leftTop.appendChild(bidNoSpan);
+}
+
       topRow.appendChild(leftTop);
 
       const rightTop = document.createElement('div');
@@ -2088,7 +2167,7 @@
       // 1) 내 캘린더 (사용자 primary 캘린더, 프론트 OAuth 사용)
       const btnMyCal = document.createElement('button');
       btnMyCal.type = 'button';
-      btnMyCal.className = 'btn btn-ghost btn-small';
+      btnMyCal.className = 'btn btn-ghost btn-small login-only';
       btnMyCal.textContent = '내 캘린더';
       btnMyCal.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -2096,10 +2175,11 @@
       });
       btnBox.appendChild(btnMyCal);
 
+
       // 2) 회사 공용 입찰 캘린더 (서버 Apps Script 사용)
       const btnCorpCal = document.createElement('button');
       btnCorpCal.type = 'button';
-      btnCorpCal.className = 'btn btn-ghost btn-small';
+      btnCorpCal.className = 'btn btn-ghost btn-small login-only';
       btnCorpCal.textContent = '회사 캘린더';
       btnCorpCal.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -2111,7 +2191,7 @@
       if (item.rowIndex) {
         const btnDel = document.createElement('button');
         btnDel.type = 'button';
-        btnDel.className = 'btn btn-danger btn-small';
+        btnDel.className = 'btn btn-danger btn-small login-only';
         btnDel.textContent = '삭제';
         btnDel.addEventListener('click', async (e) => {
           e.stopPropagation();
@@ -2136,10 +2216,13 @@
 
       inner.appendChild(footer);
 
-      card.appendChild(inner);
-      list.appendChild(card);
-    });
-  }
+          card.appendChild(inner);
+    list.appendChild(card);
+  });
+
+  // 🔹 새로 그려진 버튼들에도 로그인 상태 반영
+  updateLoginUI(!!accessToken);
+}
 
   // ---------------- 스마트 등록 모달 ----------------
 
@@ -2712,6 +2795,15 @@ async function deleteBid(item) {
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
 
 
 
