@@ -342,6 +342,66 @@
       color: var(--text-soft);
     }
 
+
+        /* 업무 탭 ----------------------------------------------------------- */
+
+    .view-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 4px 0 10px;
+    }
+
+    .view-tab {
+      flex: 1 1 0;
+      min-width: 180px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: radial-gradient(circle at top left, #101a2a, #050b16);
+      color: var(--text-soft);
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+      transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast),
+        transform var(--transition-fast),
+        color var(--transition-fast);
+    }
+
+    .view-tab-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #e5efff;
+    }
+
+    .view-tab-sub {
+      font-size: 10px;
+      opacity: 0.8;
+    }
+
+    .view-tab.active {
+      background: linear-gradient(
+        135deg,
+        rgba(0, 200, 150, 0.18),
+        rgba(255, 184, 63, 0.22)
+      );
+      border-color: rgba(0, 200, 150, 0.9);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .view-tab.active .view-tab-sub {
+      opacity: 1;
+    }
+
+    
     /* 검색/필터 ----------------------------------------------------------- */
 
     .controls-bar {
@@ -1140,6 +1200,133 @@
     .bid-list-panel::-webkit-scrollbar-thumb:hover {
       background: linear-gradient(180deg, #00e0b0, #ffb83f);
     }
+    /* 사이드(상단) 필터 칩 세트 -------------------------------------- */
+
+    .side-filters {
+      margin-bottom: 8px;
+      padding: 8px 10px 6px;
+      border-radius: 14px;
+      background: radial-gradient(
+        circle at top left,
+        rgba(10, 22, 40, 0.9),
+        rgba(3, 9, 20, 0.95)
+      );
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 6px 12px;
+      font-size: 11px;
+    }
+
+    .side-filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .side-filter-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7f92b2;
+    }
+
+    .side-filter-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .chip-small {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .side-filters {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .side-filters {
+        grid-template-columns: 1fr;
+      }
+    } 
+    /* D-Day 뱃지 -------------------------------------------------------- */
+
+    .d-day-badge {
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(255, 184, 63, 0.15);
+      border: 1px solid rgba(255, 184, 63, 0.8);
+      color: #ffdca3;
+      white-space: nowrap;
+    }
+
+    /* 태그 줄: [상-설계사타깃] 학교 / ~300톤 예상 ---------------------- */
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-soft);
+      margin: 4px 0 4px;
+    }
+
+    .tag-pill {
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(3, 18, 35, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 10px;
+    }
+
+    .tag-pill.primary {
+      border-color: rgba(0, 200, 150, 0.7);
+      color: #bff8ea;
+      background: rgba(0, 200, 150, 0.12);
+    }
+
+    .tag-pill.warn {
+      border-color: rgba(255, 184, 63, 0.7);
+      color: #ffe7b4;
+      background: rgba(255, 184, 63, 0.12);
+    }
+
+    /* 낙찰자 정보 블럭 -------------------------------------------------- */
+
+    .winner-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .winner-name {
+      font-weight: 600;
+      color: #f9fbff;
+    }
+
+    .winner-meta {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    /* 제목을 원문 링크로 클릭 가능하게 --------------------------------- */
+
+    .bid-title a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .bid-title a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -1224,7 +1411,7 @@
         <div class="summary-icon">📡</div>
       </div>
       <div id="statApi" class="summary-value">0</div>
-      <div class="summary-sub">기간: 최근 7 일</div>
+      <div id="statPeriod" class="summary-sub">기간: 최근 7일</div>
       <div id="statSourceCounts" style="font-size:11px;margin-top:2px;">
       나라장터 : 0 / 외부웹 : 0 / 스마트등록 : 0
     </div>
@@ -1242,6 +1429,23 @@
     </article>
   </section>
 
+    <!-- 업무 뷰 탭 -->
+  <nav class="view-tabs">
+    <button class="view-tab active" data-view="direct">
+      <span class="view-tab-label">직접입찰 · 공고중</span>
+      <span class="view-tab-sub">D-Day 관제탑</span>
+    </button>
+    <button class="view-tab" data-view="target">
+      <span class="view-tab-label">낙찰자 타깃</span>
+      <span class="view-tab-sub">메인 영업화면</span>
+    </button>
+    <button class="view-tab" data-view="history">
+      <span class="view-tab-label">전체 / 히스토리</span>
+      <span class="view-tab-sub">전체 레퍼런스</span>
+    </button>
+  </nav>
+
+  
   <!-- 검색/필터 -->
   <section class="controls-bar">
     <div class="search-input-wrap">
@@ -1273,10 +1477,11 @@
     </select>
 
     <div class="chip-group">
-      <div class="chip active" data-rel="all">전체</div>
-      <div class="chip" data-rel="high">관련성 상</div>
-      <div class="chip" data-rel="mid">관련성 중 이상</div>
+      <div class="chip chip-rel active" data-rel="all">전체</div>
+      <div class="chip chip-rel" data-rel="high">관련성 상</div>
+      <div class="chip chip-rel" data-rel="mid">관련성 중 이상</div>
     </div>
+
   </section>
 
   <!-- 메인 레이아웃 (입찰 리스트 + 캘린더) -->
@@ -1295,6 +1500,141 @@
           <span id="statLastUpdate">Last Update: -</span>
         </div>
       </header>
+      <!-- 왼쪽(상단) 필터 칩 세트 -->
+      <div class="side-filters">
+        <!-- 상태 필터 -->
+        <div class="side-filter-group">
+          <div class="side-filter-title">상태</div>
+          <div class="side-filter-chips">
+            <button
+              class="chip chip-small chip-filter active"
+              data-filter-group="state"
+              data-filter-value="all"
+            >
+              전체
+            </button>
+            <button
+              class="chip chip-small chip-filter"
+              data-filter-group="state"
+              data-filter-value="open"
+            >
+              공고중
+            </button>
+            <button
+              class="chip chip-small chip-filter"
+              data-filter-group="state"
+              data-filter-value="closed"
+            >
+              마감
+            </button>
+            <button
+              class="chip chip-small chip-filter"
+              data-filter-group="state"
+              data-filter-value="calendar"
+            >
+              캘린더 등록됨
+            </button>
+          </div>
+        </div>
+
+        <!-- 영업 경로 필터 -->
+        <div class="side-filter-group">
+          <div class="side-filter-title">영업 경로</div>
+          <div class="side-filter-chips">
+            <button
+              class="chip chip-small chip-filter active"
+              data-filter-group="route"
+              data-filter-value="all"
+            >
+              전체
+            </button>
+            <button
+              class="chip chip-small chip-filter"
+              data-filter-group="route"
+              data-filter-value="direct"
+            >
+              직접입찰
+            </button>
+            <button
+              class="chip chip-small chip-filter"
+              data-filter-group="route"
+              data-filter-value="designer"
+            >
+              설계사타깃
+            </button>
+            <button
+              class="chip chip-small chip-filter"
+              data-filter-group="route"
+              data-filter-value="builder"
+            >
+              시공사타깃
+            </button>
+          </div>
+        </div>
+
+        <!-- 소스/채널 필터 -->
+        <div class="side-filter-group">
+          <div class="side-filter-title">소스/채널</div>
+          <div class="side-filter-chips">
+            <button
+              class="chip chip-small chip-filter active"
+              data-filter-group="source"
+              data-filter-value="all"
+            >
+              전체
+            </button>
+            <button
+              class="chip chip-small chip-filter"
+              data-filter-group="source"
+              data-filter-value="API"
+            >
+              나라장터
+            </button>
+            <button
+              class="chip chip-small chip-filter"
+              data-filter-group="source"
+              data-filter-value="EAIS"
+            >
+              세움터
+            </button>
+            <button
+              class="chip chip-small chip-filter"
+              data-filter-group="source"
+              data-filter-value="EXTERNAL"
+            >
+              외부웹
+            </button>
+            <button
+              class="chip chip-small chip-filter"
+              data-filter-group="source"
+              data-filter-value="SMART"
+            >
+              스마트등록
+            </button>
+          </div>
+        </div>
+
+        <!-- 낙찰자 필터 -->
+        <div class="side-filter-group">
+          <div class="side-filter-title">낙찰자</div>
+          <div class="side-filter-chips">
+            <button
+              class="chip chip-small chip-filter active"
+              data-filter-group="winner"
+              data-filter-value="all"
+            >
+              전체
+            </button>
+            <button
+              class="chip chip-small chip-filter"
+              data-filter-group="winner"
+              data-filter-value="has"
+            >
+              낙찰자 있음만
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div id="bidList"></div>
     </section>
@@ -1471,7 +1811,14 @@
 
   let allData = [];
   let filterMode = 'all';
+  let viewMode   = 'direct';   // 기본 뷰: 직접입찰 · 공고중
 
+  // 2단계: 사이드 필터 상태
+  let stateFilter  = 'all';   // all | open | closed | calendar
+  let routeFilter  = 'all';   // all | direct | designer | builder
+  let sourceFilter = 'all';   // all | API | EAIS | EXTERNAL | SMART
+  let winnerFilter = 'all';   // all | has
+  
   let tokenClient = null;
   let accessToken = null;
   let loginUserEmail = null;   // ← 로그인한 사용자 이메일
@@ -1634,12 +1981,43 @@
     document.getElementById('searchInput').addEventListener('input', applyFilter);
     document.getElementById('filterRegion').addEventListener('change', applyFilter);
 
-    // chip 클릭
-    document.querySelectorAll('.chip').forEach(chip => {
+    // 관련성 칩 (전체 / 상 / 중 이상)
+    document.querySelectorAll('.chip-rel').forEach(chip => {
       chip.addEventListener('click', () => {
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.chip-rel').forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
         filterMode = chip.dataset.rel || 'all';
+        applyFilter();
+      });
+    });
+    
+    // 사이드 필터 칩 (상태 / 영업 경로 / 소스 / 낙찰자)
+    document.querySelectorAll('.chip-filter').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const group = chip.dataset.filterGroup;
+        const value = chip.dataset.filterValue || 'all';
+
+        // 같은 그룹 내 active만 토글
+        document
+          .querySelectorAll(`.chip-filter[data-filter-group="${group}"]`)
+          .forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+
+        if (group === 'state')       stateFilter  = value;
+        else if (group === 'route')  routeFilter  = value;
+        else if (group === 'source') sourceFilter = value;
+        else if (group === 'winner') winnerFilter = value;
+
+        applyFilter();
+      });
+    });
+
+    // 업무 뷰 탭 클릭
+    document.querySelectorAll('.view-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        viewMode = tab.dataset.view || 'direct';  // direct / target / history
         applyFilter();
       });
     });
@@ -1756,6 +2134,30 @@
     return now.getTime() > deadline.getTime();
   }
 
+  // D-Day 표기용 (D-3, D-Day, D+2 등)
+  function getDDayLabel(deadlineStr) {
+    if (!deadlineStr) return '';
+    const s = String(deadlineStr).trim();
+    const m = s.match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+    if (!m) return '';
+
+    const y  = parseInt(m[1], 10);
+    const mo = parseInt(m[2], 10) - 1;
+    const d  = parseInt(m[3], 10);
+
+    const today    = new Date();
+    const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const ddlMid   = new Date(y, mo, d);
+
+    const diffDays = Math.round(
+      (ddlMid.getTime() - todayMid.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diffDays > 0) return 'D-' + diffDays;
+    if (diffDays === 0) return 'D-Day';
+    return 'D+' + Math.abs(diffDays);
+  }
+
   // 출처 판별: 나라장터(API) vs 외부
   function detectSource(item) {
   const kind = (item.srcKind || item.sourceKind || '').toUpperCase();
@@ -1770,6 +2172,76 @@
   return 'EXTERNAL';
 }
 
+  // 관련성 등급: 시트 컬럼(relevanceGrade)이 있으면 우선 사용
+  // 없으면 aiResult/aiSummary에서 추론 (1단계에서 이미 있으시면 중복 추가 X)
+  function getRelevanceGrade(item) {
+    const fromCol = (item.relevanceGrade || item.relevance || '').toString().trim();
+    if (fromCol) return fromCol; // "상" / "중" / "하" 기대
+
+    const txt = (item.aiResult || item.aiSummary || '').toString();
+    if (/관련성\s*상/.test(txt) || /\[.*상.*\]/.test(txt)) return '상';
+    if (/관련성\s*중/.test(txt) || /\[.*중.*\]/.test(txt)) return '중';
+    if (!txt) return '';
+    return '하';
+  }
+
+  // 영업 경로: 시트 컬럼(salesRoute)을 기본으로 사용
+  function getSalesRoute(item) {
+    return (item.salesRoute || item.sales_route || '').toString().trim();
+  }
+
+  // 정렬용 마감일 타임스탬프 (없으면 0)
+  function getDeadlineTime(item) {
+    const s = String(item.deadline || item.closeDate || '').trim();
+    if (!s) return 0;
+
+    const dateMatch = s.match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+    if (!dateMatch) return 0;
+
+    const y  = parseInt(dateMatch[1], 10);
+    const mo = parseInt(dateMatch[2], 10) - 1;
+    const d  = parseInt(dateMatch[3], 10);
+
+    const timeMatch = s.match(/(\d{1,2}):(\d{2})/);
+    let hh = 23, mm = 59;
+    if (timeMatch) {
+      hh = parseInt(timeMatch[1], 10);
+      mm = parseInt(timeMatch[2], 10);
+    }
+
+    const dt = new Date(y, mo, d, hh, mm, 59);
+    return dt.getTime();
+  }
+
+  // 캘린더 등록 여부
+  function hasCalendarEvent(item) {
+    return !!(
+      item.calendarId ||
+      item.calendar_id ||
+      item.calendarEventId ||
+      item.calendar_event_id
+    );
+  }
+
+  // 낙찰자 정보 존재 여부
+  function hasWinner(item) {
+    return !!((item.winnerName || item.winner || '').toString().trim());
+  }
+
+  // 채널(소스) 구분: 나라장터 / EAIS / 외부웹 / 스마트등록
+  function detectSourceChannel(item) {
+    const base = detectSource(item); // API / SMART / EXTERNAL
+    if (base === 'API')   return 'API';
+    if (base === 'SMART') return 'SMART';
+
+    const link = normalizeLink(item);
+    if (link.includes('eais.go.kr')) return 'EAIS';
+    return 'EXTERNAL';
+  }
+
+  // 관련성 등급: 시트 컬럼(relevanceGrade)이 있으면 우선 사용
+  // 없으면 aiResult / aiSummary 텍스트에서 추론
+  
   function updateStatsUI(stats, items) {
   const apiRaw = stats.totalCountRaw || stats.totalItemsFromApi || stats.totalRaw || 0;
 
@@ -1884,54 +2356,125 @@
   // ---------------- 필터 적용 ----------------
 
   function applyFilter() {
-    const kw = document.getElementById('searchInput')
-      .value.trim()
-      .toLowerCase();
+    const kwRaw = document.getElementById('searchInput').value || '';
+    const kw = kwRaw.trim().toLowerCase();
+    const keywords = kw ? kw.split(/\s+/) : [];
+
     const region = document.getElementById('filterRegion').value.trim();
 
     const filtered = allData.filter(item => {
-      const title = normalizeTitle(item);
-      const link  = normalizeLink(item);
-      const aiText = item.aiResult || '';
+      const title     = normalizeTitle(item);
+      const link      = normalizeLink(item);
+      const aiText    = item.aiResult || '';
+      const aiSummary = item.aiSummary || '';
 
-      // ① 마감일 지난 공고는 숨김 (삭제X)
-      //if (isDeadlinePast(item.deadline)) return false;
-      // 주석 처리로 마감 여부와 상관 없이 일단 리스트에 보이게 둠(마감 뱃지 추가).
-      
-      // ② 지역 필터
-      if (region && (!item.region || item.region.indexOf(region) === -1))
-        return false;
+      const deadlineStr = item.deadline || item.closeDate || '';
+      const isPast      = isDeadlinePast(deadlineStr);
+      const salesRoute  = getSalesRoute(item);
+      const relGrade    = getRelevanceGrade(item); // "상" / "중" / "하" / ""
+      const hasCal      = hasCalendarEvent(item);
+      const channel     = detectSourceChannel(item); // API / EAIS / EXTERNAL / SMART
+      const hasWin      = hasWinner(item);
 
-      // ③ 관련성 필터
+      // ① 업무 탭별 기본 조건 --------------------------------------
+      if (viewMode === 'direct') {
+        // 직접입찰 · 공고중: 마감 전 + 영업경로 = 직접입찰
+        if (isPast) return false;
+        if (salesRoute !== '직접입찰') return false;
+      } else if (viewMode === 'target') {
+        // 낙찰자 타깃: 마감된 건 + 관련성 상/중 + 영업경로 = 설계사/시공사 타깃
+        if (!isPast) return false;
+        if (relGrade !== '상' && relGrade !== '중') return false;
+        if (salesRoute !== '설계사타깃' && salesRoute !== '시공사타깃') return false;
+      }
+      // history(전체/히스토리)는 별도 기본 조건 없음
+
+      // ② 상태 필터 (공고중 / 마감 / 캘린더 등록됨) -----------------
+      if (stateFilter === 'open'     && isPast)   return false;
+      if (stateFilter === 'closed'   && !isPast)  return false;
+      if (stateFilter === 'calendar' && !hasCal)  return false;
+
+      // ③ 영업 경로 필터 --------------------------------------------
+      if (routeFilter === 'direct'   && salesRoute !== '직접입찰')    return false;
+      if (routeFilter === 'designer' && salesRoute !== '설계사타깃')  return false;
+      if (routeFilter === 'builder'  && salesRoute !== '시공사타깃')  return false;
+
+      // ④ 소스/채널 필터 -------------------------------------------
+      if (sourceFilter === 'API'      && channel !== 'API')      return false;
+      if (sourceFilter === 'EAIS'     && channel !== 'EAIS')     return false;
+      if (sourceFilter === 'EXTERNAL' && channel !== 'EXTERNAL') return false;
+      if (sourceFilter === 'SMART'    && channel !== 'SMART')    return false;
+
+      // ⑤ 지역 필터 -------------------------------------------------
+      if (region) {
+        const r = (item.region || item.area || '').toString();
+        if (!r.includes(region)) return false;
+      }
+
+      // ⑥ 관련성 칩 필터 (전체 / 상 / 중 이상) ----------------------
       let relFlag = 'low';
-      if (/\[.*상.*\]/.test(aiText) || /관련성 상/.test(aiText)) relFlag = 'high';
-      else if (/\[.*중.*\]/.test(aiText) || /관련성 중/.test(aiText)) relFlag = 'mid';
+      if (relGrade === '상') relFlag = 'high';
+      else if (relGrade === '중') relFlag = 'mid';
 
       if (filterMode === 'high' && relFlag !== 'high') return false;
-      if (filterMode === 'mid' && relFlag === 'low') return false;
+      if (filterMode === 'mid'  && relFlag === 'low')   return false;
 
-      // ④ 키워드 검색
-      if (kw) {
+      // ⑦ 낙찰자 필터 ----------------------------------------------
+      if (winnerFilter === 'has' && !hasWin) return false;
+
+      // ⑧ 검색어 필터 (모든 단어 포함) ------------------------------
+      if (keywords.length) {
         const blob = (
           title +
           ' ' + (item.client || '') +
           ' ' + (item.agency || '') +
+          ' ' + (item.no || item.bidNo || '') +
+          ' ' + (item.winnerName || item.winner || '') +
+          ' ' + (item.region || '') +
+          ' ' + (item.field || item.bizType || '') +
           ' ' + aiText +
+          ' ' + aiSummary +
           ' ' + link
         ).toLowerCase();
-        if (blob.indexOf(kw) === -1) return false;
+
+        for (const token of keywords) {
+          if (!token) continue;
+          if (blob.indexOf(token) === -1) return false;
+        }
       }
 
       return true;
     });
 
+    // ⑨ 탭별 정렬 ---------------------------------------------------
+    const sorted = filtered.slice();
+
+    if (viewMode === 'direct') {
+      // D-Day 가까운 순 (마감일 오름차순)
+      sorted.sort((a, b) => {
+        const ta = getDeadlineTime(a) || 0;
+        const tb = getDeadlineTime(b) || 0;
+        return ta - tb;
+      });
+    } else if (viewMode === 'target') {
+      // 최근에 마감된 순 (마감일 내림차순)
+      sorted.sort((a, b) => {
+        const ta = getDeadlineTime(a) || 0;
+        const tb = getDeadlineTime(b) || 0;
+        return tb - ta;
+      });
+    }
+    
+    // history(전체/히스토리)는 서버/시트 순서 유지
+
     console.log(
-      `[필터] 전체 ${allData.length}건 → 보이는 ${filtered.length}건` +
-      ` (검색="${kw}", 지역="${region || '전체'}", 모드="${filterMode}")`
+      `[필터] view=${viewMode}, state=${stateFilter}, route=${routeFilter}, ` +
+      `source=${sourceFilter}, winner=${winnerFilter} / 전체 ${allData.length}건 → ` +
+      `보이는 ${sorted.length}건 (검색="${kw}", 지역="${region || '전체'}", relMode="${filterMode}")`
     );
 
-    updateVisibleCount(filtered);
-    renderList(filtered);
+    updateVisibleCount(sorted);
+    renderList(sorted);
   }
 
   // ---------------- 리스트 렌더링 ----------------
@@ -1943,34 +2486,54 @@
 
     if (!data.length) {
       list.innerHTML =
-        '<div style="padding:20px;color:#b2bec3;font-size:12px;">조건을 만족하는 공고가 없습니다. 필터를 조정해 보세요.</div>';
+        '<div style="padding:20px;color:#b2bec3;font-size:12px;">' +
+        '조건을 만족하는 공고가 없습니다. 필터를 조정해 보세요.' +
+        '</div>';
       return;
     }
 
-    data.forEach((item, index) => {
-      const source = detectSource(item); // 'API' or 'EXTERNAL'
-      const title = normalizeTitle(item) || '(제목 없음)';
-      const link  = normalizeLink(item);
+    // 1단계에서 추가한 viewMode (direct / target / history)
+    const currentView = (typeof viewMode !== 'undefined') ? viewMode : 'history';
 
-      const region = item.region || item.area || '';
-      const no     = item.no || item.bidNo || '';
-      const client = item.client || item.agency || '';
-      const regDate = item.regDate || item.noticeDate || '';
+    data.forEach((item, index) => {
+      const sourceBase    = detectSource(item);          // API / SMART / EXTERNAL
+      const sourceChannel = detectSourceChannel(item);   // API / EAIS / EXTERNAL / SMART
+
+      const title  = normalizeTitle(item) || '(제목 없음)';
+      const link   = normalizeLink(item);
+
+      const region   = item.region || item.area || '';
+      const no       = item.no || item.bidNo || '';
+      const client   = item.client || item.agency || '';
+      const regDate  = item.regDate || item.noticeDate || '';
       const deadline = item.deadline || item.closeDate || '';
       const openDate = item.openDate || item.openingDate || '';
-      const amount = item.amount || item.budget || '';
-      const bizType = item.bizType || item.field || item.jobType || '';
-      const manualTag = item.manualTag || '';
-      const createdBy = item.createdBy || item.createdByEmail || '';  // ★ 등록자
 
-      // AI 필드는 "관련성·요약"만, 원본 필드(제목/URL 등)는 손대지 않음
-      const aiText = item.aiResult || '';
+      const amount = item.serviceAmount || item.amount || '';
+      const budget = item.projectBudget || item.budget || '';
+
+      const bizType   = item.bizType || item.field || item.jobType || '';
+      const manualTag = item.manualTag || '';
+      const createdBy = item.createdBy || item.createdByEmail || '';
+
+      // 3단계에서 활용할 새 필드들
+      const facilityType = item.facilityType || item.facility || '';
+      const estimatedTon = item.estimatedTon || item.estimateTon || item.ton || '';
+
+      const relGrade   = getRelevanceGrade(item);  // 상 / 중 / 하 / ""
+      const salesRoute = getSalesRoute(item);      // 직접입찰 / 설계사타깃 / 시공사타깃 / ...
+
+      const winnerName    = item.winnerName || item.winner || '';
+      const winnerType    = item.winnerType || '';
+      const winnerContact = item.winnerContact || item.winnerPhone || item.winnerTel || '';
+
+      const aiText    = item.aiResult || '';
       const aiSummary = item.aiSummary || '';
-      const relMatchHigh = /\[.*상.*\]/.test(aiText) || /관련성 상/.test(aiText);
-      const relMatchMid  = /\[.*중.*\]/.test(aiText) || /관련성 중/.test(aiText);
-      let relLabel = '관련성 하';
-      if (relMatchHigh) relLabel = '관련성 상';
-      else if (relMatchMid) relLabel = '관련성 중';
+
+      const past      = isDeadlinePast(deadline);
+      const ddayLabel = (!past && currentView === 'direct')
+        ? getDDayLabel(deadline)
+        : '';
 
       const card = document.createElement('article');
       card.className = 'bid-card';
@@ -1978,7 +2541,7 @@
       const inner = document.createElement('div');
       inner.className = 'bid-card-inner';
 
-      // 상단 행
+      // ---------------- 상단 행: 지역 / 공고번호 / (D-Day) / 상태 / 소스 ----------
       const topRow = document.createElement('div');
       topRow.className = 'bid-top-row';
 
@@ -1986,28 +2549,26 @@
       leftTop.style.display = 'flex';
       leftTop.style.alignItems = 'center';
       leftTop.style.gap = '6px';
+
       if (region) {
         const badgeRegion = document.createElement('span');
         badgeRegion.className = 'badge-region';
         badgeRegion.textContent = region;
         leftTop.appendChild(badgeRegion);
       }
-      // 공고번호 표시
-      let displayNo = no;
 
-      // 나라장터가 아닌데 번호가 없거나 0 / 00 / 000 형태면 → "외부(번호없음)"로 표시
-      if (source !== 'API') {
+      let displayNo = no;
+      if (sourceBase !== 'API') {
         if (!displayNo || /^0+$/.test(String(displayNo))) {
           displayNo = '외부(번호없음)';
         }
       }
-
-if (displayNo) {
-  const bidNoSpan = document.createElement('span');
-  bidNoSpan.className = 'bid-no';
-  bidNoSpan.textContent = '#' + displayNo;
-  leftTop.appendChild(bidNoSpan);
-}
+      if (displayNo) {
+        const bidNoSpan = document.createElement('span');
+        bidNoSpan.className = 'bid-no';
+        bidNoSpan.textContent = '#' + displayNo;
+        leftTop.appendChild(bidNoSpan);
+      }
 
       topRow.appendChild(leftTop);
 
@@ -2016,10 +2577,17 @@ if (displayNo) {
       rightTop.style.alignItems = 'center';
       rightTop.style.gap = '6px';
 
+      // D-Day (직접입찰 · 공고중 탭에서만 강조)
+      if (ddayLabel) {
+        const ddaySpan = document.createElement('span');
+        ddaySpan.className = 'd-day-badge';
+        ddaySpan.textContent = ddayLabel;
+        rightTop.appendChild(ddaySpan);
+      }
+
       // 상태 뱃지: 마감/공고중
       const statusBadge = document.createElement('span');
       statusBadge.className = 'badge-status';
-      const past = isDeadlinePast(deadline);
       if (past) {
         statusBadge.classList.add('closed');
         statusBadge.textContent = '마감';
@@ -2032,9 +2600,11 @@ if (displayNo) {
       // 출처 뱃지
       const sourceBadge = document.createElement('span');
       sourceBadge.className = 'badge-source';
-      if (source === 'API') {
+      if (sourceChannel === 'API') {
         sourceBadge.textContent = '나라장터';
-      } else if (source === 'SMART') {
+      } else if (sourceChannel === 'EAIS') {
+        sourceBadge.textContent = 'EAIS';
+      } else if (sourceChannel === 'SMART') {
         sourceBadge.textContent = '스마트 등록';
       } else {
         sourceBadge.textContent = '외부수집';
@@ -2052,13 +2622,65 @@ if (displayNo) {
       topRow.appendChild(rightTop);
       inner.appendChild(topRow);
 
-      // 제목
+      // ---------------- 1줄目: 태그 줄 ([상-설계사타깃] 학교 / ~300톤 예상) -------
+      const tagRow = document.createElement('div');
+      tagRow.className = 'tag-row';
+
+      // 메인 태그: "상-설계사타깃" 형태
+      const mainTagPieces = [];
+      if (relGrade) mainTagPieces.push(relGrade);
+      if (salesRoute) mainTagPieces.push(salesRoute);
+      const mainTagLabel = mainTagPieces.length ? mainTagPieces.join('-') : '';
+
+      if (mainTagLabel) {
+        const pill = document.createElement('span');
+        pill.className = 'tag-pill primary';
+        pill.textContent = mainTagLabel;
+        tagRow.appendChild(pill);
+      }
+
+      // 시설 유형
+      if (facilityType) {
+        const pill = document.createElement('span');
+        pill.className = 'tag-pill';
+        pill.textContent = facilityType;
+        tagRow.appendChild(pill);
+      }
+
+      // 예상 톤수 (~300톤 예상)
+      if (estimatedTon) {
+        const num = parseInt(
+          String(estimatedTon).toString().replace(/[^0-9\-]/g, ''),
+          10
+        );
+        if (!Number.isNaN(num) && num > 0) {
+          const pill = document.createElement('span');
+          pill.className = 'tag-pill warn';
+          pill.textContent = `~${num.toLocaleString()}톤 예상`;
+          tagRow.appendChild(pill);
+        }
+      }
+
+      if (tagRow.children.length > 0) {
+        inner.appendChild(tagRow);
+      }
+
+      // ---------------- 2줄目: 공고명 (클릭 시 원문 링크) -------------------------
       const h3 = document.createElement('h3');
       h3.className = 'bid-title';
-      h3.textContent = title;
+      if (link) {
+        const a = document.createElement('a');
+        a.href = link;
+        a.target = '_blank';
+        a.rel = 'noreferrer noopener';
+        a.textContent = title;
+        h3.appendChild(a);
+      } else {
+        h3.textContent = title;
+      }
       inner.appendChild(h3);
 
-      // 서브라인
+      // ---------------- 3줄目: 발주처 / 수요기관 -------------------------------
       const subLine = document.createElement('div');
       subLine.className = 'bid-subline';
 
@@ -2072,38 +2694,92 @@ if (displayNo) {
         spanType.textContent = bizType;
         subLine.appendChild(spanType);
       }
-      if (relLabel) {
-        const spanRel = document.createElement('span');
-        spanRel.textContent = relLabel;
-        subLine.appendChild(spanRel);
-      }
       inner.appendChild(subLine);
 
-      // 메타 그리드
+      // ---------------- 4줄目: 낙찰자 정보 (낙찰자 타깃 / 히스토리에서 강조) ------
+      if (winnerName) {
+        const winBlock = document.createElement('div');
+        winBlock.className = 'winner-block';
+
+        const winName = document.createElement('div');
+        winName.className = 'winner-name';
+        winName.textContent = `낙찰자: ${winnerName}`;
+        winBlock.appendChild(winName);
+
+        const metaPieces = [];
+        if (winnerType) metaPieces.push(winnerType);
+        if (winnerContact) metaPieces.push(winnerContact);
+
+        if (metaPieces.length) {
+          const winMeta = document.createElement('div');
+          winMeta.className = 'winner-meta';
+          winMeta.textContent = metaPieces.join(' · ');
+          winBlock.appendChild(winMeta);
+        }
+
+        inner.appendChild(winBlock);
+      }
+
+      // ---------------- 오른쪽 메타 그리드 (언제 / 금액 / 출처 등) ---------------
       const metaGrid = document.createElement('div');
       metaGrid.className = 'bid-meta-grid';
 
-      const metaItems = [
-  { label: '공고일', value: regDate },
-  { label: '입찰 마감', value: deadline },
-  { label: '개찰 예정', value: openDate },
-  { label: '추정(계약) 금액', value: amount },
-  { label: '출처', value: source === 'API'
-      ? '나라장터'
-      : (source === 'SMART' ? '스마트 등록' : '외부사이트') },
-  { label: '등록자', value: createdBy || '-' },          // ★ 추가
-  { label: '순번', value: (index + 1).toString() }
-];
+      const metaItems = [];
+
+      if (currentView === 'target') {
+        // 낙찰자 타깃 카드: 마감/계약 + 금액 + 사업비
+        metaItems.push({
+          label: '마감/계약일',
+          value: deadline || regDate
+        });
+        metaItems.push({
+          label: '용역(계약) 금액',
+          value: amount
+        });
+        metaItems.push({
+          label: '총 사업비',
+          value: budget
+        });
+      } else {
+        // 직접입찰 / 전체 뷰: 공고일 / 마감 / 개찰 예정 / 추정 금액
+        metaItems.push({ label: '공고일', value: regDate });
+        metaItems.push({ label: '입찰 마감', value: deadline });
+        metaItems.push({ label: '개찰 예정', value: openDate });
+        metaItems.push({ label: '추정(계약) 금액', value: amount });
+      }
+
+      metaItems.push({
+        label: '출처',
+        value:
+          sourceChannel === 'API'
+            ? '나라장터'
+            : (sourceChannel === 'EAIS'
+                ? 'EAIS'
+                : (sourceChannel === 'SMART' ? '스마트 등록' : '외부사이트'))
+      });
+
+      metaItems.push({
+        label: '등록자',
+        value: createdBy || '-'
+      });
+
+      metaItems.push({
+        label: '순번',
+        value: (index + 1).toString()
+      });
 
       metaItems.forEach(m => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'bid-meta-item';
+
         const lab = document.createElement('div');
         lab.className = 'meta-label';
         lab.textContent = m.label;
+
         const val = document.createElement('div');
         val.className = 'meta-value';
         val.textContent = m.value || '-';
+
         itemDiv.appendChild(lab);
         itemDiv.appendChild(val);
         metaGrid.appendChild(itemDiv);
@@ -2111,7 +2787,7 @@ if (displayNo) {
 
       inner.appendChild(metaGrid);
 
-      // AI 요약 박스: AI는 "내용 요약"과 "관련성 설명"만 표시
+      // ---------------- AI 요약 박스 -----------------------------------------
       if (aiText || aiSummary) {
         const aiBox = document.createElement('div');
         aiBox.className = 'ai-result-box';
@@ -2140,7 +2816,7 @@ if (displayNo) {
         inner.appendChild(aiBox);
       }
 
-      // footer 버튼들
+      // ---------------- footer: 원문 / 2차 분석 / 캘린더 / 삭제 ----------------
       const footer = document.createElement('div');
       footer.className = 'bid-footer-row';
 
@@ -2163,31 +2839,29 @@ if (displayNo) {
       });
       btnBox.appendChild(btnDeep);
 
-      // 일정 등록 버튼들
-      // 1) 내 캘린더 (사용자 primary 캘린더, 프론트 OAuth 사용)
+      // 내 캘린더
       const btnMyCal = document.createElement('button');
       btnMyCal.type = 'button';
       btnMyCal.className = 'btn btn-ghost btn-small login-only';
       btnMyCal.textContent = '내 캘린더';
       btnMyCal.addEventListener('click', async (e) => {
         e.stopPropagation();
-        await createCalendarEventForBid(item);  // personal calendar
+        await createCalendarEventForBid(item);
       });
       btnBox.appendChild(btnMyCal);
 
-
-      // 2) 회사 공용 입찰 캘린더 (서버 Apps Script 사용)
+      // 회사 캘린더
       const btnCorpCal = document.createElement('button');
       btnCorpCal.type = 'button';
       btnCorpCal.className = 'btn btn-ghost btn-small login-only';
       btnCorpCal.textContent = '회사 캘린더';
       btnCorpCal.addEventListener('click', async (e) => {
         e.stopPropagation();
-        await createCorporateCalendarEventForBid(item); // server-side corporate calendar
+        await createCorporateCalendarEventForBid(item);
       });
       btnBox.appendChild(btnCorpCal);
-      
-      // 🗑 삭제 버튼 (로그인 + 권한 체크는 deleteBid 내부에서 처리)
+
+      // 삭제 (스마트등록 등 rowIndex 가 있을 때만)
       if (item.rowIndex) {
         const btnDel = document.createElement('button');
         btnDel.type = 'button';
@@ -2200,7 +2874,7 @@ if (displayNo) {
         btnBox.appendChild(btnDel);
       }
 
-      // 원문 보기 버튼
+      // 원문 열기
       if (link) {
         const btnView = document.createElement('a');
         btnView.href = link;
@@ -2216,13 +2890,13 @@ if (displayNo) {
 
       inner.appendChild(footer);
 
-          card.appendChild(inner);
-    list.appendChild(card);
-  });
+      card.appendChild(inner);
+      list.appendChild(card);
+    });
 
-  // 🔹 새로 그려진 버튼들에도 로그인 상태 반영
-  updateLoginUI(!!accessToken);
-}
+    // 새로 렌더링된 버튼들에 로그인 상태 반영
+    updateLoginUI(!!accessToken);
+  }
 
   // ---------------- 스마트 등록 모달 ----------------
 
@@ -2795,6 +3469,8 @@ async function deleteBid(item) {
 </script>
 </body>
 </html>
+
+
 
 
 
