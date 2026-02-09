@@ -46,10 +46,10 @@ def fetch_nara_bids():
     if not api_key or not api_key.strip():
         raise ValueError("NARA_API_KEY가 .env에 설정되지 않았습니다.")
 
-    # 날짜: 어제 00:00 ~ 오늘 23:59 (동적 할당)
+    # 날짜: 실행일 기준 과거 60일 00:00 ~ 오늘 23:59 (누락 방지, 중복은 sheet_manager에서 제거)
     today = datetime.now()
-    yesterday = today - timedelta(days=1)
-    inqry_bgn = yesterday.strftime("%Y%m%d") + "0000"
+    start_date = today - timedelta(days=60)
+    inqry_bgn = start_date.strftime("%Y%m%d") + "0000"
     inqry_end = today.strftime("%Y%m%d") + "2359"
 
     # [핵심] ServiceKey를 맨 앞에, 나머지 파라미터 뒤에. params 사용 안 함.
