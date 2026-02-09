@@ -1,0 +1,7 @@
+python-dotenv
+requests
+pandas
+selenium
+google-generativeai
+gspread
+oauth2client

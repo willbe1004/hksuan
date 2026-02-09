@@ -1,0 +1,11 @@
+# 보안 파일 (절대 올리면 안 됨)
+.env
+backend/service_account.json
+service_account.json
+
+# 파이썬 부산물
+__pycache__/
+*.pyc
+
+# git filter-branch 임시
+.git-rewrite/
