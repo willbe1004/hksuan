@@ -7,7 +7,7 @@ from pathlib import Path
 
 import gspread
 
-BIDS_HEADERS = ["bidNtceNo", "bidNtceNm", "bidNtceDt", "procMethod", "link", "collected_at"]
+BIDS_HEADERS = ["bidNtceNo", "bidNtceNm", "bidNtceDt", "procMethod", "link", "collected_at", "AI_Rating", "AI_Reason"]
 LOG_HEADERS = ["timestamp", "level", "module", "message"]
 
 
@@ -42,14 +42,17 @@ def get_client():
 
 
 def ensure_headers(worksheet, headers: list[str]) -> None:
-    """시트에 헤더가 없으면 생성"""
+    """시트에 헤더가 없으면 생성, AI_Rating이 없으면 맨 끝에 AI_Rating·AI_Reason 추가"""
     try:
         first_row = worksheet.row_values(1)
         if not first_row:
             worksheet.append_row(headers, value_input_option="USER_ENTERED")
-        elif first_row != headers:
-            # 기존 헤더가 다르면 그대로 사용 (덮어쓰지 않음)
-            pass
+        else:
+            # AI_Rating이 없으면 헤더 맨 끝에 추가
+            if "AI_Rating" not in first_row:
+                col_count = len(first_row)
+                worksheet.update_cell(1, col_count + 1, "AI_Rating")
+                worksheet.update_cell(1, col_count + 2, "AI_Reason")
     except Exception:
         worksheet.append_row(headers, value_input_option="USER_ENTERED")
 
@@ -103,14 +106,57 @@ def get_existing_bid_nos(bids_ws) -> set[str]:
         return set()
 
 
+def _bid_to_row(r: dict) -> list:
+    """딕셔너리 한 건을 Bids 시트 행(리스트)으로 변환"""
+    return [
+        r.get("bidNtceNo", ""),
+        r.get("bidNtceNm", ""),
+        r.get("bidNtceDt", ""),
+        r.get("procMethod", ""),
+        r.get("link", ""),
+        r.get("collected_at", ""),
+        r.get("AI_Rating", ""),
+        r.get("AI_Reason", ""),
+    ]
+
+
 def append_bids(bids_ws, rows: list[dict]) -> int:
-    """Bids 시트에 행 추가 (append_row). 추가된 건수 반환."""
+    """Bids 시트에 행 추가 (한 건씩 append_row). 내부/레거시용. 배치는 save_bids_batch 사용."""
     if not rows:
         return 0
-
     for r in rows:
-        row = [r.get(h, "") for h in BIDS_HEADERS]
-        bids_ws.append_row(row, value_input_option="USER_ENTERED")
+        bids_ws.append_row(_bid_to_row(r), value_input_option="USER_ENTERED")
+    return len(rows)
+
+
+def save_bids_batch(bids_list: list[dict]) -> int:
+    """
+    Bids 시트에 신규 건만 한 번에 배치 저장 (API 호출 1회).
+    - 리스트 비어 있으면 바로 0 반환.
+    - 기존 시트의 bidNtceNo를 get_all_values()로 한 번만 읽어 중복 제거 후, 진짜 신규 건만 append_rows.
+    """
+    if not bids_list:
+        return 0
+
+    ws = get_bids_sheet()
+    try:
+        all_values = ws.get_all_values()
+    except Exception:
+        all_values = []
+
+    # 헤더 제외, 첫 번째 열(bidNtceNo)만 set으로
+    existing = set()
+    if len(all_values) > 1:
+        for row in all_values[1:]:
+            if row and len(row) > 0 and str(row[0]).strip():
+                existing.add(str(row[0]).strip())
+
+    new_only = [r for r in bids_list if str(r.get("bidNtceNo", "")).strip() not in existing]
+    if not new_only:
+        return 0
+
+    rows = [_bid_to_row(r) for r in new_only]
+    ws.append_rows(rows, value_input_option="USER_ENTERED")
     return len(rows)
 
 

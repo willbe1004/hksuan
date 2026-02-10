@@ -20,11 +20,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests gspread google-auth python-dotenv urllib3
+          pip install -r crawler/requirements.txt urllib3
 
       - name: Run crawler
         env:
           NARA_API_KEY: ${{ secrets.NARA_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SPREADSHEET_NAME: ${{ vars.SPREADSHEET_NAME || 'Rainmaker_DB' }}
           SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
         run: |

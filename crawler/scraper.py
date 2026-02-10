@@ -1,12 +1,12 @@
 """
 나라장터 입찰공고 API 호출 및 데이터 파싱
-GAS와 동일한 엔드포인트: /ad/BidPublicInfoService, type=xml
+검색 전용 PPSSrch 엔드포인트 사용 (웹 검색과 동일)
 """
 import os
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from pathlib import Path
-
+from urllib.parse import quote
 import requests
 import urllib3
 
@@ -21,8 +21,10 @@ DETAIL_KEYWORDS = [
     "빗물", "저류", "우수", "침수",
 ]
 
-# GAS와 동일: /ad/ 경로, 02 없음
-BASE_URL = "https://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoServc"
+# 검색 전용 엔드포인트 (웹 검색과 동일, bidNtceNm 검색 지원)
+BASE_URL = "https://apis.data.go.kr/1230000/BidPublicInfoService02/getBidPblancListInfoServcPPSSrch"
+# 02 버전 500 시 폴백 (일부 환경에서 02 미지원)
+BASE_URL_FALLBACK = "https://apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoServcPPSSrch"
 
 
 def _load_env():
@@ -37,65 +39,99 @@ def _load_env():
 
 def fetch_nara_bids():
     """
-    나라장터 API 호출 (GAS 동작 모방).
-    - params 딕셔너리 사용하지 않음 (requests 인코딩 방지)
-    - ServiceKey를 맨 앞에 두고 f-string으로 URL 직접 조립
+    나라장터 API 호출 - 검색 전용 PPSSrch 엔드포인트.
+    - 수집 기간: 오늘 기준 최근 3개월 (동적 계산)
+    - inqryDiv=1, bidNtceNm='설계' 유지
     """
     _load_env()
     api_key = os.getenv("NARA_API_KEY")
     if not api_key or not api_key.strip():
         raise ValueError("NARA_API_KEY가 .env에 설정되지 않았습니다.")
 
-    # 날짜: 실행일 기준 과거 60일 00:00 ~ 오늘 23:59 (누락 방지, 중복은 sheet_manager에서 제거)
-    today = datetime.now()
-    start_date = today - timedelta(days=60)
+    # 수집 기간: 시스템 시간 기준 최근 3개월 (동적 계산)
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=90)
     inqry_bgn = start_date.strftime("%Y%m%d") + "0000"
-    inqry_end = today.strftime("%Y%m%d") + "2359"
+    inqry_end = end_date.strftime("%Y%m%d") + "2359"
+    print(f"[INFO] 수집 기간: {start_date.strftime('%Y년 %m월 %d일')} ~ {end_date.strftime('%Y년 %m월 %d일')} (최근 3개월)")
+    bid_ntce_nm = quote("설계")  # URL 인코딩 필수
 
-    # [핵심] ServiceKey를 맨 앞에, 나머지 파라미터 뒤에. params 사용 안 함.
-    # bidNtceNm 제거 (전체 조회 후 Python 필터링)
-    full_url = (
-        BASE_URL
-        + "?ServiceKey="
-        + api_key
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    }
+
+    # ServiceKey에 +, / 등이 있으면 URL 인코딩 (500 방지)
+    service_key_encoded = quote(api_key.strip(), safe="")
+    base_params = (
+        "?ServiceKey=" + service_key_encoded
         + "&inqryDiv=1"
-        + "&inqryBgnDt=" + inqry_bgn
-        + "&inqryEndDt=" + inqry_end
-        + "&numOfRows=200"
+        + "&bidNtceNm=" + bid_ntce_nm
         + "&pageNo=1"
+        + "&numOfRows=100"
         + "&type=xml"
     )
 
-    print(f"[DEBUG] 최종 full_url:\n{full_url}\n")
+    try:
+        items = []
+        # 1) 02 엔드포인트: 3개월 단일 호출
+        full_url_02 = BASE_URL + base_params + "&inqryBgnDt=" + inqry_bgn + "&inqryEndDt=" + inqry_end
+        resp = requests.get(full_url_02, headers=headers, verify=False, timeout=30)
+        print(f"[DEBUG] API 호출(02): {inqry_bgn[:8]}~{inqry_end[:8]}, bidNtceNm=설계, status={resp.status_code}")
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
-    }
+        if resp.status_code == 200:
+            root = ET.fromstring(resp.content)
+            result_code_el = root.find(".//resultCode")
+            result_code = result_code_el.text if result_code_el is not None and result_code_el.text else ""
+            if result_code in ("00", "0"):
+                items = root.findall(".//item") or root.findall(".//{*}item")
+                print(f"[DEBUG] API(02) 원시 item 총합: {len(items)}건")
+            else:
+                print(f"[DEBUG] 02 resultCode={result_code}, 응답:\n{resp.text[:1500]}")
+        else:
+            print(f"[DEBUG] 02 응답 본문(전체): {resp.text}")
+
+        # 2) 02 실패 또는 0건 시 폴백: ad 서비스는 기간 2일 초과 시 07 에러 → 2일 단위 분할
+        if not items:
+            current = start_date
+            while current <= end_date:
+                week_end = min(current + timedelta(days=2), end_date)
+                bgn = current.strftime("%Y%m%d") + "0000"
+                end = week_end.strftime("%Y%m%d") + "2359"
+                start_str, end_str = bgn[:8], end[:8]
+                try:
+                    full_url = BASE_URL_FALLBACK + base_params + "&inqryBgnDt=" + bgn + "&inqryEndDt=" + end
+                    r = requests.get(full_url, headers=headers, verify=False, timeout=20)
+                    if r.status_code != 200:
+                        current = week_end + timedelta(days=1)
+                        continue
+                    rt = ET.fromstring(r.content)
+                    rc = rt.find(".//resultCode")
+                    if rc is not None and rc.text and rc.text not in ("00", "0"):
+                        current = week_end + timedelta(days=1)
+                        continue
+                    its = rt.findall(".//item") or rt.findall(".//{*}item")
+                    items.extend(its)
+                    if its:
+                        print(f"[DEBUG] 폴백 {start_str}~{end_str}: {len(its)}건")
+                except (ET.ParseError, AttributeError, requests.RequestException, OSError) as e:
+                    print(f"[ERROR] {start_str} ~ {end_str} 건너뜀 ({e})")
+                except Exception as e:
+                    print(f"[ERROR] {start_str} ~ {end_str} 건너뜀 ({e})")
+                current = week_end + timedelta(days=1)
+            print(f"[DEBUG] API(폴백) 원시 item 총합: {len(items)}건")
+
+        if not items:
+            print("[DEBUG] item 0건 → 02/폴백 모두 데이터 없음. (02 사용 시 마지막 응답 본문 확인)")
+            if resp and getattr(resp, "text", None):
+                print(resp.text[:2000])
+    except ET.ParseError as e:
+        print(f"[DEBUG] XML 파싱 실패: {e}\n응답 본문:\n{resp.text[:2000] if resp.text else '(empty)'}")
+        return []
+    except Exception as e:
+        print(f"[DEBUG] 요청 예외: {e}")
+        return []
 
     try:
-        response = requests.get(full_url, headers=headers, verify=False, timeout=10)
-
-        print(f"[DEBUG] 응답 코드: {response.status_code}")
-
-        if response.status_code != 200:
-            print(f"[ERROR] 서버 응답 본문: {response.text[:300]}")
-            return []
-
-        # XML 파싱
-        root = ET.fromstring(response.content)
-
-        # 에러 메시지 확인
-        err_msg = root.find(".//returnAuthMsg") or root.find(".//errMsg")
-        if err_msg is not None and err_msg.text:
-            print(f"[API ERROR] {err_msg.text}")
-            return []
-
-        # item 요소들 추출 (네임스페이스 고려)
-        items = root.findall(".//item")
-        if not items:
-            items = root.findall(".//{*}item")
-
-        print(f"[DEBUG] API 원시 item 수: {len(items)}")
         results = []
         for item in items:
             bid_name_el = item.find("bidNtceNm") or item.find("{*}bidNtceNm")
@@ -112,8 +148,10 @@ def fetch_nara_bids():
             bid_no_el = item.find("bidPblancNo") or item.find("bidNtceNo") or item.find("{*}bidPblancNo") or item.find("{*}bidNtceNo")
             bid_no = bid_no_el.text if bid_no_el is not None and bid_no_el.text else ""
 
-            link = ""
-            if bid_no:
+            # 링크: API의 bidNtceDtlUrl 최우선, 없으면 bidPblancNo로 조립 (차수 -00 등은 태그 값이 정확함)
+            link_el = item.find("bidNtceDtlUrl") or item.find("{*}bidNtceDtlUrl")
+            link = (link_el.text or "").strip() if link_el is not None and link_el.text else ""
+            if not link and bid_no:
                 link = f"https://www.g2b.go.kr/ep/invitation/publish/bidPblancDtl.do?bidPblancNo={bid_no}"
 
             bid_dt_el = item.find("bidNtceDt") or item.find("{*}bidNtceDt")

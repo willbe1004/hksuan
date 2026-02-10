@@ -16,11 +16,10 @@ def _setup():
 _setup()
 
 from scraper import fetch_nara_bids
+from ai_analyst import analyze_bid
 from sheet_manager import (
-    append_bids,
-    get_bids_sheet,
-    get_existing_bid_nos,
     log_to_sheet,
+    save_bids_batch,
 )
 
 
@@ -38,18 +37,18 @@ def run():
 
         log_to_sheet("INFO", f"API 수집 {len(items)}건", "scraper")
 
-        # 2. sheet_manager: 중복 체크 후 저장
-        bids_ws = get_bids_sheet()
-        existing = get_existing_bid_nos(bids_ws)
+        # 2. AI 분석: 각 공고에 rating, reason 추가 (results에 계속 담김)
+        for r in items:
+            result = analyze_bid(r.get("bidNtceNm", ""), r.get("procMethod", ""))
+            r["AI_Rating"] = result.get("rating", "C")
+            r["AI_Reason"] = result.get("reason", "")
 
-        to_save = [r for r in items if str(r.get("bidNtceNo", "")).strip() not in existing]
-
-        if not to_save:
+        # 3. 시트 저장: 배치 1회 호출 (중복 제거 후 신규 건만 저장)
+        count = save_bids_batch(items)
+        if count == 0:
             log_to_sheet("INFO", "금일 신규 건수 없음 (전체 중복)", "sheet_manager")
-            return 0
-
-        count = append_bids(bids_ws, to_save)
-        log_to_sheet("INFO", f"Bids 시트 저장 {count}건 완료", "sheet_manager")
+        else:
+            log_to_sheet("INFO", f"Bids 시트 저장 {count}건 완료 (AI 분석 포함)", "sheet_manager")
         return 0
 
     except FileNotFoundError as e:
