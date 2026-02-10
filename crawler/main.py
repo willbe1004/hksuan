@@ -37,9 +37,9 @@ def run():
 
         log_to_sheet("INFO", f"API 수집 {len(items)}건", "scraper")
 
-        # 2. AI 분석: 각 공고에 rating, reason 추가 (results에 계속 담김)
+        # 2. AI 분석: 각 공고(거북이 모드 4초 + 지수 백오프)
         for r in items:
-            result = analyze_bid(r.get("bidNtceNm", ""), r.get("procMethod", ""))
+            result = analyze_bid(r)
             r["AI_Rating"] = result.get("rating", "C")
             r["AI_Reason"] = result.get("reason", "")
 
